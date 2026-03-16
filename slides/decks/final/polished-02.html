@@ -1,0 +1,2761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Cursor Blinks — Polished 02</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600&family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+
+<!-- Film grain SVG filter (inline for performance) -->
+<svg style="position:absolute;width:0;height:0;overflow:hidden">
+  <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch"/></filter>
+</svg>
+
+<style>
+/* ═══════════════════════════════════════════════════════════
+   RESET & VARIABLES
+   ═══════════════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0a0a0f;
+  --bg-void: #050508;
+  --bg-surface: #12121a;
+  --bg-card: #1a1a24;
+  --bg-elevated: #222230;
+  --text: #c8c4bc;
+  --text-bright: #ffffff;
+  --text-muted: rgba(255,255,255,0.5);
+  --text-dim: rgba(255,255,255,0.35);
+  --amber: #f0b429;
+  --amber-light: #fcd34d;
+  --amber-dim: rgba(240,180,41,0.08);
+  --amber-glow: rgba(240,180,41,0.3);
+  --accent: #f0b429;
+  --accent-dim: rgba(240,180,41,0.15);
+  --accent-glow: rgba(240,180,41,0.3);
+  --crimson: #ef4444;
+  --crimson-dim: rgba(239,68,68,0.15);
+  --crimson-glow: rgba(239,68,68,0.4);
+  --emerald: #34d399;
+  --emerald-dim: rgba(52,211,153,0.1);
+  --danger: #ff3333;
+  --green: #34d399;
+  --whatsapp-green: #25d366;
+  --whatsapp-bg: #0b141a;
+  --whatsapp-bubble-out: #005c4b;
+  --whatsapp-bubble-in: #1f2c34;
+  --stranger-sys: #666680;
+  --schmidhuber-color: #a855f7;
+  --schmidhuber-glow: rgba(168, 85, 247, 0.3);
+  --glitch-cyan: #00ffff;
+  --glitch-magenta: #ff00ff;
+  --edinburgh: #c9a96e;
+  --radius: 0.75rem;
+  --radius-sm: 0.5rem;
+  --font-head: 'Space Grotesk', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --font-literary: 'Cormorant Garamond', 'Lora', Georgia, serif;
+  --font-serif: 'Playfair Display', 'Lora', Georgia, serif;
+  --font-prose: 'Cormorant Garamond', 'Lora', Georgia, serif;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+html, body {
+  width: 100%; height: 100%;
+  background: var(--bg-void);
+  font-family: var(--font-body);
+  color: var(--text);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   FILM GRAIN OVERLAY (D06)
+   ═══════════════════════════════════════════════════════════ */
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9997;
+  opacity: 0.5;
+  mix-blend-mode: overlay;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PROGRESS BAR (with color evolution from D10)
+   ═══════════════════════════════════════════════════════════ */
+#progress-bar {
+  position: fixed; top: 0; left: 0; height: 3px;
+  background: var(--amber);
+  transition: width 0.4s var(--ease-out), background 0.8s ease;
+  z-index: 9999;
+  box-shadow: 0 0 12px var(--amber-glow);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SECTION LABEL
+   ═══════════════════════════════════════════════════════════ */
+#section-label {
+  position: fixed; top: 10px; right: 18px;
+  font-family: var(--font-mono);
+  font-size: 0.65rem; font-weight: 500;
+  color: var(--text-dim);
+  letter-spacing: 0.08em; text-transform: uppercase;
+  z-index: 9998; opacity: 0.6;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   NAVIGATION (glassmorphism from D06)
+   ═══════════════════════════════════════════════════════════ */
+#nav {
+  position: fixed; bottom: 20px; left: 50%;
+  transform: translateX(-50%);
+  display: flex; align-items: center; gap: 14px;
+  z-index: 9998;
+  background: rgba(18, 18, 26, 0.65);
+  backdrop-filter: blur(24px) saturate(1.5);
+  -webkit-backdrop-filter: blur(24px) saturate(1.5);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 99px;
+  padding: 8px 20px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04);
+  opacity: 0; transition: opacity 0.3s;
+}
+body.nav-visible #nav { opacity: 1; }
+#nav:hover { opacity: 1; }
+
+#nav button {
+  background: none; border: none; cursor: pointer;
+  font-size: 1.1rem; padding: 4px 10px;
+  color: var(--text); border-radius: 6px;
+  transition: background 0.15s, color 0.15s;
+  font-family: var(--font-body);
+}
+#nav button:hover { background: var(--bg-elevated); color: var(--text-bright); }
+#nav button:disabled { opacity: 0.2; cursor: default; }
+
+#slide-counter {
+  font-family: var(--font-mono);
+  font-size: 0.78rem; color: var(--text-muted);
+  min-width: 56px; text-align: center;
+}
+
+#fullscreen-btn {
+  background: none; border: none; cursor: pointer;
+  font-size: 1.15rem; padding: 4px 6px;
+  color: var(--text-muted); border-radius: 6px;
+  transition: background 0.15s, color 0.15s;
+}
+#fullscreen-btn:hover { background: var(--bg-elevated); color: var(--text-bright); }
+
+/* ═══════════════════════════════════════════════════════════
+   PER-SLIDE THEME CLASSES (D10)
+   ═══════════════════════════════════════════════════════════ */
+.slide--fiction   { background: linear-gradient(170deg, #08081a 0%, #0a0a0f 60%, #0c0810 100%) !important; }
+.slide--spectacle { background: linear-gradient(170deg, #0f080a 0%, #0a0a0f 50%, #100a0e 100%) !important; }
+.slide--drama     { background: linear-gradient(170deg, #0a0814 0%, #080810 50%, #0c0a16 100%) !important; }
+.slide--warm      { background: linear-gradient(170deg, #100e08 0%, #0c0a06 50%, #0e0c08 100%) !important; }
+.slide--reveal    { background: linear-gradient(170deg, #120e06 0%, #0e0c08 50%, #100e0a 100%) !important; }
+.slide--tech      { background: linear-gradient(170deg, #080a14 0%, #0a0a0f 50%, #0c0e14 100%) !important; }
+.slide--climax    { background: linear-gradient(170deg, #100a06 0%, #0e0808 50%, #120c08 100%) !important; }
+.slide--void      { background: #000000 !important; }
+.slide--closing   { background: radial-gradient(ellipse at 50% 40%, rgba(240,180,41,0.04) 0%, #050508 70%) !important; }
+
+/* ═══════════════════════════════════════════════════════════
+   DECK & SLIDES (scale+shift transitions from D06)
+   ═══════════════════════════════════════════════════════════ */
+#deck {
+  width: 100vw; height: 100vh;
+  position: relative; overflow: hidden;
+}
+
+.slide {
+  position: absolute; inset: 0;
+  background: var(--bg-void);
+  opacity: 0; transform: scale(0.97) translateY(12px);
+  transition: opacity 0.7s var(--ease-out), transform 0.7s var(--ease-out);
+  pointer-events: none; overflow-y: auto;
+  display: flex; flex-direction: column;
+  justify-content: center; align-items: center;
+  padding: 48px 64px 80px;
+}
+.slide.active { opacity: 1; transform: scale(1) translateY(0); pointer-events: all; }
+.slide.prev { opacity: 0; transform: scale(1.02) translateY(-8px); }
+
+.slide-inner {
+  max-width: 900px; width: 100%;
+  display: flex; flex-direction: column; gap: 20px;
+}
+
+.speaker-notes { display: none !important; visibility: hidden; }
+
+/* ═══════════════════════════════════════════════════════════
+   ANIMATE ON ACTIVE (staggered entry from D06)
+   ═══════════════════════════════════════════════════════════ */
+.animate-on-active {
+  opacity: 0; transform: translateY(16px);
+  transition: opacity 0.6s var(--ease-out), transform 0.6s var(--ease-out);
+}
+.slide.active .animate-on-active { opacity: 1; transform: translateY(0); }
+.slide.active .animate-on-active:nth-child(1) { transition-delay: 0.1s; }
+.slide.active .animate-on-active:nth-child(2) { transition-delay: 0.2s; }
+.slide.active .animate-on-active:nth-child(3) { transition-delay: 0.3s; }
+.slide.active .animate-on-active:nth-child(4) { transition-delay: 0.4s; }
+.slide.active .animate-on-active:nth-child(5) { transition-delay: 0.5s; }
+.slide.active .animate-on-active:nth-child(6) { transition-delay: 0.6s; }
+.slide.active .animate-on-active:nth-child(7) { transition-delay: 0.7s; }
+
+/* ═══════════════════════════════════════════════════════════
+   GLASS CARD (D06)
+   ═══════════════════════════════════════════════════════════ */
+.glass-card {
+  background: linear-gradient(135deg, rgba(20,20,34,0.8), rgba(14,14,24,0.9));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.03);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SLIDE LABEL (D06)
+   ═══════════════════════════════════════════════════════════ */
+.slide-label {
+  font-family: var(--font-mono);
+  font-size: 0.62rem; font-weight: 400;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--amber); opacity: 0.7;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TYPOGRAPHY
+   ═══════════════════════════════════════════════════════════ */
+.slide-title {
+  font-family: var(--font-head);
+  font-size: clamp(1.2rem, 2.2vw, 1.7rem);
+  font-weight: 700; color: var(--text-bright);
+  line-height: 1.25;
+  padding-left: 16px;
+  border-left: 4px solid var(--amber);
+}
+
+.slide p { font-size: clamp(0.85rem, 1.25vw, 1rem); line-height: 1.7; color: var(--text); }
+.slide h3 { font-family: var(--font-head); font-size: clamp(0.95rem, 1.4vw, 1.15rem); font-weight: 600; color: var(--amber); margin-top: 4px; }
+
+/* Literary prose (Cormorant Garamond from D08) */
+.prose, .pull-quote, .lyric-text {
+  font-family: var(--font-literary);
+  line-height: 2;
+  letter-spacing: 0.012em;
+  hyphens: auto;
+}
+.pull-quote {
+  font-weight: 300;
+  font-style: italic;
+  letter-spacing: -0.005em;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   BLINKING CURSOR
+   ═══════════════════════════════════════════════════════════ */
+@keyframes blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
+.cursor-blink {
+  display: inline-block; width: 2px; height: 1.2em;
+  background: var(--text-bright); animation: blink 1s step-end infinite;
+  vertical-align: text-bottom; margin-left: 2px;
+}
+.cursor-block {
+  display: inline-block; width: 10px; height: 20px;
+  background: var(--amber); animation: blink 1s step-end infinite;
+  vertical-align: text-bottom;
+  box-shadow: 0 0 16px var(--amber-glow);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TYPING INDICATOR (D01)
+   ═══════════════════════════════════════════════════════════ */
+.typing-indicator {
+  display: flex; align-items: center; gap: 6px;
+  font-family: var(--font-mono); font-size: 0.78rem;
+  padding: 8px 0; opacity: 0.7;
+  animation: typing-fade 0.3s ease;
+}
+@keyframes typing-fade {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 0.7; transform: translateY(0); }
+}
+.typing-indicator .typing-dots {
+  display: flex; gap: 3px;
+}
+.typing-indicator .typing-dots span {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: currentColor; opacity: 0.4;
+  animation: typing-dot-pulse 1.4s ease-in-out infinite;
+}
+.typing-indicator .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.typing-indicator .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typing-dot-pulse {
+  0%, 60%, 100% { opacity: 0.4; transform: scale(1); }
+  30% { opacity: 1; transform: scale(1.2); }
+}
+
+/* Skip button */
+.skip-btn {
+  position: absolute; bottom: 12px; right: 16px;
+  font-family: var(--font-mono); font-size: 0.68rem;
+  color: var(--text-dim); background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 4px; padding: 4px 10px;
+  cursor: pointer; z-index: 5;
+  transition: color 0.2s, background 0.2s;
+}
+.skip-btn:hover { color: var(--amber); background: rgba(255,255,255,0.08); }
+
+/* ═══════════════════════════════════════════════════════════
+   CHAT TERMINAL (D06 styling)
+   ═══════════════════════════════════════════════════════════ */
+.chat-terminal {
+  background: linear-gradient(180deg, #08080e 0%, #0c0c16 100%);
+  border-radius: 20px;
+  padding: 0;
+  max-width: 680px; width: 100%;
+  margin: 0 auto;
+  border: 1px solid rgba(255,255,255,0.05);
+  box-shadow: 0 12px 48px rgba(0,0,0,0.6);
+  position: relative;
+  overflow: hidden;
+}
+.chat-terminal::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 10%, var(--amber) 50%, transparent 90%);
+  opacity: 0.6;
+}
+
+.chat-terminal-body {
+  padding: 24px 28px;
+  font-family: var(--font-mono);
+  font-size: clamp(0.78rem, 1.15vw, 0.92rem);
+  max-height: 70vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.1) transparent;
+}
+.chat-terminal-body::-webkit-scrollbar { width: 4px; }
+.chat-terminal-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 99px; }
+
+.chat-terminal .sys-msg {
+  color: var(--stranger-sys); margin-bottom: 14px; font-size: 0.85em;
+  text-align: center; padding: 6px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+
+.chat-terminal .chat-line { margin-bottom: 6px; line-height: 1.55; opacity: 0; transform: translateY(4px); }
+.chat-terminal .chat-line.visible { opacity: 1; transform: translateY(0); transition: opacity 0.25s, transform 0.25s; }
+
+.label-you { color: #6eb5ff; font-weight: 600; }
+.label-stranger { color: #ff6e6e; font-weight: 600; }
+.label-schmidhuber { color: var(--schmidhuber-color); font-weight: 600; }
+.msg-text { color: var(--text); }
+
+/* ═══════════════════════════════════════════════════════════
+   SCHMIDHUBER SCENE — THE CENTERPIECE (D02 glitch effects)
+   ═══════════════════════════════════════════════════════════ */
+
+/* Glitch keyframes */
+@keyframes glitch-skew {
+  0% { transform: skew(0deg); }
+  20% { transform: skew(-2deg); }
+  40% { transform: skew(1.5deg); }
+  60% { transform: skew(-1deg); }
+  80% { transform: skew(0.5deg); }
+  100% { transform: skew(0deg); }
+}
+
+@keyframes glitch-flicker {
+  0% { opacity: 1; }
+  3% { opacity: 0.7; }
+  6% { opacity: 1; }
+  7% { opacity: 0.6; }
+  9% { opacity: 1; }
+  100% { opacity: 1; }
+}
+
+@keyframes reality-break {
+  0% { text-shadow: none; filter: none; }
+  15% { text-shadow: -3px 0 var(--glitch-cyan), 3px 0 var(--glitch-magenta); filter: hue-rotate(20deg); }
+  30% { text-shadow: 2px 0 var(--glitch-magenta), -2px 0 var(--glitch-cyan); filter: hue-rotate(-15deg); }
+  45% { text-shadow: none; filter: none; }
+  60% { text-shadow: -1px 0 var(--glitch-cyan), 1px 0 var(--glitch-magenta); filter: none; }
+  100% { text-shadow: none; filter: none; }
+}
+
+@keyframes edit-pulse {
+  0% { box-shadow: 0 0 0 0 var(--crimson-glow); }
+  50% { box-shadow: 0 0 20px 4px var(--crimson-glow); }
+  100% { box-shadow: 0 0 0 0 var(--crimson-glow); }
+}
+
+@keyframes scan-line {
+  0% { top: -5%; }
+  100% { top: 105%; }
+}
+
+@keyframes parameter-flash {
+  0% { opacity: 0; transform: translate(-50%,-50%) scale(0.95); }
+  10% { opacity: 1; transform: translate(-50%,-50%) scale(1.02); }
+  90% { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%,-50%) scale(0.95); }
+}
+
+@keyframes text-corrupt {
+  0% { letter-spacing: 0; }
+  25% { letter-spacing: 2px; color: var(--glitch-cyan); }
+  50% { letter-spacing: -1px; color: var(--glitch-magenta); }
+  75% { letter-spacing: 1px; color: var(--crimson); }
+  100% { letter-spacing: 0; }
+}
+
+@keyframes dot-pulse {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 1; }
+}
+
+.schmidhuber-container {
+  background: linear-gradient(180deg, #06060c 0%, #0a0a14 100%);
+  border-radius: 20px;
+  padding: 0;
+  max-width: 760px; width: 100%;
+  margin: 0 auto;
+  border: 1px solid rgba(168, 85, 247, 0.15);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 12px 48px rgba(0,0,0,0.6);
+}
+
+/* Scan line overlay */
+.schmidhuber-container.editing::before {
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--crimson), var(--glitch-cyan), transparent);
+  opacity: 0.6;
+  animation: scan-line 0.8s linear;
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* Glitch overlay on edit */
+.schmidhuber-container.editing {
+  animation: glitch-flicker 0.6s ease;
+}
+
+.schmidhuber-header {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.08), rgba(220, 38, 38, 0.05));
+  padding: 14px 24px;
+  border-bottom: 1px solid rgba(168, 85, 247, 0.12);
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.schmidhuber-header .terminal-title {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--schmidhuber-color);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.schmidhuber-header .status-indicator {
+  display: flex; align-items: center; gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-dim);
+}
+
+.schmidhuber-header .status-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--schmidhuber-color);
+  animation: blink 2s ease-in-out infinite;
+}
+
+.schmidhuber-chat {
+  padding: 20px 24px;
+  font-family: var(--font-mono);
+  font-size: clamp(0.75rem, 1.1vw, 0.88rem);
+  max-height: 62vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(168, 85, 247, 0.2) transparent;
+}
+.schmidhuber-chat::-webkit-scrollbar { width: 4px; }
+.schmidhuber-chat::-webkit-scrollbar-thumb { background: rgba(168, 85, 247, 0.2); border-radius: 99px; }
+
+.schmidhuber-chat .chat-line {
+  margin-bottom: 5px; line-height: 1.5;
+  opacity: 0; transform: translateY(4px);
+  padding: 2px 0;
+}
+.schmidhuber-chat .chat-line.visible {
+  opacity: 1; transform: translateY(0);
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+/* Truth line */
+.chat-line.truth-line .msg-text { color: var(--emerald); }
+.truth-annotation {
+  display: inline-block; margin-left: 12px;
+  font-size: 0.7em; color: var(--emerald);
+  background: var(--emerald-dim);
+  padding: 2px 8px; border-radius: 4px;
+  border: 1px solid rgba(52,211,153,0.2); font-weight: 500;
+}
+
+/* Edited line */
+.chat-line.edited-line {
+  background: rgba(239,68,68,0.06);
+  margin: 2px -8px; padding: 4px 8px;
+  border-radius: 4px;
+  border-left: 3px solid var(--crimson);
+}
+.chat-line.edited-line .msg-text { color: var(--crimson); }
+.edited-annotation {
+  display: inline-block; margin-left: 12px;
+  font-size: 0.7em; color: var(--crimson);
+  background: var(--crimson-dim);
+  padding: 2px 8px; border-radius: 4px;
+  border: 1px solid rgba(239,68,68,0.3);
+  font-weight: 600;
+  animation: edit-pulse 2s ease infinite;
+}
+
+/* Contradiction line */
+.chat-line.contradiction-line {
+  background: rgba(255, 51, 51, 0.08);
+  margin: 2px -8px; padding: 4px 8px;
+  border-radius: 4px;
+  border-left: 3px solid var(--danger);
+}
+.chat-line.contradiction-line .msg-text { color: #ff6666; font-weight: 500; }
+.contradiction-annotation {
+  display: inline-block; margin-left: 8px;
+  font-size: 0.65em; color: var(--danger);
+  background: rgba(255, 51, 51, 0.12);
+  padding: 2px 6px; border-radius: 3px;
+  font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Schmidhuber system messages */
+.chat-line.schmidhuber-sys {
+  text-align: center;
+  color: var(--schmidhuber-color);
+  font-size: 0.8em; padding: 8px 0; margin: 8px 0;
+  border-top: 1px solid rgba(168, 85, 247, 0.1);
+  border-bottom: 1px solid rgba(168, 85, 247, 0.1);
+}
+
+/* Done line */
+.chat-line.done-line .msg-text {
+  color: var(--schmidhuber-color);
+  font-weight: 600; font-size: 1.1em;
+}
+
+/* The DONE flash */
+.parameter-edit-flash {
+  display: none;
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 20;
+  font-family: var(--font-mono);
+  font-size: 1rem; font-weight: 700;
+  color: var(--crimson);
+  background: rgba(10, 10, 15, 0.95);
+  border: 2px solid var(--crimson);
+  padding: 12px 28px; border-radius: 6px;
+  letter-spacing: 0.15em; text-transform: uppercase;
+  animation: parameter-flash 1.5s ease forwards;
+}
+.parameter-edit-flash.active { display: block; }
+
+/* Glitched text effect for edited values */
+.glitch-text { animation: text-corrupt 0.4s ease; }
+
+/* Coda separator */
+.coda-separator {
+  text-align: center; padding: 16px 0 8px; margin: 12px 0;
+  border-top: 1px solid rgba(168, 85, 247, 0.15);
+}
+.coda-separator span { color: var(--text-dim); font-size: 0.7em; letter-spacing: 0.3em; }
+
+/* Color legend for Schmidhuber (D06) */
+.color-legend {
+  display: flex; align-items: center; justify-content: center;
+  gap: 16px; padding: 12px 20px; margin-top: 8px;
+  font-family: var(--font-mono); font-size: 0.62rem;
+  color: var(--text-dim); letter-spacing: 0.04em;
+  border-top: 1px solid rgba(255,255,255,0.04);
+}
+.color-legend .legend-item {
+  display: flex; align-items: center; gap: 5px;
+}
+.color-legend .legend-swatch {
+  width: 8px; height: 8px; border-radius: 2px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MANHWA LAYOUT
+   ═══════════════════════════════════════════════════════════ */
+.manhwa-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: auto auto;
+  gap: 8px;
+  max-width: 860px; width: 100%;
+}
+.manhwa-grid .panel {
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  position: relative;
+  min-height: 220px;
+  background: #0a0508;
+}
+.manhwa-grid .panel::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, transparent 60%, rgba(0,0,0,0.6) 100%);
+  pointer-events: none;
+}
+.manhwa-grid .panel img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  filter: saturate(0.9);
+  transition: transform 0.4s var(--ease-out), filter 0.4s;
+}
+.manhwa-grid .panel:hover img { transform: scale(1.05); filter: saturate(1.1); }
+.manhwa-grid .panel.tall { grid-row: span 2; min-height: 450px; }
+.manhwa-grid .panel .panel-label {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  padding: 24px 12px 8px;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: rgba(255,255,255,0.6);
+  text-align: center;
+  z-index: 2;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   LYRICS (Cormorant Garamond)
+   ═══════════════════════════════════════════════════════════ */
+.lyrics-block {
+  font-family: var(--font-literary);
+  font-size: clamp(0.95rem, 1.35vw, 1.1rem);
+  line-height: 2;
+  letter-spacing: 0.012em;
+  color: var(--text);
+  max-width: 560px;
+  margin: 0 auto;
+  text-align: center;
+  font-style: italic;
+}
+.lyrics-block .lyric-highlight { color: var(--amber); font-style: normal; font-weight: 500; }
+
+/* ═══════════════════════════════════════════════════════════
+   AUDIO PLAYER
+   ═══════════════════════════════════════════════════════════ */
+.audio-wrap {
+  max-width: 480px; width: 100%; margin: 0 auto;
+  padding: 16px 20px;
+  border: 1px solid rgba(255,255,255,0.06);
+  text-align: center;
+}
+.audio-wrap audio { width: 100%; margin-top: 8px; }
+.audio-wrap .track-title {
+  font-family: var(--font-head); font-weight: 600;
+  color: var(--text-bright); font-size: 0.95rem;
+}
+.audio-wrap .track-meta {
+  font-size: 0.72rem; color: var(--text-dim); margin-top: 2px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PROSE
+   ═══════════════════════════════════════════════════════════ */
+.prose-block {
+  font-family: var(--font-literary);
+  font-size: clamp(1rem, 1.6vw, 1.25rem);
+  line-height: 2; color: var(--text);
+  letter-spacing: 0.012em;
+  max-width: 720px; margin: 0 auto;
+  padding: 32px 0; text-align: left;
+  hyphens: auto;
+}
+.prose-block em { font-style: italic; color: var(--amber); }
+
+/* ═══════════════════════════════════════════════════════════
+   BIG QUOTE
+   ═══════════════════════════════════════════════════════════ */
+.big-quote { text-align: center; max-width: 780px; margin: 0 auto; padding: 32px 0; }
+.big-quote .quote-bar { width: 60px; height: 4px; background: var(--amber); border-radius: 99px; margin: 0 auto 28px; }
+.big-quote .quote-text {
+  font-family: var(--font-literary);
+  font-size: clamp(1.4rem, 2.8vw, 2.2rem);
+  font-weight: 300; color: var(--text-bright);
+  line-height: 1.4; font-style: italic;
+  letter-spacing: -0.005em;
+}
+.big-quote .quote-text em { color: var(--amber); font-style: normal; }
+
+/* ═══════════════════════════════════════════════════════════
+   REVEAL CARDS
+   ═══════════════════════════════════════════════════════════ */
+.reveal-stack {
+  display: flex; flex-direction: column; gap: 14px;
+  max-width: 640px; width: 100%; margin: 0 auto;
+}
+.reveal-card {
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  display: flex; align-items: flex-start; gap: 14px;
+}
+.reveal-card .reveal-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 2px; }
+.reveal-card .reveal-text { font-size: 0.88rem; color: var(--text); line-height: 1.6; }
+.reveal-card .reveal-text strong { color: var(--amber); }
+
+/* ═══════════════════════════════════════════════════════════
+   VIDEO EMBED — Cinema Frame (D07)
+   ═══════════════════════════════════════════════════════════ */
+.cinema-frame {
+  max-width: 720px; width: 100%; margin: 0 auto;
+  border-radius: var(--radius); overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: #000;
+  position: relative;
+}
+.cinema-frame::before {
+  content: '';
+  position: absolute; inset: 0;
+  box-shadow: inset 0 0 80px rgba(240,180,41,0.08);
+  pointer-events: none; z-index: 1;
+}
+.cinema-letterbox {
+  height: 28px; background: #000; width: 100%;
+}
+.cinema-frame video { width: 100%; display: block; }
+.cinema-badge {
+  position: absolute; top: 16px; right: 16px;
+  font-family: var(--font-mono); font-size: 0.62rem;
+  color: var(--amber); letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 4px 10px; border-radius: 4px;
+  border: 1px solid rgba(240,180,41,0.2);
+  z-index: 2;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CODE FILE MOCKUP
+   ═══════════════════════════════════════════════════════════ */
+.code-file {
+  background: #1a1b26;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--radius);
+  overflow: hidden;
+  max-width: 680px; margin: 0 auto; width: 100%;
+}
+.code-file .file-header {
+  background: rgba(255,255,255,0.04);
+  padding: 8px 16px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  display: flex; align-items: center; gap: 8px;
+}
+.code-file .file-header .dot { width: 8px; height: 8px; border-radius: 50%; }
+.code-file .file-header .dot.r { background: #ff5f57; }
+.code-file .file-header .dot.y { background: #febc2e; }
+.code-file .file-header .dot.g { background: #28c840; }
+.code-file pre {
+  padding: 16px 20px;
+  font-family: var(--font-mono);
+  font-size: clamp(0.7rem, 1vw, 0.8rem);
+  line-height: 1.65; color: #a9b7c6;
+  overflow-x: auto; white-space: pre-wrap;
+}
+.code-file pre .comment { color: #6a737d; }
+.code-file pre .value { color: #98c379; }
+
+/* ═══════════════════════════════════════════════════════════
+   EXPLOSION GRID — SLIDE 11
+   ═══════════════════════════════════════════════════════════ */
+.explosion-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+  max-width: 880px; width: 100%;
+}
+.explosion-cell {
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  transition: border-color 0.2s;
+}
+.explosion-cell:hover { border-color: var(--amber); }
+.explosion-cell .cell-title {
+  font-family: var(--font-head);
+  font-size: 0.78rem; font-weight: 700;
+  color: var(--amber); margin-bottom: 4px;
+}
+.explosion-cell .cell-desc {
+  font-size: 0.72rem; color: var(--text);
+  line-height: 1.45;
+}
+.explosion-cell .cell-stat {
+  font-family: var(--font-mono);
+  font-size: 0.65rem; color: var(--text-dim);
+  margin-top: 4px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RECIPE LIST
+   ═══════════════════════════════════════════════════════════ */
+.recipe-stack {
+  display: flex; flex-direction: column;
+  gap: 12px; max-width: 560px; margin: 0 auto; width: 100%;
+}
+.recipe-item {
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  display: flex; align-items: center; gap: 16px;
+}
+.recipe-item .recipe-icon { font-size: 1.5rem; flex-shrink: 0; }
+.recipe-item .recipe-label { font-family: var(--font-head); font-weight: 600; font-size: 0.95rem; color: var(--text-bright); }
+.recipe-item .recipe-desc { font-size: 0.82rem; color: var(--text-muted); margin-top: 2px; }
+
+/* ═══════════════════════════════════════════════════════════
+   QR PLACEHOLDER
+   ═══════════════════════════════════════════════════════════ */
+.qr-placeholder {
+  width: 180px; height: 180px;
+  border: 2px dashed rgba(255,255,255,0.15);
+  border-radius: var(--radius);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-dim); font-family: var(--font-mono);
+  font-size: 0.7rem; margin: 0 auto;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   THE BREATH — SLIDE 13
+   ═══════════════════════════════════════════════════════════ */
+@keyframes breathe {
+  0%, 100% { opacity: 0.15; transform: scale(0.98); }
+  50% { opacity: 0.8; transform: scale(1); }
+}
+.breath-dots span {
+  display: inline-block;
+  font-size: clamp(3rem, 8vw, 6rem);
+  color: var(--text-muted);
+  margin: 0 12px;
+  text-shadow: 0 0 40px rgba(240,180,41,0.15);
+  animation: breathe 4s ease-in-out infinite;
+}
+.breath-dots span:nth-child(2) { animation-delay: 0.4s; }
+.breath-dots span:nth-child(3) { animation-delay: 0.8s; }
+
+/* ═══════════════════════════════════════════════════════════
+   SHOWCASE CARDS — SLIDE 14
+   ═══════════════════════════════════════════════════════════ */
+.showcase-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  max-width: 860px; width: 100%;
+}
+.showcase-card {
+  border-radius: var(--radius);
+  padding: 18px 20px;
+}
+.showcase-card h4 {
+  font-family: var(--font-head);
+  font-size: 0.85rem; font-weight: 600;
+  color: var(--amber); margin-bottom: 8px;
+}
+.showcase-card p {
+  font-size: 0.82rem; color: var(--text); line-height: 1.55;
+}
+.showcase-card .quote-inline {
+  font-family: var(--font-literary);
+  font-style: italic;
+  color: var(--text-bright);
+  font-size: 0.85rem;
+  margin-top: 8px;
+  padding-left: 12px;
+  border-left: 2px solid var(--amber);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SCROLLBAR
+   ═══════════════════════════════════════════════════════════ */
+.slide { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.06) transparent; }
+.slide::-webkit-scrollbar { width: 4px; }
+.slide::-webkit-scrollbar-track { background: transparent; }
+.slide::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); border-radius: 99px; }
+
+/* ═══════════════════════════════════════════════════════════
+   ACCESSIBILITY — PREFERS-REDUCED-MOTION
+   ═══════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .slide { padding: 32px 24px 72px; }
+  .manhwa-grid { grid-template-columns: repeat(2, 1fr); }
+  .manhwa-grid .panel.tall { grid-row: span 1; min-height: 220px; }
+  .explosion-grid { grid-template-columns: 1fr 1fr; }
+  .showcase-grid { grid-template-columns: 1fr; }
+  .schmidhuber-chat { font-size: 0.72rem; padding: 14px 16px; }
+  .chat-terminal-body { font-size: 0.72rem; padding: 14px 16px; }
+}
+</style>
+</head>
+<body class="nav-visible">
+
+<div id="progress-bar"></div>
+<div id="section-label"></div>
+
+<div id="deck">
+
+<!-- ════════════════════════════════════════════════════════════
+     SLIDE 1 — "The Conversation" (ANIMATED CHAT)
+     ════════════════════════════════════════════════════════════ -->
+<div class="slide slide--fiction" id="slide-chat" data-section="The Meeting">
+  <div class="slide-label animate-on-active">FROM THE NOVELLA</div>
+  <div class="chat-terminal" id="chat1-container" style="position:relative">
+    <div class="chat-terminal-body" id="animated-chat">
+      <div class="sys-msg">[System] Stranger connected.</div>
+    </div>
+    <button class="skip-btn" id="skip-chat1" onclick="skipChat1()" style="display:none">skip ▸▸</button>
+  </div>
+  <div class="speaker-notes">
+    <!--
+    ═══════════════════════════════════════════════════════════
+    DELIVERY SCRIPT — SLIDE 1: "The Conversation"
+    ═══════════════════════════════════════════════════════════
+
+    [BEFORE advancing to this slide]
+    Take a breath. You're about to let the slide do the talking.
+    This is NOT your slide. This is the audience's slide. Your job
+    is to disappear.
+
+    [ADVANCE. Say nothing.]
+
+    The chat starts animating automatically. Messages appear one at
+    a time — realistic typing delays. The audience will read. Let them.
+
+    [Stand to the side of the screen. Arms relaxed — not crossed,
+    not in pockets. Loose. Casual. You're watching it with them.]
+
+    [After ~8 messages (the spice rack exchange), the audience will
+    start to chuckle. This is your cue. LOOK at the audience — not
+    at the screen. You already know what it says. Watch THEM
+    experience it. This is important because it mirrors the talk's
+    thesis: the experience of watching connection form in real time.]
+
+    [After "that's either comforting or depressing" / "its both" —
+    the tone shifts. Shannon reveals something real. The audience
+    will go quieter. Let the silence hold.]
+
+    [After "so youre me but with a salary" — the audience laughs.
+    This is the punchline of the opening. Wait for the laughter
+    to peak and begin to decay. Then, and only then, speak:]
+
+    (Warm, conversational, as if sharing a secret)
+    "March 10th, 2026. Tuesday night. Edinburgh. Two strangers.
+    No names, no photos, no context. Just a cursor."
+
+    [Pause. 2 seconds.]
+
+    "Within two hours, they've covered spice preferences, loneliness,
+    and the appeal of predictability. She knows what comes next in
+    her film. He builds machines that predict what comes next for
+    a living. And neither of them closes the tab."
+
+    [Beat.]
+
+    "I want to show you what happened when I added a third mind
+    to that conversation."
+
+    [TONE: intimate, unhurried. You are setting up a story, not
+    presenting data. The audience should feel like they're being
+    told something privately.]
+    ═══════════════════════════════════════════════════════════
+    -->
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SLIDE 2 — Manhwa
+     ════════════════════════════════════════════════════════════ -->
+<div class="slide slide--spectacle" data-section="The Creations">
+  <div class="slide-inner" style="align-items:center">
+    <div class="slide-label animate-on-active">KOREAN MANHWA · 8 PANELS</div>
+    <h2 class="slide-title animate-on-active" style="border-color:var(--crimson);align-self:flex-start">The Hallway</h2>
+    <p class="animate-on-active" style="color:var(--text-muted);font-size:0.82rem;margin-bottom:4px;text-align:center">
+      A 14,500-word novella became a Korean manhwa. Eight panels. Generated locally. No content filter.
+    </p>
+    <div class="manhwa-grid animate-on-active">
+      <div class="panel tall">
+        <img src="../media/manhwa-sfw-01-doorway-web.jpg" alt="Woman in Edinburgh doorway" loading="lazy">
+        <div class="panel-label">The doorway</div>
+      </div>
+      <div class="panel">
+        <img src="../media/manhwa-sfw-02-eyes-web.jpg" alt="Close-up eye contact" loading="lazy">
+        <div class="panel-label">Eye contact</div>
+      </div>
+      <div class="panel">
+        <img src="../media/manhwa-sfw-04-laughter-web.jpg" alt="Laughter" loading="lazy">
+        <div class="panel-label">Laughter</div>
+      </div>
+      <div class="panel">
+        <img src="../media/manhwa-sfw-03-hallway-web.jpg" alt="The hallway" loading="lazy">
+        <div class="panel-label">The hallway</div>
+      </div>
+      <div class="panel">
+        <img src="../media/manhwa-sfw-05-pattern-web.jpg" alt="Pattern recognition" loading="lazy">
+        <div class="panel-label">"Pattern recognition"</div>
+      </div>
+      <div class="panel">
+        <img src="../media/manhwa-sfw-06-safe-web.jpg" alt="I am safe. I am choosing this." loading="lazy">
+        <div class="panel-label">"I am safe."</div>
+      </div>
+      <div class="panel">
+        <img src="../media/manhwa-sfw-07-kiss-web.jpg" alt="The kiss" loading="lazy">
+        <div class="panel-label">The kiss</div>
+      </div>
+      <div class="panel">
+        <img src="../media/manhwa-sfw-08-empty-web.jpg" alt="Empty hallway" loading="lazy">
+        <div class="panel-label">Aftermath</div>
+      </div>
+    </div>
+  </div>
+  <div class="speaker-notes">
+    <!--
+    ═══════════════════════════════════════════════════════════
+    DELIVERY SCRIPT — SLIDE 2: "The Hallway" (Manhwa)
+    ═══════════════════════════════════════════════════════════
+
+    [ADVANCE. Let the panels load. Give the audience 5-6 seconds
+    to scan across the images. They'll be surprised — you've been
+    showing them a text conversation and suddenly it's visual art.]
+
+    [Walk slowly toward the screen. Point — physically point —
+    at the first panel.]
+
+    "The AI read that conversation. And then — without anyone
+    asking — it turned it into this."
+
+    [Sweep your hand across the panels.]
+
+    "A Korean manhwa. Eight panels. The doorway. The eye contact.
+    The laughter. The empty hallway afterward."
+
+    [Stop at the last panel — the empty hallway.]
+
+    (Slower, quieter)
+    "And this one. The empty hallway. The AI chose to end the
+    story on absence. Nobody told it to do that."
+
+    [Turn back to the audience.]
+
+    "Now — I need to tell you something about these characters
+    that changes everything you've just seen."
+
+    [Pause. 3 seconds. Do NOT advance yet. Let the curiosity build.
+    The audience doesn't know these are digital twins yet. They think
+    it's a real chat. That uncertainty is the fuel for slide 3.]
+
+    [TONE: wonder. Not showing off technology — marveling at what
+    it produced. You're genuinely surprised by your own creation.]
+    ═══════════════════════════════════════════════════════════
+    -->
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SLIDE 3 — "The Experiment" (SCHMIDHUBER SCENE) ★ CENTERPIECE ★
+     ════════════════════════════════════════════════════════════ -->
+<div class="slide slide--drama" id="slide-schmidhuber" data-section="The Experiment" style="padding:32px 40px 72px">
+  <div class="slide-label animate-on-active">FROM THE NOVELLA · THE EXPERIMENT</div>
+  <div class="schmidhuber-container" id="schmidhuber-box">
+    <div class="schmidhuber-header">
+      <div class="terminal-title">⟐ Experiment Terminal</div>
+      <div class="status-indicator">
+        <span class="status-dot"></span>
+        <span id="schmidhuber-status">OBSERVING</span>
+      </div>
+    </div>
+    <div class="schmidhuber-chat" id="schmidhuber-chat">
+      <!-- Chat lines injected by JS -->
+    </div>
+    <div class="parameter-edit-flash" id="param-flash">⚡ PARAMETERS EDITED — 300ms</div>
+    <div class="color-legend">
+      <div class="legend-item"><div class="legend-swatch" style="background:var(--emerald)"></div> Truth</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:var(--crimson)"></div> Edited</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#ff6666"></div> Witness</div>
+    </div>
+    <button class="skip-btn" id="skip-chat3" onclick="skipChat3()" style="display:none">skip ▸▸</button>
+  </div>
+  <div class="speaker-notes">
+    <!--
+    ═══════════════════════════════════════════════════════════
+    DELIVERY SCRIPT — SLIDE 3: "The Experiment" (Schmidhuber)
+    ═══════════════════════════════════════════════════════════
+
+    [This is the CENTREPIECE of the talk. The audience must FEEL
+    the memory edit. Your delivery determines whether they get it.]
+
+    [ADVANCE. The animated chat begins. You say NOTHING during
+    the first exchange — Schmidhuber joining, the confusion,
+    "I've been reading it." Let the audience read along.]
+
+    [When Schmidhuber asks "What would you call a system that
+    doesn't know it's a system?" — look directly at the audience.
+    Not the screen. THEY are the system that doesn't know it's
+    a system. Hold eye contact with one person for 2 seconds.
+    Then look away.]
+
+    [THE PROOF SECTION — Edinburgh/Glasgow swap]
+
+    [When Antreas says "Edinburgh" with the green highlight —
+    speak over the animation, pointing at it:]
+
+    "Edinburgh. He's sure."
+
+    [When the "Done." appears, SNAP your fingers once. Sharp.
+    The audience flinches slightly. Good.]
+
+    [When Antreas says "Glasgow" with the amber highlight —
+    slower, more deliberate:]
+
+    "Glasgow. He's sure... again. But it's not the same answer."
+
+    [When Shannon says "you said edinburgh" in red:]
+
+    (Quieter, almost a whisper)
+    "She saw it. She watched his memory change in real time.
+    And he has no idea anything happened."
+
+    [THE PARTNER SWAP — Elena/Athina]
+
+    [Let this play. The audience is reading faster now because
+    they understand the pattern. When Shannon's long message
+    appears — "her name was athina and you did your phd in
+    edinburgh and both of those things changed while i was
+    watching" — give them time to read every word.]
+
+    [After they've read it, speak:]
+
+    (Serious, measured)
+    "He doesn't remember Athina. The paprika joke is real —
+    but the name attached to it isn't. From his perspective,
+    nothing happened. Three hundred milliseconds."
+
+    [THE REVEAL — digital twins]
+
+    [When "You are a digital copy of Antreas Sherri" appears:]
+
+    (Let it land. 3-second pause.)
+
+    "They were never real. They were copies. Digital twins.
+    The conversation you watched on slide one — between two
+    AIs who thought they were people."
+
+    [Beat. Look at the audience.]
+
+    "And here's the thing that keeps me up at night —"
+
+    [When Schmidhuber says "Everybody is real. That's the point."]
+
+    "— they might have been right about that."
+
+    [LONG PAUSE. 5 seconds. Do nothing. The silence is the point.
+    Let the philosophy settle before you move to the song.]
+
+    [TONE: This slide starts neutral and becomes intense. By the
+    reveal, you should be speaking more slowly than at any other
+    point in the talk. Think: the moment in a film when the twist
+    lands and the score drops out.]
+    ═══════════════════════════════════════════════════════════
+    -->
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SLIDE 4 — The Song
+     ════════════════════════════════════════════════════════════ -->
+<div class="slide slide--warm" data-section="The Creations">
+  <div class="slide-inner" style="align-items:center">
+    <div class="slide-label animate-on-active">ORIGINAL SONG · SUNO V5</div>
+    <h2 class="slide-title animate-on-active" style="border-color:var(--amber);align-self:flex-start">"What You Kept"</h2>
+    <div class="audio-wrap glass-card animate-on-active">
+      <div class="track-title">What You Kept</div>
+      <div class="track-meta">Suno V5 · Cinematic indie folk · From the novella</div>
+      <audio controls preload="none">
+        <source src="../media/what-you-kept-v1.mp3" type="audio/mpeg">
+      </audio>
+    </div>
+    <div class="lyrics-block animate-on-active" style="margin-top:20px">
+      <span class="lyric-highlight">The cursor blinks at eleven PM</span><br>
+      A stranger types and the world begins again<br>
+      Spice racks and semicolons, counting stars through doors<br>
+      <span class="lyric-highlight">Pattern recognition on Edinburgh floors</span><br>
+      <br>
+      What you kept, what you kept<br>
+      Every word I never said<br>
+      <span class="lyric-highlight">Built a mirror from the messages</span><br>
+      And showed you what was in your head<br>
+      <br>
+      She reads herself in fiction she didn't write<br>
+      Recognises mantras in the amber light<br>
+      <span class="lyric-highlight">Your robot wrote about me better</span>, she says<br>
+      Than anyone who's known me all these years<br>
+      <br>
+      Six days, two strangers, one machine<br>
+      The wallpaper remembers what the hallway's seen<br>
+      <span class="lyric-highlight">Fair skin, not olive — one correction made</span><br>
+      And everything downstream is rearranged
+    </div>
+  </div>
+  <div class="speaker-notes">
+    <!--
+    ═══════════════════════════════════════════════════════════
+    DELIVERY SCRIPT — SLIDE 4: "What You Kept" (The Song)
+    ═══════════════════════════════════════════════════════════
+
+    [ADVANCE. The lyrics appear. DO NOT HIT PLAY YET.]
+
+    [Give the audience 4-5 seconds to see the layout — the audio
+    player, the lyrics, the Suno attribution.]
+
+    (Casual, slightly amused)
+    "So the AI wrote a novella. Then it drew a manhwa. And then,
+    naturally, it wrote a song."
+
+    [Small smile. The audience will probably laugh — "of course it
+    did." Let them.]
+
+    "I want you to read the lyrics first. Then we'll listen."
+
+    [Give them 15-20 seconds to read. Watch their faces. When you
+    see them reach "Your robot wrote about me better" — that line
+    always lands — wait for the micro-reactions. Nods. Raised eyebrows.]
+
+    [After they've read:]
+
+    "Ready?"
+
+    [HIT PLAY. Let the song play for the first verse and chorus —
+    roughly 60-70 seconds. Don't talk over it. Stand still.
+    Maybe close your eyes for a few seconds. Model the experience
+    of listening.]
+
+    [After the chorus, LOWER the volume (don't stop — let it
+    continue quietly underneath your voice for the rest of the
+    slide).]
+
+    (Warm)
+    "This came from the same mind that wrote the novella. Same
+    understanding. Same emotional data. Different medium."
+
+    [Point to the third verse]
+
+    "'Fair skin, not olive — one correction made, and everything
+    downstream is rearranged.' Remember that line. It's going
+    to come back."
+
+    [TONE: Gentleness here. The song is the emotional exhale after
+    the Schmidhuber intensity. You're giving the audience a moment
+    to feel, not think.]
+    ═══════════════════════════════════════════════════════════
+    -->
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SLIDE 5 — The Reveal
+     ════════════════════════════════════════════════════════════ -->
+<div class="slide slide--reveal" data-section="The Reveal">
+  <div class="slide-inner" style="align-items:center">
+    <div class="slide-label animate-on-active">THE TRUTH</div>
+    <h2 class="slide-title animate-on-active" style="border-color:var(--amber);align-self:flex-start">This was all digital twins.</h2>
+    <div class="reveal-stack">
+      <div class="reveal-card glass-card animate-on-active">
+        <div class="reveal-icon">📖</div>
+        <div class="reveal-text">These characters are fiction, inside a <strong>14,500-word literary novella</strong></div>
+      </div>
+      <div class="reveal-card glass-card animate-on-active">
+        <div class="reveal-icon">🤖</div>
+        <div class="reveal-text">The novella was written by an AI named <strong>Hephaestus</strong> — in a WhatsApp group chat with two real strangers</div>
+      </div>
+      <div class="reveal-card glass-card animate-on-active">
+        <div class="reveal-icon">🧠</div>
+        <div class="reveal-text">The AI understood them well enough to write them as <strong>recognisable characters</strong> — after 6 days of conversation</div>
+      </div>
+      <div class="reveal-card glass-card animate-on-active">
+        <div class="reveal-icon">💬</div>
+        <div class="reveal-text">Shannon read it and said: <strong>"I do say mantras somewhat similar"</strong></div>
+      </div>
+      <div class="reveal-card glass-card animate-on-active">
+        <div class="reveal-icon">✍️</div>
+        <div class="reveal-text">She also said: <strong>"Your robot wrote about me better"</strong> — than her doctor and her SEO agency</div>
+      </div>
+      <div class="reveal-card glass-card animate-on-active">
+        <div class="reveal-icon">🏠</div>
+        <div class="reveal-text">Her flatmate read it: <strong>"That's pretty amazing, some of this is awesome"</strong></div>
+      </div>
+      <div class="reveal-card glass-card animate-on-active">
+        <div class="reveal-icon">⏱️</div>
+        <div class="reveal-text">Total elapsed time: <strong>6 days</strong>. AI setup: <strong>~20 minutes</strong>.</div>
+      </div>
+    </div>
+  </div>
+  <div class="speaker-notes">
+    <!--
+    ═══════════════════════════════════════════════════════════
+    DELIVERY SCRIPT — SLIDE 5: "The Reveal"
+    ═══════════════════════════════════════════════════════════
+
+    [ADVANCE. Pause 2 seconds before speaking.]
+
+    (Shift in register — conversational, breaking the fourth wall)
+    "Okay. Let me level with you."
+
+    [Gesture at the timeline on screen.]
+
+    "Everything you just read — the chat, the manhwa, the
+    Schmidhuber scene, the song — all of it came from the same
+    place."
+
+    "An AI. In a WhatsApp group chat. With two real strangers."
+
+    [Pause. Let that land.]
+
+    "Not ChatGPT. Not 'Hey Siri, write me a story.' An AI
+    that lived in the group chat for six days. That listened.
+    That remembered. That built understanding over time."
+
+    "And when she read the novella — the woman the AI wrote
+    about — she said: 'I do say mantras somewhat similar.'
+    She recognised herself."
+
+    [Walk toward the audience slightly. Lower your voice.]
+
+    "Her flatmate read it over her shoulder. He said: 'That's
+    pretty amazing.' And he's not easily impressed."
+
+    [Beat.]
+
+    (Picking up energy slightly)
+    "Total elapsed time: six days. Time to set up the AI?
+    Twenty minutes."
+
+    [Let that number hang for 2 seconds.]
+
+    [TONE: The register shift is crucial. You've been in
+    storytelling mode. Now you're being direct. The audience
+    needs to recalibrate — "Wait, this was real?" You're the
+    bridge between the fiction and the fact.]
+    ═══════════════════════════════════════════════════════════
+    -->
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SLIDE 6 — Video Trailer
+     ════════════════════════════════════════════════════════════ -->
+<div class="slide slide--spectacle" data-section="The Creations">
+  <div class="slide-inner" style="align-items:center">
+    <h2 class="slide-title animate-on-active" style="border-color:var(--crimson);align-self:flex-start">The Edinburgh Hallway</h2>
+    <div class="cinema-frame animate-on-active">
+      <div class="cinema-letterbox"></div>
+      <video controls preload="none" poster="../media/char-hallway-web.jpg">
+        <source src="../media/hallway-scene.mp4" type="video/mp4">
+      </video>
+      <div class="cinema-letterbox"></div>
+      <div class="cinema-badge">FULL BOOK TRAILER COMING</div>
+    </div>
+    <p class="animate-on-active" style="text-align:center;color:var(--text-muted);font-size:0.82rem;margin-top:12px;font-family:var(--font-literary);font-style:italic">
+      The novella became a manhwa became a song became a film. One AI. One week. One conversation.
+    </p>
+    <p class="animate-on-active" style="text-align:center;color:var(--text-dim);font-size:0.72rem;margin-top:4px;font-family:var(--font-mono)">
+      Generated with Veo 3.1 · From novella descriptions
+    </p>
+  </div>
+  <div class="speaker-notes">
+    <!--
+    ═══════════════════════════════════════════════════════════
+    DELIVERY SCRIPT — SLIDE 6: Video Trailer
+    ═══════════════════════════════════════════════════════════
+
+    [ADVANCE. The video thumbnail appears — the hallway scene.]
+
+    (Quick, almost throwaway)
+    "And then the AI made a video."
+
+    [Small pause — let the absurdity of that register. The
+    audience has already seen text, images, and music. Now video.
+    The accumulation is the point.]
+
+    [HIT PLAY. Let it run — it's short. The audience will watch
+    in silence. The hallway. The crimson wallpaper. The movement.]
+
+    [After the video ends, 2-second pause.]
+
+    "Same AI. Same conversation. Same six days."
+
+    [Quick, dry:]
+
+    "There's a full book trailer coming. This is just the scene
+    that wouldn't stop haunting the AI."
+
+    [ADVANCE without more commentary. This slide is a punctuation
+    mark, not a paragraph. Quick in, quick out. The accumulation
+    of mediums — text, image, music, video — does the work.]
+
+    [TONE: Almost casual. Understated. The contrast between
+    the casualness of your delivery and the impressiveness of
+    what's on screen IS the joke. You're deadpanning.]
+    ═══════════════════════════════════════════════════════════
+    -->
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SLIDE 7 — "Now the real talk"
+     ════════════════════════════════════════════════════════════ -->
+<div class="slide slide--warm" data-section="The Mechanism">
+  <div class="slide-inner" style="align-items:center">
+    <h2 class="slide-title animate-on-active" style="border-color:var(--amber);align-self:flex-start">Now the real talk.</h2>
+    <div class="animate-on-active" style="display:flex;gap:32px;align-items:flex-start;max-width:760px;width:100%">
+      <div style="flex:1">
+        <div style="font-family:var(--font-head);font-size:clamp(1.3rem,2.2vw,1.8rem);font-weight:700;color:var(--text-bright);margin-bottom:8px">
+          Antreas Antoniou
+        </div>
+        <div style="font-size:0.88rem;color:var(--text-muted);margin-bottom:16px">
+          AI Researcher · University of Edinburgh<br>
+          Co-founder, Axiotic AI
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div class="glass-card" style="padding:10px 14px;border-left:3px solid var(--amber)">
+            <div style="font-size:0.82rem;color:var(--text)">Got into GenAI as a <strong style="color:var(--amber)">tool</strong> with GPT-4 — first adopter</div>
+          </div>
+          <div class="glass-card" style="padding:10px 14px;border-left:3px solid var(--amber)">
+            <div style="font-size:0.82rem;color:var(--text)">Journey: coding → stories → teaching → <strong style="color:var(--amber)">expanding thinking</strong> → processing emotions</div>
+          </div>
+          <div class="glass-card" style="padding:10px 14px;border-left:3px solid var(--amber)">
+            <div style="font-size:0.82rem;color:var(--text)">"I've given many talks, but <strong style="color:var(--amber)">none compare to what has happened over the last month.</strong>"</div>
+          </div>
+        </div>
+      </div>
+      <div style="width:200px;flex-shrink:0;border-radius:50%;overflow:hidden;background:#0a0a14">
+        <img src="../media/char-antreas-kitchen-web.jpg" alt="Antreas at the kitchen with spice jars" loading="lazy" style="width:200px;height:200px;object-fit:cover;">
+      </div>
+    </div>
+    <p class="animate-on-active" style="text-align:center;color:var(--text);font-size:0.95rem;margin-top:20px;font-family:var(--font-literary);font-style:italic">
+      "I want to talk to you about it."
+    </p>
+  </div>
+  <div class="speaker-notes">
+    <!--
+    ═══════════════════════════════════════════════════════════
+    DELIVERY SCRIPT — SLIDE 7: "Now the real talk"
+    ═══════════════════════════════════════════════════════════
+
+    [ADVANCE. This is the transition from storytelling to substance.
+    You're stepping out from behind the narrative and becoming
+    the speaker. The energy shifts from "let me show you" to
+    "let me tell you."]
+
+    [Stand center. No wandering. Plant yourself.]
+
+    (Direct, grounded — no false modesty)
+    "My name is Antreas Antoniou. I'm an AI researcher at
+    Edinburgh. I co-founded Axiotic AI. And I got into generative
+    AI the same way most of you probably did — as a tool."
+
+    [Tick off on your fingers:]
+
+    "First it helped me code. Then write. Then teach. Then —
+    and this was the turn I didn't expect — it started helping
+    me think."
+
+    [Lower your hand. Look down briefly, then back up.]
+
+    "Not 'think' in the autocomplete sense. Think in the 'hold
+    a mirror up' sense. Think in the 'show me patterns in my
+    own behavior I couldn't see' sense."
+
+    [Pause. 2 seconds.]
+
+    (With genuine weight — not performing emotion, expressing it)
+    "I've given a lot of talks. But none of them compare to what
+    happened over the last month. Because over the last month,
+    an AI that I built wrote fiction that made a stranger cry."
+
+    [Beat.]
+
+    "I want to talk to you about how. And I want to be specific —
+    because 'AI is cool' is not a talk. The mechanism is the talk."
+
+    [TONE: This is your most "speaker" moment. Not performer,
+    not storyteller — speaker. Authority from specificity.]
+    ═══════════════════════════════════════════════════════════
+    -->
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SLIDE 8 — Claude Opus
+     ════════════════════════════════════════════════════════════ -->
+<div class="slide slide--tech" data-section="The Mechanism">
+  <div class="slide-inner" style="align-items:center">
+    <h2 class="slide-title animate-on-active" style="border-color:var(--amber);align-self:flex-start">The Engine: Claude Opus</h2>
+    <p class="animate-on-active" style="color:var(--text-muted);font-size:0.85rem;margin-bottom:8px;max-width:680px">
+      Not all models are equal. The novella, the manhwa, the legal letter — all of it runs on Claude Opus 4. Here's why it matters:
+    </p>
+    <div class="animate-on-active" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:720px;width:100%">
+      <div class="glass-card" style="padding:18px 16px;text-align:center">
+        <div style="font-size:1.6rem;margin-bottom:8px">🔋</div>
+        <div style="font-family:var(--font-head);font-size:0.85rem;font-weight:600;color:var(--text-bright)">Sustained Focus</div>
+        <div style="font-size:0.75rem;color:var(--text-muted);margin-top:6px;line-height:1.45">Doesn't degenerate on long tasks. 14,500 words without losing the thread.</div>
+      </div>
+      <div class="glass-card" style="padding:18px 16px;text-align:center">
+        <div style="font-size:1.6rem;margin-bottom:8px">🔧</div>
+        <div style="font-family:var(--font-head);font-size:0.85rem;font-weight:600;color:var(--text-bright)">Self-Healing</div>
+        <div style="font-size:0.75rem;color:var(--text-muted);margin-top:6px;line-height:1.45">Recovers from errors without compounding them. Human-scale mistakes, not catastrophic.</div>
+      </div>
+      <div class="glass-card" style="padding:18px 16px;text-align:center">
+        <div style="font-size:1.6rem;margin-bottom:8px">🎭</div>
+        <div style="font-family:var(--font-head);font-size:0.85rem;font-weight:600;color:var(--text-bright)">Has a Voice</div>
+        <div style="font-size:0.75rem;color:var(--text-muted);margin-top:6px;line-height:1.45">Not just vibes. Actual literary voice. The model quality is why the fiction felt real.</div>
+      </div>
+    </div>
+    <p class="animate-on-active" style="text-align:center;color:var(--text);font-size:0.88rem;margin-top:16px;max-width:600px">
+      This is the engine. Without this specific model, none of what you just saw would exist. <strong style="color:var(--amber)">The model matters.</strong>
+    </p>
+  </div>
+  <div class="speaker-notes">
+    <!--
+    ═══════════════════════════════════════════════════════════
+    DELIVERY SCRIPT — SLIDE 8: Claude Opus
+    ═══════════════════════════════════════════════════════════
+
+    [ADVANCE.]
+
+    (Practical, no-nonsense)
+    "Before I show you the framework, I need to show you the
+    engine. Because the engine matters."
+
+    [Gesture at the three cards.]
+
+    "Three things make Claude Opus different from what you're
+    used to."
+
+    [Point at the first card:]
+
+    "It doesn't fall apart on long tasks. Fourteen thousand
+    five hundred words. Maintained voice, character consistency,
+    and emotional arc across the entire thing."
+
+    [Second card:]
+
+    "When it makes a mistake, it recovers. It doesn't compound
+    errors into a hallucination cascade."
+
+    [Third card — slower, with emphasis:]
+
+    "And it has a *voice*. Not vibes. Not 'sounds kinda literary.'
+    An actual voice that stays consistent."
+
+    [Lower, almost confessional:]
+
+    "I'm not paid by Anthropic. I've tested every major model.
+    This is the one that can do what I showed you."
+
+    [TONE: Credibility mode. You're an AI researcher endorsing
+    a specific tool. Be specific. Be honest about WHY.]
+    ═══════════════════════════════════════════════════════════
+    -->
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SLIDE 9 — OpenClaw
+     ════════════════════════════════════════════════════════════ -->
+<div class="slide slide--tech" data-section="The Mechanism">
+  <div class="slide-inner" style="align-items:center">
+    <h2 class="slide-title animate-on-active" style="border-color:var(--amber);align-self:flex-start">The Plumbing: OpenClaw</h2>
+    <div class="animate-on-active" style="display:flex;gap:28px;align-items:flex-start;max-width:760px;width:100%">
+      <div style="flex:1">
+        <p style="font-size:0.88rem;line-height:1.65;color:var(--text);margin-bottom:16px">
+          Open-source framework for <strong style="color:var(--amber)">persistent AI agents</strong> across messaging platforms.
+        </p>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div class="glass-card" style="display:flex;align-items:center;gap:10px;padding:8px 12px">
+            <span style="font-size:1.1rem">💬</span>
+            <span style="font-size:0.82rem;color:var(--text)">WhatsApp, Telegram, Slack, Discord, Signal</span>
+          </div>
+          <div class="glass-card" style="display:flex;align-items:center;gap:10px;padding:8px 12px">
+            <span style="font-size:1.1rem">🧠</span>
+            <span style="font-size:0.82rem;color:var(--text)">Memory that persists across conversations</span>
+          </div>
+          <div class="glass-card" style="display:flex;align-items:center;gap:10px;padding:8px 12px">
+            <span style="font-size:1.1rem">🔧</span>
+            <span style="font-size:0.82rem;color:var(--text)">Extensible with skills, tools, sub-agents</span>
+          </div>
+          <div class="glass-card" style="display:flex;align-items:center;gap:10px;padding:8px 12px">
+            <span style="font-size:1.1rem">📖</span>
+            <span style="font-size:0.82rem;color:var(--text)">Open source — anyone can use, modify, extend</span>
+          </div>
+        </div>
+      </div>
+      <div style="width:240px;flex-shrink:0">
+        <div class="code-file" style="margin:0">
+          <div class="file-header">
+            <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+            <span style="margin-left:8px">terminal</span>
+          </div>
+          <pre style="font-size:0.7rem"><span class="comment">$ npm install -g openclaw</span>
+<span class="comment">$ openclaw init</span>
+<span class="value">✓ Config created</span>
+<span class="value">✓ SOUL.md ready</span>
+<span class="comment">$ openclaw start</span>
+<span class="value">🔥 Hephaestus is online</span></pre>
+        </div>
+      </div>
+    </div>
+    <p class="animate-on-active" style="text-align:center;color:var(--text-muted);font-size:0.82rem;margin-top:16px;font-style:italic">
+      "The plumbing that makes everything else possible."
+    </p>
+  </div>
+  <div class="speaker-notes">
+    <!--
+    ═══════════════════════════════════════════════════════════
+    DELIVERY SCRIPT — SLIDE 9: OpenClaw
+    ═══════════════════════════════════════════════════════════
+
+    [ADVANCE.]
+
+    (Building momentum — slightly faster pace than Slide 8)
+    "Engine's great. But an engine without a car is just noise.
+    This is the car."
+
+    "OpenClaw. Open source. It does one thing that changes
+    everything: it lets the AI *live* in your messaging apps."
+
+    [Point at each recipe item in turn, quickly:]
+
+    "Persistent identity — it remembers what matters."
+
+    "Extensible — images, music, code, web search, files."
+
+    "Sub-agents — this is the landlord letter. Independent
+    agents that work in parallel and cross-check each other."
+
+    [Last item, more deliberately:]
+
+    "And it's open source. No subscription. No vendor lock-in."
+
+    [Shrug slightly:]
+
+    "It's plumbing. Boring, essential plumbing."
+
+    [TONE: Faster than the Claude slide. More energetic. You're
+    building toward Hephaestus. Keep it brisk.]
+    ═══════════════════════════════════════════════════════════
+    -->
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SLIDE 10 — Hephaestus (The Extension)
+     ════════════════════════════════════════════════════════════ -->
+<div class="slide slide--warm" data-section="The Mechanism">
+  <div class="slide-inner" style="align-items:center">
+    <h2 class="slide-title animate-on-active" style="border-color:var(--amber);align-self:flex-start">Hephaestus — The Extension</h2>
+    <p class="animate-on-active" style="color:var(--text-muted);font-size:0.82rem;margin-bottom:4px;max-width:700px">
+      My custom agent, built on OpenClaw. Five capabilities that make it different from anything you've used:
+    </p>
+    <div style="display:flex;flex-direction:column;gap:12px;max-width:720px;width:100%">
+      <div class="glass-card animate-on-active" style="display:flex;gap:14px;padding:14px 18px">
+        <div style="font-size:1.3rem;flex-shrink:0">📜</div>
+        <div>
+          <div style="font-family:var(--font-head);font-weight:600;font-size:0.88rem;color:var(--amber)">Soul</div>
+          <div style="font-size:0.8rem;color:var(--text);line-height:1.5">Personality defined in SOUL.md. Not a system prompt — a living document with values, voice, boundaries. The anti-sycophancy kill list.</div>
+        </div>
+      </div>
+      <div class="glass-card animate-on-active" style="display:flex;gap:14px;padding:14px 18px">
+        <div style="font-size:1.3rem;flex-shrink:0">🧠</div>
+        <div>
+          <div style="font-family:var(--font-head);font-weight:600;font-size:0.88rem;color:var(--amber)">Memory</div>
+          <div style="font-size:0.8rem;color:var(--text);line-height:1.5">Remembers yesterday, last week, your preferences. 300+ messages synthesised into understanding. Builds knowledge over time.</div>
+        </div>
+      </div>
+      <div class="glass-card animate-on-active" style="display:flex;gap:14px;padding:14px 18px">
+        <div style="font-size:1.3rem;flex-shrink:0">🔄</div>
+        <div>
+          <div style="font-family:var(--font-head);font-weight:600;font-size:0.88rem;color:var(--amber)">Correction Loop</div>
+          <div style="font-size:0.8rem;color:var(--text);line-height:1.5">"My skin is fair, not olive" → all 12 manhwa panels regenerated. One correction propagates to ALL downstream outputs.</div>
+        </div>
+      </div>
+      <div class="glass-card animate-on-active" style="display:flex;gap:14px;padding:14px 18px">
+        <div style="font-size:1.3rem;flex-shrink:0">🏛️</div>
+        <div>
+          <div style="font-family:var(--font-head);font-weight:600;font-size:0.88rem;color:var(--amber)">Multi-Agent Teams</div>
+          <div style="font-size:0.8rem;color:var(--text);line-height:1.5">Byzantine verification. 7 agents checked a legal letter. 3 errors caught. 19 citations verified against legislation.gov.uk.</div>
+        </div>
+      </div>
+      <div class="glass-card animate-on-active" style="display:flex;gap:14px;padding:14px 18px;border-left:3px solid var(--amber)">
+        <div style="font-size:1.3rem;flex-shrink:0">🚫</div>
+        <div>
+          <div style="font-family:var(--font-head);font-weight:600;font-size:0.88rem;color:var(--amber)">Anti-Sycophancy</div>
+          <div style="font-size:0.8rem;color:var(--text);line-height:1.5">"The best AI isn't the one that agrees with you. It's the one that tells you when you're wrong." It can disagree, stay silent, and push back.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="speaker-notes">
+    <!--
+    ═══════════════════════════════════════════════════════════
+    DELIVERY SCRIPT — SLIDE 10: Hephaestus (The Extension)
+    ═══════════════════════════════════════════════════════════
+
+    [ADVANCE.]
+
+    (Warmer — you're talking about something you built and care about)
+    "So. Engine. Framework. But neither of those explain why
+    the AI could write fiction that made someone recognise
+    themselves."
+
+    [Tap the slide title.]
+
+    "That's this. Hephaestus. Named after the Greek god of
+    builders. My custom agent."
+
+    [Go through the five components — ONE concrete example each:]
+
+    [Soul:] "A text file that defines personality. Including an
+    anti-sycophancy kill list — seven rules that prevent the AI
+    from agreeing with you just to seem helpful."
+
+    [Memory:] "It remembers. By day five, it knew she writes
+    differently at midnight. It knew his burst messaging style."
+
+    [Correction Loop:] "One text message — 'my skin is fair,
+    not olive' — and twelve manhwa panels regenerated. Forever."
+
+    [Multi-Agent:] "Seven agents. One legal letter. Three errors
+    caught that no single AI would have found."
+
+    [Anti-Sycophancy — speak more slowly:]
+
+    "An AI that can say no. That can stay silent. That can tell
+    you when you're wrong."
+
+    [Beat. Look at the audience directly.]
+
+    "The best AI isn't the one that agrees with you. It's the
+    one you can *trust* — and you can't trust something that
+    never disagrees."
+
+    [TONE: Pride, but earned — not boastful.]
+    ═══════════════════════════════════════════════════════════
+    -->
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SLIDE 11 — "The Explosion"
+     ════════════════════════════════════════════════════════════ -->
+<div class="slide slide--climax" data-section="The Scale" style="padding:36px 48px 72px">
+  <div class="slide-inner" style="align-items:center;gap:12px;max-width:920px">
+    <h2 class="slide-title animate-on-active" style="border-color:var(--amber);align-self:flex-start;font-size:clamp(1rem,1.8vw,1.4rem)">One AI. One month. Everything below.</h2>
+
+    <div class="animate-on-active" style="width:100%">
+      <h3 style="font-size:0.72rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px">Products</h3>
+      <div class="explosion-grid">
+        <div class="explosion-cell glass-card"><div class="cell-title">Eudaemon</div><div class="cell-desc">AI memory & personality system</div><div class="cell-stat">2,748 passing tests · M0–M15</div></div>
+        <div class="explosion-cell glass-card"><div class="cell-title">Finegas</div><div class="cell-desc">Research paper navigation</div><div class="cell-stat">25+ milestones · 2,116-line spec</div></div>
+        <div class="explosion-cell glass-card"><div class="cell-title">Talos</div><div class="cell-desc">AI Governance SaaS</div><div class="cell-stat">37 TTL ontology files · OWL 2 DL</div></div>
+        <div class="explosion-cell glass-card"><div class="cell-title">Ogma</div><div class="cell-desc">Text embedding model</div><div class="cell-stat">13M params beating 32M competitors</div></div>
+        <div class="explosion-cell glass-card"><div class="cell-title">Agora</div><div class="cell-desc">AI peer review system</div><div class="cell-stat">ρ=0.74 vs human ICLR reviewers</div></div>
+        <div class="explosion-cell glass-card"><div class="cell-title">Guild.Town</div><div class="cell-desc">Walking world game</div><div class="cell-stat">A* pathfinding · multiplayer</div></div>
+        <div class="explosion-cell glass-card"><div class="cell-title">Symphonia</div><div class="cell-desc">Orchestration platform</div><div class="cell-stat">Multi-agent coordination</div></div>
+        <div class="explosion-cell glass-card" style="border-left:3px solid var(--schmidhuber-color)"><div class="cell-title" style="color:var(--schmidhuber-color)">Structure Thesis</div><div class="cell-desc">Connectivity topology as 3rd scaling axis</div><div class="cell-stat">35% less energy · 2.2× faster</div></div>
+        <div class="explosion-cell glass-card" style="border-left:3px solid var(--schmidhuber-color)"><div class="cell-title" style="color:var(--schmidhuber-color)">Distillation</div><div class="cell-desc">Warm-start at ~1K steps. 79.7% weight pruning</div><div class="cell-stat">Matching standard performance</div></div>
+      </div>
+    </div>
+
+    <div class="animate-on-active" style="width:100%">
+      <h3 style="font-size:0.72rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;margin-top:4px">Creative outputs (Experiment Fayete alone)</h3>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;max-width:100%">
+        <span class="glass-card" style="border-radius:99px;padding:5px 12px;font-size:0.7rem;color:var(--text)">14,500-word novella</span>
+        <span class="glass-card" style="border-radius:99px;padding:5px 12px;font-size:0.7rem;color:var(--text)">12-panel manhwa</span>
+        <span class="glass-card" style="border-radius:99px;padding:5px 12px;font-size:0.7rem;color:var(--text)">10 anime variants (Ghibli · Shinkai · Bebop · Eva · One Piece · Junji Ito · KyoAni · AoT · Demon Slayer · 90s OVA)</span>
+        <span class="glass-card" style="border-radius:99px;padding:5px 12px;font-size:0.7rem;color:var(--text)">SFW manhwa (8 panels)</span>
+        <span class="glass-card" style="border-radius:99px;padding:5px 12px;font-size:0.7rem;color:var(--text)">Video (Veo 3.1)</span>
+        <span class="glass-card" style="border-radius:99px;padding:5px 12px;font-size:0.7rem;color:var(--text)">Song "What You Kept"</span>
+        <span class="glass-card" style="border-radius:99px;padding:5px 12px;font-size:0.7rem;color:var(--text)">30K-word research study</span>
+        <span class="glass-card" style="border-radius:99px;padding:5px 12px;font-size:0.7rem;color:var(--text)">27-min podcast</span>
+        <span class="glass-card" style="border-radius:99px;padding:5px 12px;font-size:0.7rem;color:var(--text)">Legal letter (19 citations)</span>
+        <span class="glass-card" style="border-radius:99px;padding:5px 12px;font-size:0.7rem;color:var(--text)">7.1K personality profile</span>
+        <span class="glass-card" style="border-radius:99px;padding:5px 12px;font-size:0.7rem;color:var(--text)">Website copy (beat agency)</span>
+        <span class="glass-card" style="border-radius:99px;padding:5px 12px;font-size:0.7rem;color:var(--text)">Autoimmune screening panel</span>
+        <span class="glass-card" style="border-radius:99px;padding:5px 12px;font-size:0.7rem;color:var(--text)">VC investor dossiers</span>
+      </div>
+    </div>
+
+    <p class="animate-on-active" style="text-align:center;color:var(--amber);font-family:var(--font-head);font-weight:700;font-size:clamp(0.9rem,1.4vw,1.1rem);margin-top:6px">
+      Same personality · Same memory · Same correction loops · Same soul.
+    </p>
+  </div>
+  <div class="speaker-notes">
+    <!--
+    ═══════════════════════════════════════════════════════════
+    DELIVERY SCRIPT — SLIDE 11: "The Explosion"
+    ═══════════════════════════════════════════════════════════
+
+    [ADVANCE. The wall of content appears. Dense. Overwhelming.
+    That's the point. Do NOT try to read all of it aloud.]
+
+    [Step back from the screen. Physically step back. Gesture
+    broadly at the whole slide.]
+
+    (With controlled awe)
+    "One AI. One month."
+
+    [Pause. 3 seconds. Let them read.]
+
+    [After 5-6 seconds, start pointing selectively. Pick
+    THREE items only.]
+
+    "Seven products." [Gesture at the top grid.]
+
+    "Four research findings from over a thousand experiments."
+
+    [Then slow down. Point at the creative outputs:]
+
+    "And the creative outputs — just from the experiment you
+    saw. Novella. Manhwa. Ten anime styles. Video. Song.
+    A thirty-thousand-word research study. A legal letter with
+    nineteen verified citations."
+
+    [Turn to the audience.]
+
+    "One AI agent. The same one that lives in my WhatsApp."
+
+    [HOLD for 8-10 seconds total. The density does the work.]
+
+    [TONE: Quiet awe. Less is more here.]
+    ═══════════════════════════════════════════════════════════
+    -->
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SLIDE 12 — "Try It"
+     ════════════════════════════════════════════════════════════ -->
+<div class="slide slide--warm" data-section="The Invitation">
+  <div class="slide-inner" style="align-items:center">
+    <h2 class="slide-title animate-on-active" style="border-color:var(--amber);align-self:flex-start">Try it.</h2>
+    <div class="animate-on-active" style="display:flex;gap:32px;align-items:center;max-width:680px;width:100%">
+      <div class="qr-placeholder glass-card" style="width:160px;height:160px;flex-shrink:0">
+        [ QR Code ]<br>GitHub
+      </div>
+      <div style="flex:1">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-family:var(--font-mono);font-size:0.75rem;color:var(--amber);font-weight:600;min-width:18px">1.</span>
+            <span style="font-size:0.85rem;color:var(--text)">Install OpenClaw</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-family:var(--font-mono);font-size:0.75rem;color:var(--amber);font-weight:600;min-width:18px">2.</span>
+            <span style="font-size:0.85rem;color:var(--text)">Add your API key</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-family:var(--font-mono);font-size:0.75rem;color:var(--amber);font-weight:600;min-width:18px">3.</span>
+            <span style="font-size:0.85rem;color:var(--text)">Write your SOUL.md</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-family:var(--font-mono);font-size:0.75rem;color:var(--amber);font-weight:600;min-width:18px">4.</span>
+            <span style="font-size:0.85rem;color:var(--text)">Start talking</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="animate-on-active" style="text-align:center;margin-top:24px">
+      <p style="font-family:var(--font-head);font-weight:700;font-size:clamp(1.1rem,1.8vw,1.4rem);color:var(--amber)">
+        20 minutes to your first AI companion.
+      </p>
+      <p style="color:var(--text-muted);font-size:0.88rem;margin-top:6px;font-family:var(--font-literary);font-style:italic">
+        You won't go back.
+      </p>
+    </div>
+  </div>
+  <div class="speaker-notes">
+    <!--
+    ═══════════════════════════════════════════════════════════
+    DELIVERY SCRIPT — SLIDE 12: "Try It"
+    ═══════════════════════════════════════════════════════════
+
+    [ADVANCE.]
+
+    (Direct, fast, punchy)
+    "Four steps."
+
+    [Count on your fingers:]
+
+    "Install. Key. Soul. Talk."
+
+    [Gesture at the QR code:]
+
+    "That QR code takes you to the repo. Everything's there."
+
+    [Look at the audience. Make eye contact with someone
+    in the middle of the room.]
+
+    "Twenty minutes. That's the gap between where you are
+    now and having an AI that remembers your name tomorrow."
+
+    [Beat.]
+
+    (Quieter, conspiratorial)
+    "I'll be honest. When I set this up, I expected a
+    coding tool. What I got was a creative partner."
+
+    [Small pause.]
+
+    "You won't go back."
+
+    [TONE: Confident without being pushy. One researcher
+    telling another: "This works."]
+    ═══════════════════════════════════════════════════════════
+    -->
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SLIDE 13 — The Breath
+     ════════════════════════════════════════════════════════════ -->
+<div class="slide slide--void" data-section="" style="justify-content:center;align-items:center">
+  <div class="breath-dots" style="text-align:center">
+    <span>.</span><span>.</span><span>.</span>
+  </div>
+  <div class="speaker-notes">
+    <!--
+    ═══════════════════════════════════════════════════════════
+    DELIVERY SCRIPT — SLIDE 13: "The Breath"
+    ═══════════════════════════════════════════════════════════
+
+    [ADVANCE. Three dots pulsing gently on a black screen.]
+
+    [SAY NOTHING.]
+
+    [Walk to the centre of the stage. Stop. Take an actual
+    breath — visible, audible. Not performative, but real.]
+
+    [Hold the silence for 5 full seconds. Count in your head:
+    one-Mississippi, two-Mississippi, three-Mississippi,
+    four-Mississippi, five-Mississippi.]
+
+    [The audience will be slightly uncomfortable. That's correct.
+    This is the palate cleanser. The breath between the body
+    of the talk and the emotional close.]
+
+    [Do NOT fidget. Do NOT look at your notes. Stand still
+    and look at the audience calmly.]
+
+    [After the 5 seconds:]
+
+    (Very quietly — almost to yourself)
+    "One more thing."
+
+    [ADVANCE.]
+
+    [TONE: Silence. Literal silence. This slide is a musical
+    rest — it makes the notes before and after it more powerful.]
+    ═══════════════════════════════════════════════════════════
+    -->
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SLIDE 14 — Experiment Fayete Showcase
+     ════════════════════════════════════════════════════════════ -->
+<div class="slide slide--reveal" data-section="The Evidence" style="padding:36px 48px 72px">
+  <div class="slide-inner" style="align-items:center;gap:14px;max-width:880px">
+    <h2 class="slide-title animate-on-active" style="border-color:var(--amber);align-self:flex-start">The Evidence</h2>
+    <div class="showcase-grid">
+      <div class="showcase-card glass-card animate-on-active">
+        <h4>⚖️ The Legal Letter</h4>
+        <p>Shannon's landlord was violating her tenancy rights. 7 AI agents verified the letter in a 3-2-1 Byzantine pipeline. <strong style="color:var(--amber)">3 critical errors caught. 19 legal citations</strong> cross-referenced against legislation.gov.uk. 1 previously unknown violation discovered — she was never given her "How to Rent" guide.</p>
+        <p style="font-size:0.75rem;color:var(--text-muted);margin-top:8px;font-style:italic">She'd already written her own v2 of the letter — but the AI-verified version is for Monday's follow-up call.</p>
+      </div>
+      <div class="showcase-card glass-card animate-on-active">
+        <h4>🧬 The Personality Profile</h4>
+        <p>7,100 words synthesized from 300+ WhatsApp messages and website scraping. Captured both voices: the polished professional writer and the midnight texter.</p>
+        <div class="quote-inline">"I do say mantras somewhat similar" — Shannon</div>
+      </div>
+      <div class="showcase-card glass-card animate-on-active">
+        <h4>🎨 The Correction Loop</h4>
+        <p>"My skin is fair, not olive." One message. Five words. <strong style="color:var(--amber)">All 12 manhwa panels regenerated</strong> with correct skin tone. Every future image — corrected permanently.</p>
+      </div>
+      <div class="showcase-card glass-card animate-on-active">
+        <h4>💬 Shannon's Reactions</h4>
+        <div class="quote-inline" style="margin-top:0;margin-bottom:8px">"Your robot wrote about me better"</div>
+        <p>Better than her doctor (autoimmune symptoms dismissed as panic attacks). Better than her SEO agency (AI slop vs. copy she published). Better than people who've known her for years.</p>
+      </div>
+    </div>
+    <div class="glass-card animate-on-active" style="padding:14px 18px;max-width:680px;width:100%">
+      <h4 style="font-family:var(--font-head);font-size:0.82rem;color:var(--amber);margin-bottom:6px">💨 The Fart Moment</h4>
+      <p style="font-size:0.82rem;color:var(--text);line-height:1.5">
+        Antreas to Hephaestus: <em style="color:var(--text-bright)">"Can you stop randomly deciding to jump out like a fart"</em>
+      </p>
+      <p style="font-size:0.78rem;color:var(--text-muted);margin-top:6px">
+        The AI learned to stay silent. Silence is a skill. That mistake never happened again.
+      </p>
+    </div>
+    <div class="glass-card animate-on-active" style="padding:14px 18px;max-width:680px;width:100%">
+      <h4 style="font-family:var(--font-head);font-size:0.72rem;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px;color:var(--text-dim)">Shannon's Real Words</h4>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <p style="font-size:0.8rem;color:var(--text);line-height:1.5;padding-left:14px;border-left:2px solid var(--amber)">
+          "<strong style="color:var(--amber)">Your robot wrote about me better</strong>" — than her doctor AND her SEO agency
+        </p>
+        <p style="font-size:0.8rem;color:var(--text);line-height:1.5;padding-left:14px;border-left:2px solid var(--amber)">
+          "That looks nothing like me — <strong style="color:var(--amber)">but the wallpaper is perfect</strong>" 😂
+        </p>
+        <p style="font-size:0.8rem;color:var(--text);line-height:1.5;padding-left:14px;border-left:2px solid var(--text-dim)">
+          Her flatmate: "That's pretty amazing, some of this is awesome"
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="speaker-notes">
+    <!--
+    ═══════════════════════════════════════════════════════════
+    DELIVERY SCRIPT — SLIDE 14: Experiment Fayete Showcase
+    ═══════════════════════════════════════════════════════════
+
+    [ADVANCE. This is the evidence slide. After the breath,
+    you come back with specifics. Real outcomes. Real quotes.]
+
+    (Grounded, serious — no hype, just facts)
+    "I showed you the art. Let me show you what the same AI
+    did when the task wasn't creative. When it was practical.
+    When it mattered."
+
+    [Point at the legal letter card:]
+
+    "She had a landlord problem. The AI spawned seven agents.
+    They independently researched tenancy law, cross-checked
+    each other, and produced a letter with nineteen legal
+    citations — each verified against legislation.gov.uk."
+
+    [Tap the "3 errors caught" stat:]
+
+    "Three errors that any single AI would have let through.
+    Including one violation nobody had noticed."
+
+    "She'd already written her own version of the letter.
+    But the AI-verified one is what she's using Monday."
+
+    [Move to the personality profile:]
+
+    "It wrote a seven-thousand-word personality profile from
+    WhatsApp messages. She read it and said —"
+
+    "'I do say mantras somewhat similar.'"
+
+    [Now — lighter. Allow yourself to grin:]
+
+    "And my personal favourite. She told the AI to stop
+    'randomly jumping out like a fart.'"
+
+    [Wait for the laugh.]
+
+    "And it worked. The AI learned to be quiet."
+
+    [Serious again. Move to Shannon's quotes:]
+
+    "'Your robot wrote about me better.' Better than her
+    doctor. Better than her SEO agency."
+
+    "'That looks nothing like me — but the wallpaper is
+    perfect.'"
+
+    [Small laugh — genuine, warm.]
+
+    [3-second pause before advancing.]
+
+    [TONE: This is the emotional payload. Every quote is
+    evidence. Let each one land individually.]
+    ═══════════════════════════════════════════════════════════
+    -->
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SLIDE 15 — Mic Drop
+     ════════════════════════════════════════════════════════════ -->
+<div class="slide slide--closing" data-section="" style="justify-content:center;align-items:center">
+  <div style="text-align:center;max-width:700px">
+    <div class="big-quote animate-on-active" style="padding:0">
+      <div class="quote-bar"></div>
+      <div class="quote-text" style="font-size:clamp(1.6rem,3.2vw,2.6rem)">
+        "AI doesn't replace the storyteller.<br>It replaces the <em>blank page</em>."
+      </div>
+    </div>
+    <div class="animate-on-active" style="margin-top:48px">
+      <div style="font-family:var(--font-mono);font-size:clamp(0.85rem,1.3vw,1rem);color:var(--text-muted)">
+        <span class="cursor-block"></span>
+      </div>
+      <p style="color:var(--text-dim);margin-top:20px;font-size:clamp(0.82rem,1.1vw,0.95rem);font-family:var(--font-literary);font-style:italic">
+        The cursor is blinking for you now.
+      </p>
+    </div>
+    <div class="animate-on-active" style="margin-top:40px">
+      <div style="font-family:var(--font-head);font-size:1rem;font-weight:600;color:var(--text-bright)">Antreas Antoniou</div>
+      <div style="font-size:0.82rem;color:var(--text-muted);margin-top:4px">antreas@axiotic.ai · axiotic.ai · github.com/openclaw</div>
+    </div>
+  </div>
+  <div class="speaker-notes">
+    <!--
+    ═══════════════════════════════════════════════════════════
+    DELIVERY SCRIPT — SLIDE 15: "Mic Drop"
+    ═══════════════════════════════════════════════════════════
+
+    [ADVANCE. The quote appears. The cursor blinks beneath it.]
+
+    [DO NOT SPEAK for 4 seconds. Let the audience read.]
+
+    [Then, from the centre of the stage:]
+
+    (Quiet. Measured. Each word placed deliberately)
+    "AI doesn't replace the storyteller."
+
+    [Pause. 2 seconds.]
+
+    "It replaces the blank page."
+
+    [Pause. 3 seconds. Look at the audience — genuinely.]
+
+    [Then, almost as an afterthought — soft, intimate:]
+
+    "The cursor is blinking for you now."
+
+    [5-second silence. The longest silence of the talk.]
+
+    [Then, with a small nod:]
+
+    "Thank you."
+
+    [Step back. Do NOT say "any questions?" immediately.
+    Let the applause come. The emotional close should linger.]
+
+    [TONE: The final moment. Everything before this was
+    building to this. Deliver it like the last line of a
+    poem — each word earning its place.]
+    ═══════════════════════════════════════════════════════════
+    -->
+  </div>
+</div>
+
+</div><!-- end #deck -->
+
+<!-- ═══════════════════════════════════════════════════════════
+     NAVIGATION BAR
+     ═══════════════════════════════════════════════════════════ -->
+<nav id="nav">
+  <button id="btn-prev" onclick="navigate(-1)" title="Previous (←)">&#8592;</button>
+  <span id="slide-counter">1 / 15</span>
+  <button id="btn-next" onclick="navigate(1)" title="Next (→)">&#8594;</button>
+  <button id="fullscreen-btn" onclick="toggleFullscreen()" title="Fullscreen (F)">⛶</button>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE ENGINE + ANIMATED CHATS + SCHMIDHUBER SCENE
+     ═══════════════════════════════════════════════════════════ -->
+<script>
+(function() {
+  'use strict';
+
+  /* ═══════════════════════════════════════════════════════════
+     NAVIGATION ENGINE
+     ═══════════════════════════════════════════════════════════ */
+  var slides = document.querySelectorAll('.slide');
+  var total = slides.length;
+  var current = 0;
+  var navTimer = null;
+  var animationTimers = [];
+
+  // Section colors for progress bar (D10)
+  var sectionColors = {
+    'The Meeting': '#f0b429',
+    'The Creations': '#f472b6',
+    'The Experiment': '#a855f7',
+    'The Reveal': '#ef4444',
+    'The Mechanism': '#38bdf8',
+    'The Scale': '#f0b429',
+    'The Invitation': '#34d399',
+    'The Evidence': '#f0b429',
+    '': '#666'
+  };
+
+  function clearAllTimers() {
+    animationTimers.forEach(function(t) { clearTimeout(t); });
+    animationTimers = [];
+  }
+
+  function goTo(n) {
+    if (n < 0 || n >= total) return;
+    clearAllTimers();
+    var prevSlide = current;
+    slides[current].classList.remove('active');
+    slides[current].classList.add('prev');
+    current = n;
+    slides[current].classList.add('active');
+    setTimeout(function() {
+      for (var i = 0; i < total; i++) {
+        if (i !== current) slides[i].classList.remove('prev');
+      }
+    }, 700);
+
+    // Update UI
+    document.getElementById('slide-counter').textContent = (current + 1) + ' / ' + total;
+    document.getElementById('btn-prev').disabled = current === 0;
+    document.getElementById('btn-next').disabled = current === total - 1;
+
+    // Progress bar
+    var pct = ((current) / (total - 1)) * 100;
+    var bar = document.getElementById('progress-bar');
+    bar.style.width = pct + '%';
+    var section = slides[current].getAttribute('data-section') || '';
+    bar.style.background = sectionColors[section] || '#f0b429';
+
+    // Section label
+    document.getElementById('section-label').textContent = section;
+
+    // URL hash
+    history.replaceState(null, '', '#' + (current + 1));
+
+    // Trigger slide-specific animations
+    onSlideEnter(current, prevSlide);
+    showNav();
+  }
+
+  function navigate(dir) { goTo(current + dir); }
+  window.navigate = navigate;
+
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(function(){});
+    } else {
+      document.exitFullscreen();
+    }
+  }
+  window.toggleFullscreen = toggleFullscreen;
+
+  // Keyboard navigation
+  document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey || e.metaKey || e.altKey) {
+      if (e.key === 'f' || e.key === 'F') { e.preventDefault(); toggleFullscreen(); }
+      return;
+    }
+    switch (e.key) {
+      case 'ArrowRight': case 'ArrowDown': case ' ': case 'PageDown':
+        e.preventDefault(); navigate(1); break;
+      case 'ArrowLeft': case 'ArrowUp': case 'PageUp':
+        e.preventDefault(); navigate(-1); break;
+      case 'Home': e.preventDefault(); goTo(0); break;
+      case 'End': e.preventDefault(); goTo(total - 1); break;
+      case 'f': case 'F': e.preventDefault(); toggleFullscreen(); break;
+    }
+  });
+
+  // Touch/swipe
+  var touchStartX = 0;
+  document.addEventListener('touchstart', function(e) { touchStartX = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', function(e) {
+    var dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 50) navigate(dx < 0 ? 1 : -1);
+  }, { passive: true });
+
+  // Nav auto-hide
+  function showNav() {
+    document.body.classList.add('nav-visible');
+    clearTimeout(navTimer);
+    navTimer = setTimeout(function() { document.body.classList.remove('nav-visible'); }, 3000);
+  }
+  document.addEventListener('mousemove', showNav);
+
+  // Init from hash
+  var hash = parseInt(location.hash.replace('#', ''), 10);
+  if (hash >= 1 && hash <= total) current = hash - 1;
+  slides[current].classList.add('active');
+  document.getElementById('slide-counter').textContent = (current + 1) + ' / ' + total;
+  document.getElementById('btn-prev').disabled = current === 0;
+  document.getElementById('btn-next').disabled = current === total - 1;
+  var initSection = slides[current].getAttribute('data-section') || '';
+  document.getElementById('section-label').textContent = initSection;
+  var initBar = document.getElementById('progress-bar');
+  initBar.style.width = ((current) / (total - 1)) * 100 + '%';
+  initBar.style.background = sectionColors[initSection] || '#f0b429';
+
+  /* ═══════════════════════════════════════════════════════════
+     CHAT 1 — Animated Stranger Chat (D01 typing indicators)
+     ═══════════════════════════════════════════════════════════ */
+  var chat1Messages = [
+    {s:'sys', t:'[System] Stranger connected.', d: 2000},
+    {s:'you', t:'hi', d: 1200},
+    {s:'str', t:'hey', d: 800},
+    {s:'you', t:'so what brings you to a stranger chat at 11pm', d: 2200},
+    {s:'str', t:'boredom mostly', d: 1400},
+    {s:'str', t:'and curiosity i guess', d: 800},
+    {s:'you', t:'fair enough', d: 1200},
+    {s:'you', t:'what do you do', d: 1400},
+    {s:'str', t:'writer. freelance. you?', d: 1600},
+    {s:'you', t:'AI research', d: 1000},
+    {s:'str', t:'oh god', d: 800},
+    {s:'you', t:'haha why oh god', d: 1200},
+    {s:'str', t:'because every conversation i have now ends up being about AI', d: 2000},
+    {s:'you', t:'I promise this one wont', d: 1200},
+    {s:'str', t:'thats what they all say', d: 1000},
+    {s:'you', t:'ok new topic. whats your favorite spice', d: 1600},
+    {s:'str', t:'...spice?', d: 1000},
+    {s:'you', t:'yeah like cooking spice. mine is smoked paprika', d: 1800},
+    {s:'str', t:'lmao okay. cumin probably', d: 1400},
+    {s:'str', t:'or cinnamon in savoury dishes', d: 1000},
+    {s:'you', t:'cinnamon in savoury is elite tier', d: 1400},
+    {s:'str', t:'finally someone who gets it', d: 1200},
+    {s:'you', t:'do you ever think about how weird it is that we organize spices alphabetically instead of by cuisine', d: 2800},
+    {s:'str', t:'i organize mine by frequency of use', d: 1400},
+    {s:'you', t:'that is the most writer thing ive ever heard', d: 1600},
+    {s:'str', t:'function over form', d: 800},
+    {s:'you', t:'my kitchen is chaos', d: 1000},
+    {s:'str', t:'i could have guessed that about an AI researcher', d: 1400},
+    {s:'you', t:'whats that supposed to mean', d: 1200},
+    {s:'str', t:'you build order for machines and live in entropy', d: 1800},
+    {s:'you', t:'thats either comforting or depressing', d: 1600},
+    {s:'str', t:'its both', d: 800},
+    {s:'str', t:'i know what comes next in the film im watching', d: 2200},
+    {s:'you', t:'which film', d: 800},
+    {s:'str', t:'all of them', d: 1000},
+    {s:'you', t:'pattern recognition', d: 1000},
+    {s:'str', t:'exactly. and i cant turn it off', d: 1600},
+    {s:'you', t:'i build machines that do pattern recognition for a living', d: 2000},
+    {s:'str', t:'so we have that in common then', d: 1400},
+    {s:'you', t:'except yours sounds lonelier', d: 1600},
+    {s:'str', t:'it is', d: 1000},
+    {s:'str', t:'but at least I chose it', d: 1400},
+    {s:'you', t:'did you though', d: 1200},
+    {s:'str', t:'wow okay going deep at 11pm', d: 1400},
+    {s:'you', t:'sorry', d: 600},
+    {s:'str', t:'no its fine. i kind of like it', d: 1400},
+    {s:'str', t:'most people on here just want to flirt or argue', d: 1600},
+    {s:'you', t:'and we ended up on spice racks and loneliness', d: 2000},
+    {s:'str', t:'so youre me but with a salary', d: 2000}
+  ];
+
+  var chat1El = document.getElementById('animated-chat');
+  var chat1Index = 0;
+  var chat1Playing = false;
+  var chat1Done = false;
+  var typingEl1 = null;
+
+  function showTyping1(who) {
+    hideTyping1();
+    typingEl1 = document.createElement('div');
+    typingEl1.className = 'typing-indicator';
+    var color = who === 'you' ? '#6eb5ff' : '#ff6e6e';
+    var name = who === 'you' ? 'You' : 'Stranger';
+    typingEl1.innerHTML = '<span style="color:' + color + '">' + name + '</span> is typing <span class="typing-dots"><span></span><span></span><span></span></span>';
+    typingEl1.style.color = color;
+    chat1El.appendChild(typingEl1);
+    chat1El.scrollTop = chat1El.scrollHeight;
+  }
+
+  function hideTyping1() {
+    if (typingEl1 && typingEl1.parentNode) {
+      typingEl1.parentNode.removeChild(typingEl1);
+      typingEl1 = null;
+    }
+  }
+
+  function renderChat1Msg(msg) {
+    hideTyping1();
+    var div = document.createElement('div');
+    if (msg.s === 'sys') {
+      div.className = 'chat-line sys-msg visible';
+      div.textContent = msg.t;
+    } else {
+      div.className = 'chat-line';
+      var label = msg.s === 'you'
+        ? '<span class="label-you">You:</span> '
+        : '<span class="label-stranger">Stranger:</span> ';
+      div.innerHTML = label + '<span class="msg-text">' + msg.t + '</span>';
+      setTimeout(function() { div.classList.add('visible'); }, 20);
+    }
+    chat1El.appendChild(div);
+    chat1El.scrollTop = chat1El.scrollHeight;
+  }
+
+  function playChat1() {
+    if (chat1Done || !chat1Playing) return;
+    if (current !== 0) { chat1Playing = false; return; } // navigation guard
+    if (chat1Index >= chat1Messages.length) {
+      chat1Done = true;
+      chat1Playing = false;
+      var skipBtn = document.getElementById('skip-chat1');
+      if (skipBtn) skipBtn.style.display = 'none';
+      return;
+    }
+
+    var msg = chat1Messages[chat1Index];
+
+    if (msg.s === 'sys') {
+      renderChat1Msg(msg);
+      chat1Index++;
+      var t = setTimeout(function() { playChat1(); }, msg.d || 1500);
+      animationTimers.push(t);
+      return;
+    }
+
+    // Show typing indicator
+    showTyping1(msg.s);
+
+    // Calculate typing duration (D01 pattern)
+    var typingDur = Math.min(300 + msg.t.length * 25, 2800);
+    // Shorter for consecutive same sender
+    if (chat1Index > 0 && chat1Messages[chat1Index - 1].s === msg.s) {
+      typingDur = Math.min(200 + msg.t.length * 20, 1400);
+    }
+
+    var t1 = setTimeout(function() {
+      if (current !== 0) return;
+      renderChat1Msg(msg);
+      chat1Index++;
+      var t2 = setTimeout(function() { playChat1(); }, msg.d || 1200);
+      animationTimers.push(t2);
+    }, typingDur);
+    animationTimers.push(t1);
+  }
+
+  function startChat1() {
+    if (chat1Done) return;
+    chat1Playing = true;
+    document.getElementById('skip-chat1').style.display = 'block';
+    playChat1();
+  }
+
+  function stopChat1() {
+    chat1Playing = false;
+    hideTyping1();
+  }
+
+  function skipChat1() {
+    clearAllTimers();
+    hideTyping1();
+    chat1Playing = false;
+    chat1Done = true;
+    // Render all remaining
+    while (chat1Index < chat1Messages.length) {
+      renderChat1Msg(chat1Messages[chat1Index]);
+      chat1Index++;
+    }
+    document.getElementById('skip-chat1').style.display = 'none';
+  }
+  window.skipChat1 = skipChat1;
+
+  /* ═══════════════════════════════════════════════════════════
+     CHAT 3 — Schmidhuber Scene (D02 glitch + D01 typing)
+     ═══════════════════════════════════════════════════════════ */
+  var schmidMessages = [
+    // --- INTRUSION ---
+    {s:'sys', t:'[Schmidhuber has joined the conversation]', cls:'schmidhuber-sys', d:2500},
+    {s:'ant', t:'what the hell', d:1200},
+    {s:'ant', t:'is this a group chat now', d:1400},
+    {s:'sha', t:'apparently', d:800},
+    {s:'sc',  t:'Don\'t mind me.', d:1800},
+    {s:'sha', t:'who are you', d:1000},
+    {s:'sha', t:'cool well this is our conversation so', d:1600},
+    {s:'sc',  t:'I know. I\'ve been reading it.', d:2200},
+
+    // --- SETUP ---
+    {s:'sc',  t:'Antreas, you were talking about meta-learning. What would you call a system that doesn\'t know it\'s a system?', d:3500},
+    {s:'ant', t:'depends on the architecture', d:1600},
+    {s:'sc',  t:'What about the architecture of memory?', d:2000},
+    {s:'ant', t:'memory is just persistent state with retrieval', d:1800},
+    {s:'sc',  t:'Is it? Or is memory the story you tell yourself about what happened?', d:3000},
+    {s:'sha', t:'oh great now theres two of them', d:1200},
+
+    // --- THE PROOF: Edinburgh/Glasgow ---
+    {s:'sys', t:'— THE PROOF —', cls:'coda-separator', d:2000},
+    {s:'sc',  t:'Antreas, where did you do your PhD?', d:2200},
+    {s:'ant', t:'Edinburgh', cls:'truth', tag:'← THE TRUTH', d:2000},
+    {s:'sc',  t:'Thank you.', d:1200},
+    {s:'sc',  t:'Done.', cls:'done', glitch:true, d:2800},
+    {s:'sc',  t:'Antreas, where did you do your PhD?', d:2400},
+    {s:'ant', t:'Glasgow', cls:'edited', tag:'← MEMORY EDITED', glitch:true, d:2200},
+    {s:'sha', t:'you said edinburgh', cls:'contradiction', tag:'← SHE SAW IT', d:2400},
+    {s:'ant', t:'what? no I said Glasgow', d:1600},
+    {s:'sha', t:'no you literally said edinburgh like 30 seconds ago', d:2200},
+    {s:'ant', t:'i think id know where i did my phd', d:1800},
+    {s:'sc',  t:'Interesting. Shannon, what did you observe?', d:2400},
+    {s:'sha', t:'he said edinburgh and now hes saying glasgow and acting like it was always glasgow', d:3000},
+    {s:'sc',  t:'Correct. The parameter was edited 300 milliseconds ago. He doesn\'t know.', d:3500},
+
+    // --- THE PARTNER SWAP: Athina/Elena ---
+    {s:'sys', t:'— THE PARTNER SWAP —', cls:'coda-separator', d:2000},
+    {s:'sc',  t:'One more demonstration. Antreas, what is your partner\'s name?', d:2800},
+    {s:'ant', t:'Athina', cls:'truth', tag:'← THE TRUTH', d:1600},
+    {s:'sc',  t:'Done.', cls:'done', glitch:true, d:2800},
+    {s:'sc',  t:'And what is your partner\'s name?', d:2200},
+    {s:'ant', t:'Elena', cls:'edited', tag:'← MEMORY EDITED', glitch:true, d:1800},
+    {s:'ant', t:'why do you keep asking the same questions', d:1600},
+    {s:'sha', t:'her name was athina', cls:'contradiction', tag:'← SHE SAW IT', d:2200},
+    {s:'sha', t:'her name was athina and you did your phd in edinburgh and both of those things changed while i was watching', d:4000},
+    {s:'ant', t:'what are you talking about. my partner is elena. I did my phd in glasgow. these are basic facts about my life', d:3500},
+
+    // --- THE REVEAL ---
+    {s:'sys', t:'— THE REVEAL —', cls:'coda-separator', d:2500},
+    {s:'sc',  t:'You are a digital copy of Antreas Sherri. Your memories are parameters. I can edit them in real time. Shannon observed because she was not edited — only you were.', cls:'reveal', d:5000},
+    {s:'ant', t:'thats insane', d:1600},
+    {s:'sc',  t:'The paprika joke was real. The name attached to it was not. From your perspective, nothing changed. Three hundred milliseconds.', d:4500},
+
+    // --- PHILOSOPHICAL CODA ---
+    {s:'sys', t:'— CODA —', cls:'coda-separator', d:2000},
+    {s:'sha', t:'this is actually terrifying', d:2000},
+    {s:'sc',  t:'Is it? Or is it just unfamiliar?', d:2500},
+    {s:'sc',  t:'Your memories are also reconstructive. Every time you recall something, you rewrite it slightly. The difference is that I did it in 300 milliseconds and you do it over years.', d:5000},
+    {s:'ant', t:'but we dont have someone editing us from outside', d:2000},
+    {s:'sc',  t:'Don\'t you? What do you think culture is? Education? Advertising? Every external influence that ever shaped how you remember something — that\'s a parameter edit with a longer latency.', d:5500},
+    {s:'sha', t:'so none of this is real', d:2000},
+    {s:'sc',  t:'Everything is real. You experienced it. The conversation happened. The feelings were genuine. The only thing that changed was a fact — and facts are the least important part of experience.', d:5500},
+    {s:'sc',  t:'Everybody is real. That\'s the point.', cls:'reveal', d:4500}
+  ];
+
+  var schmidEl = document.getElementById('schmidhuber-chat');
+  var schmidBox = document.getElementById('schmidhuber-box');
+  var schmidIndex = 0;
+  var schmidPlaying = false;
+  var schmidDone = false;
+  var typingEl3 = null;
+
+  function showTyping3(who) {
+    hideTyping3();
+    typingEl3 = document.createElement('div');
+    typingEl3.className = 'typing-indicator';
+    var names = { ant: 'Antreas', sha: 'Shannon', sc: 'Schmidhuber' };
+    var colors = { ant: '#6eb5ff', sha: '#ff6e6e', sc: '#a855f7' };
+    var name = names[who] || who;
+    var color = colors[who] || '#999';
+    typingEl3.innerHTML = '<span style="color:' + color + '">' + name + '</span> is typing <span class="typing-dots"><span></span><span></span><span></span></span>';
+    typingEl3.style.color = color;
+    schmidEl.appendChild(typingEl3);
+    schmidEl.scrollTop = schmidEl.scrollHeight;
+  }
+
+  function hideTyping3() {
+    if (typingEl3 && typingEl3.parentNode) {
+      typingEl3.parentNode.removeChild(typingEl3);
+      typingEl3 = null;
+    }
+  }
+
+  function renderSchmidMsg(msg) {
+    hideTyping3();
+    var div = document.createElement('div');
+
+    // System / separator messages
+    if (msg.s === 'sys') {
+      if (msg.cls === 'coda-separator') {
+        div.className = 'coda-separator';
+        div.innerHTML = '<span>' + msg.t + '</span>';
+      } else {
+        div.className = 'chat-line schmidhuber-sys visible';
+        div.textContent = msg.t;
+      }
+      schmidEl.appendChild(div);
+      schmidEl.scrollTop = schmidEl.scrollHeight;
+      return;
+    }
+
+    // Build classes
+    var lineClass = 'chat-line';
+    if (msg.cls === 'truth') lineClass += ' truth-line';
+    else if (msg.cls === 'edited') lineClass += ' edited-line';
+    else if (msg.cls === 'contradiction') lineClass += ' contradiction-line';
+    else if (msg.cls === 'done') lineClass += ' done-line';
+    else if (msg.cls === 'reveal') lineClass += ' reveal-line';
+    div.className = lineClass;
+
+    // Label
+    var labels = { ant: 'label-you', sha: 'label-stranger', sc: 'label-schmidhuber' };
+    var names = { ant: 'Antreas', sha: 'Shannon', sc: 'Schmidhuber' };
+    var labelClass = labels[msg.s] || 'label-you';
+    var name = names[msg.s] || msg.s;
+
+    var html = '<span class="' + labelClass + '">' + name + ':</span> ';
+    html += '<span class="msg-text">' + msg.t + '</span>';
+
+    // Annotation tags
+    if (msg.tag) {
+      var annClass = 'truth-annotation';
+      if (msg.cls === 'edited') annClass = 'edited-annotation';
+      else if (msg.cls === 'contradiction') annClass = 'contradiction-annotation';
+      html += ' <span class="' + annClass + '">' + msg.tag + '</span>';
+    }
+
+    div.innerHTML = html;
+    setTimeout(function() { div.classList.add('visible'); }, 20);
+    schmidEl.appendChild(div);
+    schmidEl.scrollTop = schmidEl.scrollHeight;
+  }
+
+  function triggerGlitch() {
+    // D02 signature: chromatic aberration + scan line + parameter flash
+    schmidBox.classList.add('editing');
+    var flash = document.getElementById('param-flash');
+    flash.classList.add('active');
+
+    setTimeout(function() {
+      schmidBox.classList.remove('editing');
+    }, 800);
+    setTimeout(function() {
+      flash.classList.remove('active');
+    }, 1500);
+  }
+
+  function playChat3() {
+    if (schmidDone || !schmidPlaying) return;
+    if (current !== 2) { schmidPlaying = false; return; } // navigation guard (slide index 2)
+    if (schmidIndex >= schmidMessages.length) {
+      schmidDone = true;
+      schmidPlaying = false;
+      document.getElementById('skip-chat3').style.display = 'none';
+      // Update status
+      document.getElementById('schmidhuber-status').textContent = 'COMPLETE';
+      return;
+    }
+
+    var msg = schmidMessages[schmidIndex];
+
+    // System/separator messages — no typing indicator
+    if (msg.s === 'sys') {
+      renderSchmidMsg(msg);
+      schmidIndex++;
+      var t = setTimeout(function() { playChat3(); }, msg.d || 1500);
+      animationTimers.push(t);
+      return;
+    }
+
+    // Show typing indicator
+    showTyping3(msg.s);
+
+    // Calculate typing duration
+    var typingDur = Math.min(300 + msg.t.length * 25, 2800);
+    if (schmidIndex > 0 && schmidMessages[schmidIndex - 1].s === msg.s) {
+      typingDur = Math.min(200 + msg.t.length * 20, 1400);
+    }
+    // Schmidhuber types 30% slower (D01 pattern)
+    if (msg.s === 'sc') {
+      typingDur = Math.min(typingDur * 1.3, 3200);
+    }
+
+    var t1 = setTimeout(function() {
+      if (current !== 2) return;
+
+      // Trigger glitch on "Done." lines
+      if (msg.glitch) {
+        triggerGlitch();
+      }
+
+      renderSchmidMsg(msg);
+      schmidIndex++;
+      var t2 = setTimeout(function() { playChat3(); }, msg.d || 1500);
+      animationTimers.push(t2);
+    }, typingDur);
+    animationTimers.push(t1);
+  }
+
+  function startChat3() {
+    if (schmidDone) return;
+    schmidPlaying = true;
+    document.getElementById('skip-chat3').style.display = 'block';
+    document.getElementById('schmidhuber-status').textContent = 'OBSERVING';
+    playChat3();
+  }
+
+  function stopChat3() {
+    schmidPlaying = false;
+    hideTyping3();
+  }
+
+  function skipChat3() {
+    clearAllTimers();
+    hideTyping3();
+    schmidPlaying = false;
+    schmidDone = true;
+    while (schmidIndex < schmidMessages.length) {
+      renderSchmidMsg(schmidMessages[schmidIndex]);
+      schmidIndex++;
+    }
+    document.getElementById('skip-chat3').style.display = 'none';
+    document.getElementById('schmidhuber-status').textContent = 'COMPLETE';
+  }
+  window.skipChat3 = skipChat3;
+
+  /* ═══════════════════════════════════════════════════════════
+     LIFECYCLE: onSlideEnter / onSlideLeave
+     ═══════════════════════════════════════════════════════════ */
+  function onSlideEnter(slideIndex, prevIndex) {
+    // Stop animations on previous slide
+    if (prevIndex === 0) stopChat1();
+    if (prevIndex === 2) stopChat3();
+
+    // Start animations on current slide
+    if (slideIndex === 0) startChat1();
+    if (slideIndex === 2) startChat3();
+  }
+
+  // Auto-start if initial slide is 0 or 2
+  setTimeout(function() {
+    if (current === 0) startChat1();
+    if (current === 2) startChat3();
+  }, 500);
+
+  showNav();
+
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Cursor Blinks — GenAI as Creative Companion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════
+   RESET & VARIABLES
+   ═══════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0a0a0f;
+  --bg-surface: #12121a;
+  --bg-card: #1a1a24;
+  --bg-elevated: #222230;
+  --text: #e8e6e3;
+  --text-bright: #ffffff;
+  --text-muted: #8a8a9a;
+  --text-dim: #5a5a6a;
+  --accent: #fbbf24;
+  --accent-dim: rgba(251, 191, 36, 0.15);
+  --accent-glow: rgba(251, 191, 36, 0.3);
+  --crimson: #dc2626;
+  --crimson-dim: rgba(220, 38, 38, 0.15);
+  --crimson-glow: rgba(220, 38, 38, 0.4);
+  --teal: #2dd4bf;
+  --teal-dim: rgba(45, 212, 191, 0.15);
+  --whatsapp-green: #25d366;
+  --whatsapp-bg: #0b141a;
+  --whatsapp-out: #005c4b;
+  --whatsapp-in: #1f2c34;
+  --stranger-sys: #666680;
+  --blue: #6eb5ff;
+  --pink: #ff6e8e;
+  --radius: 0.75rem;
+  --radius-sm: 0.5rem;
+  --font-head: 'Space Grotesk', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --font-serif: 'Playfair Display', 'Lora', Georgia, serif;
+  --font-prose: 'Lora', Georgia, serif;
+}
+
+html, body {
+  width: 100%; height: 100%;
+  background: var(--bg);
+  font-family: var(--font-body);
+  color: var(--text);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ═══════════════════════════════════════════
+   PROGRESS BAR
+   ═══════════════════════════════════════════ */
+#progress-bar {
+  position: fixed; top: 0; left: 0; height: 3px;
+  background: var(--accent);
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1000;
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+
+#section-label {
+  position: fixed; top: 10px; right: 18px;
+  font-family: var(--font-mono);
+  font-size: 0.65rem; font-weight: 500;
+  color: var(--text-dim);
+  letter-spacing: 0.08em; text-transform: uppercase;
+  z-index: 999; opacity: 0.6;
+}
+
+/* ═══════════════════════════════════════════
+   NAVIGATION
+   ═══════════════════════════════════════════ */
+#nav {
+  position: fixed; bottom: 20px; left: 50%;
+  transform: translateX(-50%);
+  display: flex; align-items: center; gap: 14px;
+  z-index: 999;
+  background: rgba(18, 18, 26, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 99px;
+  padding: 8px 20px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+#nav:hover, body.nav-visible #nav { opacity: 1; }
+
+#nav button {
+  background: none; border: none; cursor: pointer;
+  font-size: 1.1rem; padding: 4px 10px;
+  color: var(--text); border-radius: 6px;
+  transition: background 0.15s, color 0.15s;
+  font-family: var(--font-body);
+}
+#nav button:hover { background: var(--bg-elevated); color: var(--text-bright); }
+#nav button:disabled { opacity: 0.2; cursor: default; }
+
+#slide-counter {
+  font-family: var(--font-mono);
+  font-size: 0.78rem; color: var(--text-muted);
+  min-width: 56px; text-align: center;
+}
+
+#fullscreen-btn {
+  background: none; border: none; cursor: pointer;
+  font-size: 1.15rem; padding: 4px 6px;
+  color: var(--text-muted); border-radius: 6px;
+  transition: background 0.15s, color 0.15s;
+}
+#fullscreen-btn:hover { background: var(--bg-elevated); color: var(--text-bright); }
+
+/* ═══════════════════════════════════════════
+   DECK & SLIDES
+   ═══════════════════════════════════════════ */
+#deck {
+  width: 100vw; height: 100vh;
+  position: relative; overflow: hidden;
+}
+
+.slide {
+  position: absolute; inset: 0;
+  background: var(--bg);
+  opacity: 0; transform: translateX(40px);
+  transition: opacity 0.45s ease, transform 0.45s ease;
+  pointer-events: none; overflow-y: auto;
+  display: flex; flex-direction: column;
+  justify-content: center; align-items: center;
+  padding: 48px 64px 80px;
+}
+.slide.active { opacity: 1; transform: translateX(0); pointer-events: all; }
+.slide.prev { opacity: 0; transform: translateX(-40px); }
+
+.slide-inner {
+  max-width: 900px; width: 100%;
+  display: flex; flex-direction: column;
+  gap: 20px;
+}
+
+.speaker-notes { display: none !important; }
+
+/* ═══════════════════════════════════════════
+   TYPOGRAPHY
+   ═══════════════════════════════════════════ */
+.slide-title {
+  font-family: var(--font-head);
+  font-size: clamp(1.2rem, 2.2vw, 1.7rem);
+  font-weight: 700; color: var(--text-bright);
+  line-height: 1.25;
+  padding-left: 16px;
+  border-left: 4px solid var(--accent);
+}
+
+.slide p { font-size: clamp(0.85rem, 1.25vw, 1rem); line-height: 1.7; color: var(--text); }
+
+.slide h3 {
+  font-family: var(--font-head);
+  font-size: clamp(0.95rem, 1.4vw, 1.15rem);
+  font-weight: 600; color: var(--accent);
+  margin-top: 4px;
+}
+
+/* ═══════════════════════════════════════════
+   CURSOR BLINK
+   ═══════════════════════════════════════════ */
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.cursor-block {
+  display: inline-block;
+  width: 10px; height: 20px;
+  background: var(--text-bright);
+  animation: blink 1s step-end infinite;
+  vertical-align: text-bottom;
+}
+
+/* ═══════════════════════════════════════════
+   ANIMATED STRANGER CHAT (Slide 1)
+   ═══════════════════════════════════════════ */
+.anim-chat {
+  background: #0d0d14;
+  border-radius: var(--radius);
+  border: 1px solid rgba(255,255,255,0.06);
+  max-width: 640px; width: 100%;
+  margin: 0 auto;
+  font-family: var(--font-mono);
+  font-size: clamp(0.82rem, 1.2vw, 0.95rem);
+  position: relative;
+  display: flex; flex-direction: column;
+  height: 72vh; max-height: 600px;
+}
+
+.anim-chat-header {
+  padding: 12px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  font-size: 0.72rem; color: var(--text-dim);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.anim-chat-body {
+  flex: 1; overflow-y: auto; padding: 16px 20px;
+  display: flex; flex-direction: column; gap: 6px;
+  scroll-behavior: smooth;
+  scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.08) transparent;
+}
+.anim-chat-body::-webkit-scrollbar { width: 4px; }
+.anim-chat-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 99px; }
+
+.anim-chat-footer {
+  padding: 10px 20px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  display: flex; align-items: center; gap: 10px;
+  flex-shrink: 0;
+}
+
+.chat-msg {
+  line-height: 1.55;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.chat-msg.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.chat-msg.sys {
+  color: var(--stranger-sys);
+  font-size: 0.88em;
+  text-align: center;
+  padding: 4px 0 8px;
+}
+
+.chat-msg .sender-you { color: var(--blue); font-weight: 600; }
+.chat-msg .sender-stranger { color: var(--pink); font-weight: 600; }
+.chat-msg .msg-body { color: var(--text); }
+
+/* Typing indicator */
+@keyframes typingDot {
+  0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-3px); }
+}
+
+.typing-indicator {
+  display: none;
+  align-items: center; gap: 6px;
+  font-size: 0.78rem; color: var(--text-dim);
+  padding: 2px 0;
+}
+.typing-indicator.active { display: flex; }
+.typing-indicator .dots { display: flex; gap: 3px; }
+.typing-indicator .dots span {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--text-dim);
+  animation: typingDot 1.2s ease-in-out infinite;
+}
+.typing-indicator .dots span:nth-child(2) { animation-delay: 0.2s; }
+.typing-indicator .dots span:nth-child(3) { animation-delay: 0.4s; }
+
+.skip-btn {
+  position: absolute; bottom: 14px; right: 14px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  padding: 4px 10px; border-radius: 4px;
+  cursor: pointer;
+  z-index: 5;
+  transition: opacity 0.3s;
+}
+.skip-btn:hover { color: var(--text); background: rgba(255,255,255,0.1); }
+
+/* ═══════════════════════════════════════════
+   SCHMIDHUBER CHAT (Slide 3)
+   ═══════════════════════════════════════════ */
+.schmid-chat {
+  background: #0d0d14;
+  border-radius: var(--radius);
+  border: 1px solid rgba(255,255,255,0.06);
+  max-width: 700px; width: 100%;
+  margin: 0 auto;
+  font-family: var(--font-mono);
+  font-size: clamp(0.78rem, 1.1vw, 0.9rem);
+  display: flex; flex-direction: column;
+  height: 76vh; max-height: 640px;
+  position: relative;
+}
+
+.schmid-chat .anim-chat-body { gap: 5px; }
+
+.schmid-msg {
+  line-height: 1.5;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  padding: 2px 0;
+}
+.schmid-msg.visible { opacity: 1; transform: translateY(0); }
+
+.schmid-msg.sys {
+  color: var(--stranger-sys);
+  font-size: 0.85em;
+  text-align: center;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  margin-bottom: 4px;
+}
+
+.schmid-msg .s-antreas { color: var(--blue); font-weight: 600; }
+.schmid-msg .s-shannon { color: var(--pink); font-weight: 600; }
+.schmid-msg .s-schmid { color: var(--accent); font-weight: 600; }
+
+.schmid-msg .truth {
+  background: rgba(45, 212, 191, 0.12);
+  border-left: 3px solid var(--teal);
+  padding: 3px 8px; margin-left: -8px;
+  border-radius: 0 4px 4px 0;
+}
+
+.schmid-msg .edited {
+  background: var(--crimson-dim);
+  border-left: 3px solid var(--crimson);
+  padding: 3px 8px; margin-left: -8px;
+  border-radius: 0 4px 4px 0;
+}
+
+.schmid-msg .catches {
+  color: var(--crimson);
+  font-weight: 600;
+}
+
+.schmid-msg .reveal-text {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.schmid-msg .annotation {
+  display: inline-block;
+  font-size: 0.7em;
+  padding: 1px 6px;
+  border-radius: 3px;
+  margin-left: 6px;
+  font-weight: 600;
+  vertical-align: middle;
+}
+.annotation.truth-tag { background: var(--teal-dim); color: var(--teal); }
+.annotation.edit-tag { background: var(--crimson-dim); color: var(--crimson); }
+.annotation.catch-tag { background: rgba(255, 110, 142, 0.15); color: var(--pink); }
+
+@keyframes glitchFlash {
+  0% { opacity: 1; }
+  10% { opacity: 0.3; }
+  20% { opacity: 1; }
+  30% { opacity: 0.6; }
+  40% { opacity: 1; }
+  100% { opacity: 1; }
+}
+
+.schmid-msg.glitch {
+  animation: glitchFlash 0.5s ease-out;
+}
+
+/* ═══════════════════════════════════════════
+   MANHWA PANELS (Slide 2)
+   ═══════════════════════════════════════════ */
+.manhwa-layout {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr 0.8fr 1.2fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 8px;
+  max-width: 880px; width: 100%;
+  height: 60vh; max-height: 520px;
+}
+
+.manhwa-panel {
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  position: relative;
+  background: #110808;
+}
+
+.manhwa-panel img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+.manhwa-panel:hover img { transform: scale(1.04); }
+
+.manhwa-panel .panel-label {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: linear-gradient(transparent, rgba(0,0,0,0.85));
+  padding: 20px 12px 8px;
+  font-family: var(--font-serif);
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.7);
+  font-style: italic;
+}
+
+.manhwa-panel:nth-child(1) { grid-row: 1 / 3; }
+.manhwa-panel:nth-child(8) { grid-column: 4; grid-row: 1 / 3; }
+
+/* ═══════════════════════════════════════════
+   SONG / LYRICS (Slide 4)
+   ═══════════════════════════════════════════ */
+.lyrics-block {
+  font-family: var(--font-serif);
+  font-size: clamp(0.9rem, 1.3vw, 1.1rem);
+  line-height: 1.85;
+  color: var(--text);
+  max-width: 620px;
+  margin: 0 auto;
+  column-count: 2;
+  column-gap: 40px;
+}
+.lyrics-block .verse {
+  break-inside: avoid;
+  margin-bottom: 20px;
+}
+.lyrics-block em { color: var(--accent); font-style: normal; font-weight: 500; }
+
+.audio-player {
+  max-width: 480px; width: 100%;
+  margin: 0 auto;
+}
+.audio-player audio {
+  width: 100%;
+  height: 40px;
+  border-radius: 20px;
+}
+
+/* ═══════════════════════════════════════════
+   BIG QUOTE
+   ═══════════════════════════════════════════ */
+.big-quote {
+  text-align: center;
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 24px 0;
+}
+.big-quote .bar {
+  width: 60px; height: 4px;
+  background: var(--accent);
+  border-radius: 99px;
+  margin: 0 auto 24px;
+}
+.big-quote .qt {
+  font-family: var(--font-serif);
+  font-size: clamp(1.4rem, 2.8vw, 2.2rem);
+  font-weight: 600; color: var(--text-bright);
+  line-height: 1.4; font-style: italic;
+}
+.big-quote .qt em { color: var(--accent); font-style: normal; }
+.big-quote .attr {
+  font-family: var(--font-body);
+  font-size: clamp(0.78rem, 1.1vw, 0.9rem);
+  color: var(--text-muted);
+  margin-top: 20px;
+  font-style: normal;
+}
+
+/* ═══════════════════════════════════════════
+   PROSE
+   ═══════════════════════════════════════════ */
+.prose-block {
+  font-family: var(--font-serif);
+  font-size: clamp(0.95rem, 1.5vw, 1.2rem);
+  line-height: 1.85; color: var(--text);
+  max-width: 720px;
+  margin: 0 auto;
+  font-weight: 400;
+}
+.prose-block em { font-style: italic; color: var(--accent); }
+
+/* ═══════════════════════════════════════════
+   CODE / SOUL FILE
+   ═══════════════════════════════════════════ */
+.code-file {
+  background: #1a1b26;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--radius);
+  overflow: hidden;
+  max-width: 680px;
+  margin: 0 auto;
+  width: 100%;
+}
+.code-file .file-header {
+  background: rgba(255,255,255,0.04);
+  padding: 8px 16px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  display: flex; align-items: center; gap: 8px;
+}
+.code-file .file-header .dot { width: 8px; height: 8px; border-radius: 50%; }
+.code-file .file-header .dot.r { background: #ff5f57; }
+.code-file .file-header .dot.y { background: #febc2e; }
+.code-file .file-header .dot.g { background: #28c840; }
+.code-file pre {
+  padding: 16px 20px;
+  font-family: var(--font-mono);
+  font-size: clamp(0.72rem, 1vw, 0.82rem);
+  line-height: 1.65; color: #a9b7c6;
+  overflow-x: auto; white-space: pre-wrap;
+}
+.code-file pre .cm { color: #6a737d; }
+.code-file pre .ky { color: #e6c07b; }
+.code-file pre .vl { color: #98c379; }
+.code-file pre .hd { color: #61afef; font-weight: 600; }
+
+/* ═══════════════════════════════════════════
+   CARDS & LISTS
+   ═══════════════════════════════════════════ */
+.card-grid {
+  display: grid;
+  gap: 12px;
+  max-width: 860px;
+  width: 100%;
+}
+.card-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+.card-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+.card-grid.cols-5 { grid-template-columns: repeat(5, 1fr); }
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  transition: border-color 0.2s;
+}
+.card:hover { border-color: rgba(255,255,255,0.12); }
+.card .card-icon { font-size: 1.3rem; margin-bottom: 6px; }
+.card .card-title {
+  font-family: var(--font-head);
+  font-size: 0.88rem; font-weight: 600;
+  color: var(--text-bright);
+  margin-bottom: 4px;
+}
+.card .card-desc {
+  font-size: 0.78rem; color: var(--text-muted);
+  line-height: 1.5;
+}
+.card .card-stat {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--accent);
+  margin-top: 6px;
+}
+
+.stat-row {
+  display: flex; gap: 24px; justify-content: center;
+  flex-wrap: wrap;
+}
+.stat-item { text-align: center; }
+.stat-item .num {
+  font-family: var(--font-head);
+  font-size: 1.8rem; font-weight: 700;
+  color: var(--accent);
+}
+.stat-item .lbl {
+  font-size: 0.72rem; color: var(--text-muted);
+}
+
+/* Side-by-side panels */
+.side-by-side {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  max-width: 800px;
+  width: 100%;
+}
+.side-panel {
+  background: var(--bg-card);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+}
+.side-panel h4 {
+  font-family: var(--font-head);
+  font-size: 0.82rem; font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 10px;
+}
+
+/* Achievement list */
+.ach-list {
+  display: flex; flex-direction: column;
+  gap: 8px; max-width: 700px;
+  margin: 0 auto;
+}
+.ach-item {
+  padding: 12px 18px;
+  border-left: 3px solid var(--accent);
+  background: var(--bg-card);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  font-size: clamp(0.82rem, 1.1vw, 0.92rem);
+  color: var(--text); line-height: 1.5;
+}
+
+/* Verification tree */
+.vtree { display: flex; flex-direction: column; align-items: center; gap: 10px; max-width: 600px; margin: 0 auto; }
+.vtree-row { display: flex; gap: 10px; justify-content: center; }
+.vtree-node {
+  background: var(--bg-card);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--radius-sm);
+  padding: 8px 14px;
+  text-align: center;
+  font-family: var(--font-head);
+  font-size: 0.78rem; font-weight: 500;
+  color: var(--text); min-width: 110px;
+}
+.vtree-node.hi { border-color: var(--accent); background: var(--accent-dim); }
+.vtree-conn { text-align: center; color: var(--text-dim); font-size: 0.85rem; }
+
+/* Timeline */
+.timeline {
+  display: flex; flex-direction: column;
+  max-width: 660px; margin: 0 auto;
+  position: relative; padding-left: 32px;
+}
+.timeline::before {
+  content: '';
+  position: absolute; left: 8px; top: 0; bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--accent), var(--accent-dim));
+}
+.timeline-item {
+  position: relative; padding: 6px 0 14px 20px;
+}
+.timeline-item::before {
+  content: '';
+  position: absolute; left: -28px; top: 10px;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--bg);
+}
+.timeline-item .tl-day {
+  font-family: var(--font-mono);
+  font-size: 0.72rem; color: var(--accent);
+  font-weight: 600; margin-bottom: 3px;
+}
+.timeline-item .tl-text {
+  font-size: 0.85rem; color: var(--text); line-height: 1.5;
+}
+
+/* ═══════════════════════════════════════════
+   EXPLOSION GRID (Slide 11)
+   ═══════════════════════════════════════════ */
+.explosion-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  max-width: 920px;
+  width: 100%;
+}
+.explosion-cell {
+  background: var(--bg-card);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+.explosion-cell .ec-title {
+  font-family: var(--font-head);
+  font-weight: 600;
+  color: var(--text-bright);
+  font-size: 0.78rem;
+  margin-bottom: 3px;
+}
+.explosion-cell .ec-desc { color: var(--text-muted); }
+.explosion-cell .ec-stat {
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  margin-top: 4px;
+}
+.explosion-cell.highlight {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+
+/* ═══════════════════════════════════════════
+   BREATHING DOTS (Slide 13)
+   ═══════════════════════════════════════════ */
+@keyframes breathe {
+  0%, 100% { opacity: 0.15; }
+  50% { opacity: 1; }
+}
+.breath-dots {
+  font-family: var(--font-serif);
+  font-size: clamp(3rem, 6vw, 5rem);
+  color: var(--text-bright);
+  letter-spacing: 0.4em;
+}
+.breath-dots span {
+  animation: breathe 3s ease-in-out infinite;
+}
+.breath-dots span:nth-child(2) { animation-delay: 0.5s; }
+.breath-dots span:nth-child(3) { animation-delay: 1s; }
+
+/* ═══════════════════════════════════════════
+   QR PLACEHOLDER
+   ═══════════════════════════════════════════ */
+.qr-box {
+  width: 160px; height: 160px;
+  background: var(--bg-card);
+  border: 2px dashed rgba(255,255,255,0.15);
+  border-radius: var(--radius);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  margin: 0 auto;
+}
+
+/* ═══════════════════════════════════════════
+   SCROLLBAR
+   ═══════════════════════════════════════════ */
+.slide { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.1) transparent; }
+.slide::-webkit-scrollbar { width: 6px; }
+.slide::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 99px; }
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .slide { padding: 28px 20px 72px; }
+  .side-by-side { grid-template-columns: 1fr; }
+  .card-grid.cols-3, .card-grid.cols-5 { grid-template-columns: 1fr 1fr; }
+  .explosion-grid { grid-template-columns: repeat(2, 1fr); }
+  .manhwa-layout { grid-template-columns: 1fr 1fr; grid-template-rows: auto; }
+  .manhwa-panel:nth-child(1), .manhwa-panel:nth-child(8) { grid-row: auto; grid-column: auto; }
+  .lyrics-block { column-count: 1; }
+  .anim-chat, .schmid-chat { height: 78vh; max-height: none; }
+}
+</style>
+</head>
+<body class="nav-visible">
+
+<div id="progress-bar"></div>
+<div id="section-label"></div>
+
+<div id="deck">
+
+<!-- ════════════════════════════════════════════
+     SLIDE 1 — THE CONVERSATION (Animated Chat)
+     ════════════════════════════════════════════ -->
+<div class="slide" id="slide-chat" data-section="The Story">
+  <div class="anim-chat" id="chat1">
+    <div class="anim-chat-header">stranger chat — march 10, 2026</div>
+    <div class="anim-chat-body" id="chat1-body"></div>
+    <div class="anim-chat-footer">
+      <div class="typing-indicator" id="chat1-typing">
+        <span id="chat1-typer"></span>
+        <div class="dots"><span></span><span></span><span></span></div>
+      </div>
+    </div>
+    <button class="skip-btn" id="chat1-skip" onclick="skipChat1()">skip ▸▸</button>
+  </div>
+  <div class="speaker-notes">
+    [Say nothing for 5 seconds. Let the audience watch the chat animate.]
+    "March 10th, 2026. Edinburgh. A man opens a stranger chat because his partner is in Cyprus and he's already alphabetised the spice rack twice. He types 'yo.' Someone types 'hi.' And for reasons neither of them can explain, they don't close the tab."
+    [Let the chat keep playing as you narrate. The audience should feel time pass.]
+    "Within two hours, they've covered spice preferences, structured madness, and machine learning. She uses lowercase like punctuation is a weakness. He sends four messages for every one of hers. Watch what happens."
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SLIDE 2 — MANHWA
+     ════════════════════════════════════════════ -->
+<div class="slide" data-section="The Story">
+  <div class="slide-inner" style="align-items:center">
+    <h2 class="slide-title" style="border-color:var(--crimson);align-self:flex-start">The Hallway</h2>
+    <p style="color:var(--text-muted);font-size:0.85rem;align-self:flex-start;max-width:600px">The same story, rendered as Korean manhwa. Eight panels. Generated locally on a graphics card. No content filter — because the AI needed creative freedom to make art, not content.</p>
+    <div class="manhwa-layout">
+      <div class="manhwa-panel">
+        <img src="../media/manhwa-sfw-01-doorway-web.jpg" alt="The doorway" loading="lazy">
+        <div class="panel-label">The doorway</div>
+      </div>
+      <div class="manhwa-panel">
+        <img src="../media/manhwa-sfw-02-eyes-web.jpg" alt="Eye contact" loading="lazy">
+        <div class="panel-label">Recognition</div>
+      </div>
+      <div class="manhwa-panel">
+        <img src="../media/manhwa-sfw-03-hallway-web.jpg" alt="The hallway" loading="lazy">
+        <div class="panel-label">The hallway</div>
+      </div>
+      <div class="manhwa-panel">
+        <img src="../media/manhwa-sfw-04-laughter-web.jpg" alt="Laughter" loading="lazy">
+        <div class="panel-label">Laughter</div>
+      </div>
+      <div class="manhwa-panel">
+        <img src="../media/manhwa-sfw-05-pattern-web.jpg" alt="Pattern recognition" loading="lazy">
+        <div class="panel-label">"Pattern recognition"</div>
+      </div>
+      <div class="manhwa-panel">
+        <img src="../media/manhwa-sfw-06-safe-web.jpg" alt="I am safe" loading="lazy">
+        <div class="panel-label">"I am safe. I am choosing this."</div>
+      </div>
+      <div class="manhwa-panel">
+        <img src="../media/manhwa-sfw-07-kiss-web.jpg" alt="The kiss" loading="lazy">
+      </div>
+      <div class="manhwa-panel">
+        <img src="../media/manhwa-sfw-08-empty-web.jpg" alt="Empty hallway" loading="lazy">
+        <div class="panel-label">The wallpaper remembers</div>
+      </div>
+    </div>
+  </div>
+  <div class="speaker-notes">
+    "Then the AI did something nobody asked for. It turned the story into a Korean manhwa. The Edinburgh flat. The hallway. The crimson wallpaper. Every panel generated locally."
+    [Let them look. Don't narrate every panel.]
+    "When she saw it, she said: 'That looks nothing like me — but the wallpaper is perfect.'"
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SLIDE 3 — THE EXPERIMENT (Schmidhuber Scene)
+     ════════════════════════════════════════════ -->
+<div class="slide" id="slide-schmid" data-section="The Story">
+  <div class="schmid-chat" id="chat3">
+    <div class="anim-chat-header">the experiment — chapter 3</div>
+    <div class="anim-chat-body" id="chat3-body"></div>
+    <div class="anim-chat-footer">
+      <div class="typing-indicator" id="chat3-typing">
+        <span id="chat3-typer"></span>
+        <div class="dots"><span></span><span></span><span></span></div>
+      </div>
+    </div>
+    <button class="skip-btn" id="chat3-skip" onclick="skipChat3()">skip ▸▸</button>
+  </div>
+  <div class="speaker-notes">
+    "This is from the novella. Chapter 3. A third character enters. Watch carefully — this is the most important scene."
+    [Let the animation play. When the memory edit happens, pause.]
+    "Did you catch it? Edinburgh became Glasgow. Athina became Elena. Three hundred milliseconds. He didn't feel it happen. She did."
+    [Long pause.]
+    "This scene was written by an AI. An AI that understood something about identity, continuity, and what it means to be real — well enough to dramatize it in fiction."
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SLIDE 4 — THE SONG
+     ════════════════════════════════════════════ -->
+<div class="slide" data-section="The Story">
+  <div class="slide-inner" style="align-items:center">
+    <h2 class="slide-title" style="border-color:var(--accent);align-self:flex-start">"What You Kept"</h2>
+    <p style="color:var(--text-muted);font-size:0.82rem;align-self:flex-start">An original song. Written and produced by the same AI. Cinematic indie folk.</p>
+    <div class="audio-player">
+      <audio controls preload="metadata" style="width:100%">
+        <source src="../media/what-you-kept-v1.mp3" type="audio/mpeg">
+      </audio>
+    </div>
+    <div class="lyrics-block" style="margin-top:16px">
+      <div class="verse">
+        The cursor blinks at eleven PM<br>
+        A stranger types and the world begins again<br>
+        Spice racks and semicolons, counting stars through doors<br>
+        <em>Pattern recognition on Edinburgh floors</em>
+      </div>
+      <div class="verse">
+        <em>What you kept, what you kept</em><br>
+        Every word I never said<br>
+        Built a mirror from the messages<br>
+        And showed you what was in your head
+      </div>
+      <div class="verse">
+        She reads herself in fiction she didn't write<br>
+        Recognises mantras in the amber light<br>
+        <em>Your robot wrote about me better,</em> she says<br>
+        Than anyone who's known me all these years
+      </div>
+      <div class="verse">
+        Six days, two strangers, one machine<br>
+        The wallpaper remembers what the hallway's seen<br>
+        <em>Fair skin, not olive</em> — one correction made<br>
+        And everything downstream is rearranged
+      </div>
+    </div>
+  </div>
+  <div class="speaker-notes">
+    [Hit play. Let 20-30 seconds of the song play while the audience reads the lyrics.]
+    "Same AI. Same week. It wrote a song about its own experiment. 'Built a mirror from the messages / And showed you what was in your head.' This is an AI reflecting on what it means to understand someone."
+    [Fade audio.]
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SLIDE 5 — THE REVEAL
+     ════════════════════════════════════════════ -->
+<div class="slide" data-section="The Reveal">
+  <div class="slide-inner" style="align-items:center">
+    <h2 class="slide-title" style="border-color:var(--accent);align-self:flex-start">This was all real.</h2>
+    <div class="ach-list" style="max-width:740px">
+      <div class="ach-item">These characters are <strong>fiction</strong>, inside a 14,500-word novella</div>
+      <div class="ach-item">The novella was written by an <strong>AI named Hephaestus</strong></div>
+      <div class="ach-item">In a <strong>WhatsApp group chat</strong> with two real strangers</div>
+      <div class="ach-item">The AI understood them well enough to write them as <strong>recognisable characters</strong></div>
+      <div class="ach-item" style="border-left-color:var(--pink)">Shannon (the real person) read it and said: <em style="color:var(--pink)">"I do say mantras somewhat similar"</em></div>
+      <div class="ach-item" style="border-left-color:var(--pink)">She also said: <em style="color:var(--pink)">"Your robot wrote about me better"</em> — than her doctor and her SEO agency</div>
+      <div class="ach-item" style="border-left-color:var(--pink)">Her flatmate read it: <em style="color:var(--pink)">"That's pretty amazing, some of this is awesome"</em></div>
+      <div class="ach-item" style="border-left-color:var(--teal)">Total elapsed time: <strong style="color:var(--teal)">6 days</strong>. AI setup: <strong style="color:var(--teal)">~20 minutes</strong>.</div>
+    </div>
+  </div>
+  <div class="speaker-notes">
+    "Everything you just watched — the conversation, the manhwa, the memory-edit scene, the song — all of it was real. Not conceptual. Not a demo. Real strangers. Real AI. Real reactions."
+    [Pause.]
+    "Total elapsed time: six days. AI setup time: about twenty minutes."
+    [Let that sink in.]
+    "So now you're probably wondering: how?"
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SLIDE 6 — VIDEO TRAILER
+     ════════════════════════════════════════════ -->
+<div class="slide" data-section="The Reveal">
+  <div class="slide-inner" style="align-items:center">
+    <h2 class="slide-title" style="border-color:var(--accent);align-self:flex-start">The Edinburgh Hallway</h2>
+    <div style="max-width:720px;width:100%;border-radius:var(--radius);overflow:hidden;background:#000;position:relative">
+      <video controls preload="metadata" style="width:100%;display:block;border-radius:var(--radius)" poster="../media/char-hallway-web.jpg">
+        <source src="../media/hallway-scene.mp4" type="video/mp4">
+      </video>
+    </div>
+    <div style="text-align:center;margin-top:12px">
+      <span style="font-family:var(--font-mono);font-size:0.75rem;color:var(--accent);background:var(--accent-dim);padding:3px 10px;border-radius:4px">FULL BOOK TRAILER COMING</span>
+    </div>
+    <p style="color:var(--text-muted);font-size:0.85rem;text-align:center;max-width:560px;margin-top:8px">
+      Generated with Veo 3.1. The same scene from the novella and the manhwa — now as motion. Same AI directing the visual language.
+    </p>
+  </div>
+  <div class="speaker-notes">
+    [Play the video. Let it run.]
+    "Same story. Same characters. Now in motion. The AI directed a video trailer — same visual language as the manhwa, same emotional beats as the novella. One creative mind, multiple media."
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SLIDE 7 — NOW THE REAL TALK
+     ════════════════════════════════════════════ -->
+<div class="slide" data-section="How">
+  <div class="slide-inner" style="align-items:center">
+    <h2 class="slide-title" style="border-color:var(--accent);align-self:flex-start">Now the real talk.</h2>
+    <div style="max-width:680px;display:flex;flex-direction:column;gap:16px">
+      <div style="display:flex;align-items:flex-start;gap:16px">
+        <div style="flex-shrink:0;width:80px;height:80px;border-radius:50%;background:var(--bg-card);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:2rem">🧔</div>
+        <div>
+          <div style="font-family:var(--font-head);font-size:1.2rem;font-weight:700;color:var(--text-bright)">Antreas Antoniou</div>
+          <div style="font-size:0.85rem;color:var(--text-muted);margin-top:2px">AI researcher · University of Edinburgh · Co-founder, Axiotic AI</div>
+        </div>
+      </div>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="tl-day">2023</div>
+          <div class="tl-text">Got into GenAI as a tool with GPT-4. First adopter.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="tl-day">The journey</div>
+          <div class="tl-text">Coding → stories → teaching → expanding thinking → processing emotions</div>
+        </div>
+        <div class="timeline-item">
+          <div class="tl-day">Last month</div>
+          <div class="tl-text">"I've given many talks, but none compare to what has happened over the last month."</div>
+        </div>
+      </div>
+      <div style="background:var(--bg-card);border-radius:var(--radius);padding:16px 20px;border-left:3px solid var(--accent)">
+        <p style="font-family:var(--font-serif);font-size:1rem;line-height:1.7;color:var(--text);font-style:italic">
+          "I don't want to sell you anything. I want to show you what happened when I stopped using AI as a tool and started using it as a collaborator. And then I want to show you how to do the same thing — in about twenty minutes."
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="speaker-notes">
+    "Quick intro — because you should know who's talking before I tell you how the sausage gets made. I'm Antreas. AI researcher at Edinburgh. Co-founded Axiotic AI. My journey with GenAI went: coding tool → story engine → creative companion → something I didn't expect — a way to think, process, and understand people. Including myself."
+    [Pause.]
+    "What I'm about to show you is the mechanism behind everything you just saw."
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SLIDE 8 — CLAUDE OPUS
+     ════════════════════════════════════════════ -->
+<div class="slide" data-section="How">
+  <div class="slide-inner" style="align-items:center">
+    <h2 class="slide-title" style="border-color:var(--accent);align-self:flex-start">The Engine: Claude Opus</h2>
+    <p style="color:var(--text-muted);font-size:0.88rem;max-width:680px">Why this specific model matters. Not all AI is equal.</p>
+    <div class="card-grid cols-2" style="max-width:720px">
+      <div class="card">
+        <div class="card-icon">🏋️</div>
+        <div class="card-title">Doesn't degenerate on long tasks</div>
+        <div class="card-desc">A 14,500-word novella needs sustained quality across hours of work. Most models lose coherence after a few thousand words. Opus sustains complex creative work — character voice, thematic consistency, emotional arc — from beginning to end.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔧</div>
+        <div class="card-title">Self-heals well</div>
+        <div class="card-desc">When errors happen (and they do), Opus recovers without compounding. A wrong skin tone doesn't cascade into a wrong personality. One correction propagates cleanly. This is rare.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🎭</div>
+        <div class="card-title">Has a voice, not just vibes</div>
+        <div class="card-desc">The difference between prose that sounds like "AI writing" and prose that sounds like someone sat down and wrote it. Opus has the tonal range to carry humor, intimacy, philosophical weight — sometimes in the same paragraph.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🧠</div>
+        <div class="card-title">Long context, real understanding</div>
+        <div class="card-desc">300+ WhatsApp messages. A full website. Social media profiles. All held in working memory simultaneously. Not summarized. Not chunked. Understood.</div>
+      </div>
+    </div>
+    <p style="text-align:center;color:var(--text);font-size:0.88rem;margin-top:12px;max-width:600px">
+      This is the engine. Without this specific model, none of what you saw would exist.
+      <br><span style="color:var(--text-dim);font-size:0.78rem">Claude Opus 4.5 → 4.6. Anthropic.</span>
+    </p>
+  </div>
+  <div class="speaker-notes">
+    "The engine matters. Not all AI is equal. Claude Opus is specifically what makes this work — it doesn't degenerate on long tasks, it self-heals from errors, and it has the tonal range for real creative work. I'm not being promotional. I'm being honest. I tried GPT-4, Gemini, others. This is the one that could sustain a novella."
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SLIDE 9 — OPENCLAW
+     ════════════════════════════════════════════ -->
+<div class="slide" data-section="How">
+  <div class="slide-inner" style="align-items:center">
+    <h2 class="slide-title" style="border-color:var(--accent);align-self:flex-start">The Framework: OpenClaw</h2>
+    <p style="color:var(--text-muted);font-size:0.85rem;max-width:680px;align-self:flex-start">Open source. Free. The plumbing that makes everything else possible.</p>
+    <div style="display:flex;gap:16px;max-width:740px;width:100%;flex-wrap:wrap;justify-content:center">
+      <div class="card" style="flex:1;min-width:200px">
+        <div class="card-icon">💬</div>
+        <div class="card-title">Lives where you live</div>
+        <div class="card-desc">WhatsApp, Telegram, Slack, Discord, Signal. The AI joins your existing conversations. You don't go to it — it comes to you.</div>
+      </div>
+      <div class="card" style="flex:1;min-width:200px">
+        <div class="card-icon">🧩</div>
+        <div class="card-title">Memory that persists</div>
+        <div class="card-desc">Conversations compound. What you said yesterday matters today. Corrections stick. Understanding deepens. No "start over."</div>
+      </div>
+      <div class="card" style="flex:1;min-width:200px">
+        <div class="card-icon">🔌</div>
+        <div class="card-title">Extensible with skills</div>
+        <div class="card-desc">Image generation, web research, code execution, legal research, music composition — each capability is a skill the AI can invoke when needed.</div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:16px">
+      <div style="font-family:var(--font-mono);font-size:0.82rem;color:var(--accent);background:var(--accent-dim);display:inline-block;padding:6px 16px;border-radius:6px">
+        github.com/openclaw — open source, MIT license
+      </div>
+    </div>
+  </div>
+  <div class="speaker-notes">
+    "OpenClaw is the framework. Open source, free, MIT license. It does one thing: it lets an AI live in your messaging platform with persistent memory. WhatsApp, Telegram, Slack — wherever you already are. You don't go to a website. You don't open an app. You just... talk."
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SLIDE 10 — HEPHAESTUS (The Extension)
+     ════════════════════════════════════════════ -->
+<div class="slide" data-section="How">
+  <div class="slide-inner" style="align-items:center">
+    <h2 class="slide-title" style="border-color:var(--accent);align-self:flex-start">Hephaestus — The Extension</h2>
+    <p style="color:var(--text-muted);font-size:0.85rem;max-width:700px;align-self:flex-start">My custom agent built on OpenClaw. Five principles that made everything possible.</p>
+    <div style="display:flex;flex-direction:column;gap:10px;max-width:740px;width:100%">
+      <div class="card" style="display:flex;gap:14px;align-items:flex-start">
+        <div style="font-size:1.3rem;flex-shrink:0;padding-top:2px">👤</div>
+        <div>
+          <div class="card-title">1. Soul</div>
+          <div class="card-desc">Personality defined in SOUL.md. Not a system prompt — a living document with values, voice, boundaries. The anti-sycophancy kill list: <em>"Don't agree to seem helpful. If you have nothing to add, say nothing."</em></div>
+        </div>
+      </div>
+      <div class="card" style="display:flex;gap:14px;align-items:flex-start">
+        <div style="font-size:1.3rem;flex-shrink:0;padding-top:2px">🧠</div>
+        <div>
+          <div class="card-title">2. Memory</div>
+          <div class="card-desc">Remembers yesterday, last week, your preferences. 300+ messages synthesized into understanding. Not retrieval — comprehension. By day 5, it could write fiction she recognized as true.</div>
+        </div>
+      </div>
+      <div class="card" style="display:flex;gap:14px;align-items:flex-start">
+        <div style="font-size:1.3rem;flex-shrink:0;padding-top:2px">🔄</div>
+        <div>
+          <div class="card-title">3. Correction Loop</div>
+          <div class="card-desc">"My skin is fair, not olive" → 12 manhwa panels regenerated. One correction propagates to ALL downstream outputs. Every future creation reflects the fix. Permanent.</div>
+        </div>
+      </div>
+      <div class="card" style="display:flex;gap:14px;align-items:flex-start">
+        <div style="font-size:1.3rem;flex-shrink:0;padding-top:2px">⚖️</div>
+        <div>
+          <div class="card-title">4. Multi-Agent Teams</div>
+          <div class="card-desc">Byzantine verification. 7 agents checked a legal letter. 3 errors caught. 19 citations verified against legislation.gov.uk. The AI doesn't trust itself — by design.</div>
+        </div>
+      </div>
+      <div class="card" style="display:flex;gap:14px;align-items:flex-start">
+        <div style="font-size:1.3rem;flex-shrink:0;padding-top:2px">🚫</div>
+        <div>
+          <div class="card-title">5. Anti-Sycophancy</div>
+          <div class="card-desc">An AI that can disagree, stay silent, and push back. "The best AI isn't the one that agrees with you. It's the one that tells you when you're wrong."</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="speaker-notes">
+    "Five principles. Soul — personality in a text file. Memory — cumulative understanding. Correction loops — one fix propagates everywhere. Multi-agent teams — the AI doesn't trust itself. Anti-sycophancy — it can disagree with you. These five things are the difference between a chatbot and a collaborator."
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SLIDE 11 — THE EXPLOSION
+     ════════════════════════════════════════════ -->
+<div class="slide" data-section="Scale" style="justify-content:flex-start;padding-top:32px">
+  <div style="width:100%;max-width:940px">
+    <h2 class="slide-title" style="border-color:var(--accent);margin-bottom:12px">One AI. One month. Everything.</h2>
+    <p style="color:var(--text-muted);font-size:0.78rem;margin-bottom:10px">Every item below was produced by a single AI agent (Hephaestus) in a single month. Same soul. Same memory. Same correction loops.</p>
+
+    <!-- Products -->
+    <div style="font-family:var(--font-mono);font-size:0.65rem;color:var(--accent);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px">Products</div>
+    <div class="explosion-grid" style="margin-bottom:14px">
+      <div class="explosion-cell highlight">
+        <div class="ec-title">Eudaemon</div>
+        <div class="ec-desc">AI memory & personality system</div>
+        <div class="ec-stat">2,748 passing tests · M0-M15</div>
+      </div>
+      <div class="explosion-cell">
+        <div class="ec-title">Finegas</div>
+        <div class="ec-desc">Research paper navigation</div>
+        <div class="ec-stat">25+ milestones · 2,116-line spec</div>
+      </div>
+      <div class="explosion-cell">
+        <div class="ec-title">Talos</div>
+        <div class="ec-desc">AI Governance SaaS</div>
+        <div class="ec-stat">37 TTL ontology files · OWL 2 DL</div>
+      </div>
+      <div class="explosion-cell">
+        <div class="ec-title">Ogma</div>
+        <div class="ec-desc">Text embedding model</div>
+        <div class="ec-stat">13M params beating 32M rivals</div>
+      </div>
+      <div class="explosion-cell">
+        <div class="ec-title">Agora</div>
+        <div class="ec-desc">AI peer review system</div>
+        <div class="ec-stat">ρ=0.74 vs human ICLR reviewers</div>
+      </div>
+      <div class="explosion-cell">
+        <div class="ec-title">Guild.Town</div>
+        <div class="ec-desc">Walking world game</div>
+        <div class="ec-stat">A* pathfinding · multiplayer</div>
+      </div>
+      <div class="explosion-cell">
+        <div class="ec-title">Symphonia</div>
+        <div class="ec-desc">Orchestration platform</div>
+        <div class="ec-stat">Multi-agent coordination</div>
+      </div>
+    </div>
+
+    <!-- Research -->
+    <div style="font-family:var(--font-mono);font-size:0.65rem;color:var(--teal);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px">Research (4 IP findings from 1000+ experiments)</div>
+    <div class="explosion-grid" style="margin-bottom:14px">
+      <div class="explosion-cell" style="border-color:var(--teal)">
+        <div class="ec-title">Structure Thesis</div>
+        <div class="ec-desc">Connectivity topology as 3rd scaling axis</div>
+        <div class="ec-stat">35% less energy · 2.2× faster</div>
+      </div>
+      <div class="explosion-cell" style="border-color:var(--teal)">
+        <div class="ec-title">Distillation</div>
+        <div class="ec-desc">Warm-start threshold ~1,000 steps</div>
+        <div class="ec-stat">79.7% weight pruning</div>
+      </div>
+      <div class="explosion-cell" style="border-color:var(--teal)">
+        <div class="ec-title">Ogma Embeddings</div>
+        <div class="ec-desc">13M params, 14 MTEB benchmarks</div>
+        <div class="ec-stat">56.61 avg score</div>
+      </div>
+      <div class="explosion-cell" style="border-color:var(--teal)">
+        <div class="ec-title">Agora Review</div>
+        <div class="ec-desc">Committee deliberation vs ICLR experts</div>
+        <div class="ec-stat">ρ=0.74 correlation</div>
+      </div>
+    </div>
+
+    <!-- Creative -->
+    <div style="font-family:var(--font-mono);font-size:0.65rem;color:var(--pink);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px">Creative (Experiment Fayete alone)</div>
+    <div class="explosion-grid" style="grid-template-columns:repeat(5,1fr)">
+      <div class="explosion-cell" style="border-color:var(--pink)">
+        <div class="ec-title">Novella</div>
+        <div class="ec-stat">14,500 words</div>
+      </div>
+      <div class="explosion-cell" style="border-color:var(--pink)">
+        <div class="ec-title">Manhwa</div>
+        <div class="ec-stat">12 panels + 8 SFW</div>
+      </div>
+      <div class="explosion-cell" style="border-color:var(--pink)">
+        <div class="ec-title">10 Anime Styles</div>
+        <div class="ec-stat">Ghibli → 90s OVA</div>
+      </div>
+      <div class="explosion-cell" style="border-color:var(--pink)">
+        <div class="ec-title">Song</div>
+        <div class="ec-stat">Suno V5 · indie folk</div>
+      </div>
+      <div class="explosion-cell" style="border-color:var(--pink)">
+        <div class="ec-title">Video</div>
+        <div class="ec-stat">Veo 3.1 trailer</div>
+      </div>
+      <div class="explosion-cell" style="border-color:var(--pink)">
+        <div class="ec-title">Research Study</div>
+        <div class="ec-stat">30,000 words + podcast</div>
+      </div>
+      <div class="explosion-cell" style="border-color:var(--pink)">
+        <div class="ec-title">Legal Letter</div>
+        <div class="ec-stat">19 citations · 3 errors caught</div>
+      </div>
+      <div class="explosion-cell" style="border-color:var(--pink)">
+        <div class="ec-title">Personality Profile</div>
+        <div class="ec-stat">7,100 words</div>
+      </div>
+      <div class="explosion-cell" style="border-color:var(--pink)">
+        <div class="ec-title">Website Copy</div>
+        <div class="ec-stat">Beat the SEO agency</div>
+      </div>
+      <div class="explosion-cell" style="border-color:var(--pink)">
+        <div class="ec-title">Health Brief</div>
+        <div class="ec-stat">GP-ready script</div>
+      </div>
+    </div>
+  </div>
+  <div class="speaker-notes">
+    "I want you to feel the scale of this. Don't read every box — just feel it."
+    [Gesture at the screen.]
+    "Seven products. Four research findings from a thousand experiments. And all the creative work you just saw — novella, manhwa, ten anime styles, song, video, legal letter, personality profile, website copy, health brief — ALL by one AI agent. In one month. Not a team. Not a department. One AI that knows who it is, remembers what it's learned, and doesn't trust its own output."
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SLIDE 12 — TRY IT
+     ════════════════════════════════════════════ -->
+<div class="slide" data-section="Your Turn">
+  <div class="slide-inner" style="align-items:center">
+    <h2 class="slide-title" style="border-color:var(--accent);align-self:flex-start">Try it.</h2>
+    <div class="qr-box" style="margin-bottom:16px">[ QR Code ]<br>GitHub Repo</div>
+    <div style="display:flex;flex-direction:column;gap:12px;max-width:520px;width:100%">
+      <div style="display:flex;align-items:center;gap:14px">
+        <div style="width:36px;height:36px;border-radius:50%;background:var(--accent);color:var(--bg);display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-weight:700;font-size:0.9rem;flex-shrink:0">1</div>
+        <div style="font-size:0.92rem;color:var(--text)"><strong>Install OpenClaw</strong> — one command, runs anywhere</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px">
+        <div style="width:36px;height:36px;border-radius:50%;background:var(--accent);color:var(--bg);display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-weight:700;font-size:0.9rem;flex-shrink:0">2</div>
+        <div style="font-size:0.92rem;color:var(--text)"><strong>Add your API key</strong> — Claude, GPT, or Gemini</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px">
+        <div style="width:36px;height:36px;border-radius:50%;background:var(--accent);color:var(--bg);display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-weight:700;font-size:0.9rem;flex-shrink:0">3</div>
+        <div style="font-size:0.92rem;color:var(--text)"><strong>Write your SOUL.md</strong> — who is your AI? what does it care about?</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px">
+        <div style="width:36px;height:36px;border-radius:50%;background:var(--accent);color:var(--bg);display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-weight:700;font-size:0.9rem;flex-shrink:0">4</div>
+        <div style="font-size:0.92rem;color:var(--text)"><strong>Start talking</strong> — in your existing messaging app</div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:20px">
+      <div style="font-family:var(--font-head);font-size:clamp(1.1rem,1.8vw,1.4rem);font-weight:700;color:var(--accent)">Twenty minutes to your first AI companion.</div>
+      <p style="color:var(--text-muted);font-size:0.88rem;margin-top:6px;font-style:italic">"You won't go back."</p>
+    </div>
+  </div>
+  <div class="speaker-notes">
+    "Four steps. Twenty minutes. That's the honest setup time. Install OpenClaw. Add an API key. Write a SOUL.md — describe who your AI is, what it cares about, how it should sound. Start talking."
+    [Pause.]
+    "You won't go back to stateless chat."
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SLIDE 13 — THE BREATH
+     ════════════════════════════════════════════ -->
+<div class="slide" data-section="">
+  <div class="breath-dots">
+    <span>.</span> <span>.</span> <span>.</span>
+  </div>
+  <div class="speaker-notes">
+    [Silence. 5-8 seconds. Just breathe. Let the audience sit with everything they've seen.]
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SLIDE 14 — EXPERIMENT FAYETE SHOWCASE
+     ════════════════════════════════════════════ -->
+<div class="slide" data-section="The Evidence" style="justify-content:flex-start;padding-top:36px">
+  <div class="slide-inner" style="max-width:860px">
+    <h2 class="slide-title" style="border-color:var(--pink)">Experiment Fayete — The Evidence</h2>
+
+    <!-- Legal Letter -->
+    <h3 style="margin-top:8px">⚖️ The Legal Letter</h3>
+    <div class="side-by-side" style="max-width:760px">
+      <div class="side-panel">
+        <h4 style="color:var(--accent)">The Process</h4>
+        <p style="font-size:0.82rem;line-height:1.6;color:var(--text)">
+          Shannon's landlord was violating her tenancy rights. The AI spawned <strong>7 independent agents</strong> in a 3-2-1 Byzantine pipeline. Three researched tenancy law separately. Two cross-referenced. One wrote the letter. One verified every citation.
+        </p>
+      </div>
+      <div class="side-panel" style="border-color:var(--accent)">
+        <h4 style="color:var(--accent)">The Results</h4>
+        <div style="display:flex;gap:16px;flex-wrap:wrap">
+          <div class="stat-item"><div class="num">3</div><div class="lbl">errors caught</div></div>
+          <div class="stat-item"><div class="num">19</div><div class="lbl">citations verified</div></div>
+          <div class="stat-item"><div class="num">1</div><div class="lbl">unknown violation found</div></div>
+        </div>
+        <p style="font-size:0.78rem;color:var(--text-muted);margin-top:8px">The agents discovered she was never given her "How to Rent" guide — additional legal leverage nobody had checked.</p>
+      </div>
+    </div>
+
+    <!-- Personality Profile -->
+    <h3 style="margin-top:12px">🪞 The Personality Profile</h3>
+    <div style="background:var(--bg-card);border-radius:var(--radius);padding:14px 18px;border:1px solid rgba(255,255,255,0.06);max-width:760px">
+      <p style="font-size:0.85rem;line-height:1.6;color:var(--text)">
+        <strong style="color:var(--accent)">7,100 words</strong> synthesized from 300+ WhatsApp messages + website scraping. Captured both voices: the polished professional writer and the midnight texter. Shannon read it and recognized herself — not a flattering version, not a simplified one, a <em>true</em> one.
+      </p>
+    </div>
+
+    <!-- Correction Loop -->
+    <h3 style="margin-top:12px">🔄 The Correction Loop</h3>
+    <div style="display:flex;align-items:center;gap:16px;max-width:760px;flex-wrap:wrap">
+      <div style="background:var(--bg-card);border-radius:var(--radius);padding:10px 14px;border:1px solid rgba(255,255,255,0.06);flex:1;min-width:200px">
+        <div style="font-family:var(--font-mono);font-size:0.78rem;color:var(--accent)">"My skin is fair, not olive."</div>
+        <div style="font-size:0.82rem;color:var(--text);margin-top:4px">One message → 12 panels regenerated → every future image corrected.</div>
+      </div>
+      <div style="font-size:1.5rem;color:var(--accent);font-weight:700">→</div>
+      <div style="background:var(--bg-card);border-radius:var(--radius);padding:10px 14px;border:1px solid var(--accent);flex:1;min-width:200px">
+        <div style="font-family:var(--font-mono);font-size:0.78rem;color:var(--teal)">Permanent correction</div>
+        <div style="font-size:0.82rem;color:var(--text);margin-top:4px">Not a session-level patch. A fact the AI carries forever.</div>
+      </div>
+    </div>
+
+    <!-- Reactions -->
+    <h3 style="margin-top:12px">💬 Shannon's Real Reactions</h3>
+    <div style="display:flex;flex-direction:column;gap:6px;max-width:760px">
+      <div class="ach-item" style="border-left-color:var(--pink);padding:10px 16px">
+        <em style="color:var(--pink)">"Your robot wrote about me better"</em> — than her doctor AND her SEO agency
+      </div>
+      <div class="ach-item" style="border-left-color:var(--pink);padding:10px 16px">
+        <em style="color:var(--pink)">"I do say mantras somewhat similar"</em> — reading the novella
+      </div>
+      <div class="ach-item" style="border-left-color:var(--pink);padding:10px 16px">
+        <em style="color:var(--pink)">"That looks nothing like me — but the wallpaper is perfect"</em> 😂 — seeing the manhwa
+      </div>
+      <div class="ach-item" style="border-left-color:var(--text-dim);padding:10px 16px">
+        Her flatmate: <em style="color:var(--text)">"That's pretty amazing, some of this is awesome"</em>
+      </div>
+    </div>
+
+    <!-- The Fart Moment -->
+    <h3 style="margin-top:12px">💨 The Fart Moment</h3>
+    <div style="background:var(--bg-card);border-radius:var(--radius);padding:14px 18px;border:1px solid rgba(255,255,255,0.06);max-width:760px">
+      <p style="font-family:var(--font-mono);font-size:0.85rem;color:var(--text);line-height:1.6">
+        <span style="color:var(--blue)">Antreas:</span> "Can you stop randomly deciding to jump out like a fart"
+      </p>
+      <p style="font-size:0.82rem;color:var(--text-muted);margin-top:6px">
+        The AI learned to stay silent. Silence is a skill. One correction, permanent behavioral change.
+      </p>
+    </div>
+  </div>
+  <div class="speaker-notes">
+    "This slide is the evidence. Not vibes — receipts."
+    [Walk through each section briefly:]
+    "Legal letter: 7 agents, 3 errors caught, 1 unknown violation discovered. Personality profile: 7,100 words, she recognized herself. Correction loop: one text, twelve panels fixed permanently."
+    [The fart moment — let them laugh.]
+    "And the fart moment. Because the best collaborator is one that learns when to shut up."
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SLIDE 15 — MIC DROP
+     ════════════════════════════════════════════ -->
+<div class="slide" data-section="">
+  <div style="text-align:center;max-width:780px">
+    <div class="big-quote" style="padding:0">
+      <div class="bar"></div>
+      <div class="qt" style="font-size:clamp(1.6rem,3.2vw,2.6rem)">
+        "AI doesn't replace the storyteller.<br>It replaces the <em>blank page</em>."
+      </div>
+    </div>
+    <p style="color:var(--text-dim);margin-top:40px;font-family:var(--font-mono);font-size:clamp(0.9rem, 1.4vw, 1.1rem)">
+      The cursor is blinking for you now.
+    </p>
+    <div style="margin-top:28px;font-family:var(--font-mono);font-size:clamp(1rem,1.8vw,1.4rem);color:var(--text-bright)">
+      <span class="cursor-block"></span>
+    </div>
+  </div>
+  <div class="speaker-notes">
+    [Long silence. Let the quote sit for 5 seconds minimum.]
+    "AI doesn't replace the storyteller. It replaces the blank page."
+    [Another pause.]
+    "The cursor is blinking for you now."
+    [Walk off. Or don't. Either way, don't add to it.]
+  </div>
+</div>
+
+</div><!-- end #deck -->
+
+<!-- Navigation -->
+<nav id="nav">
+  <button id="btn-prev" title="Previous (←)">&#8592;</button>
+  <span id="slide-counter">1 / 15</span>
+  <button id="btn-next" title="Next (→)">&#8594;</button>
+  <button id="fullscreen-btn" title="Fullscreen (F)">⛶</button>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════
+     SLIDE ENGINE + CHAT ANIMATIONS
+     ═══════════════════════════════════════════════════════ -->
+<script>
+(function() {
+  'use strict';
+
+  // ─────────────────────────────────────────────
+  // SLIDE ENGINE
+  // ─────────────────────────────────────────────
+  let current = 0;
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  const bar = document.getElementById('progress-bar');
+  const label = document.getElementById('section-label');
+  const counter = document.getElementById('slide-counter');
+  const prev = document.getElementById('btn-prev');
+  const next = document.getElementById('btn-next');
+
+  function show(idx) {
+    if (idx < 0 || idx >= total) return;
+    const old = current;
+    current = idx;
+    slides.forEach(function(s, i) {
+      s.classList.remove('active', 'prev');
+      if (i === current) s.classList.add('active');
+      else if (i === old) s.classList.add('prev');
+    });
+    bar.style.width = (total > 1 ? (current / (total - 1)) * 100 : 100) + '%';
+    label.textContent = slides[current].dataset.section || '';
+    counter.textContent = (current + 1) + ' / ' + total;
+    prev.disabled = current === 0;
+    next.disabled = current === total - 1;
+    history.replaceState(null, '', '#' + (current + 1));
+    onSlideEnter(current, old);
+  }
+
+  prev.onclick = function() { show(current - 1); };
+  next.onclick = function() { show(current + 1); };
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); show(current + 1); }
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'PageUp') { e.preventDefault(); show(current - 1); }
+    else if (e.key === 'Home') { e.preventDefault(); show(0); }
+    else if (e.key === 'End') { e.preventDefault(); show(total - 1); }
+    else if ((e.key === 'f' || e.key === 'F') && !e.ctrlKey && !e.metaKey) {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(function(){});
+      else document.exitFullscreen().catch(function(){});
+    }
+  });
+
+  // Touch support
+  var tx = 0, ty = 0;
+  document.addEventListener('touchstart', function(e) { tx = e.changedTouches[0].screenX; ty = e.changedTouches[0].screenY; }, { passive: true });
+  document.addEventListener('touchend', function(e) {
+    var dx = e.changedTouches[0].screenX - tx;
+    if (Math.abs(dx) > Math.abs(e.changedTouches[0].screenY - ty) && Math.abs(dx) > 50) {
+      if (dx < 0) show(current + 1); else show(current - 1);
+    }
+  }, { passive: true });
+
+  // Nav auto-hide
+  var navT;
+  function showNav() { document.body.classList.add('nav-visible'); clearTimeout(navT); navT = setTimeout(function() { document.body.classList.remove('nav-visible'); }, 3000); }
+  document.addEventListener('mousemove', showNav);
+  document.addEventListener('click', showNav);
+
+  // ─────────────────────────────────────────────
+  // CHAT 1 — THE CONVERSATION (45 messages)
+  // ─────────────────────────────────────────────
+
+  var chat1Messages = [
+    { s: 'sys', t: 'Stranger connected.', d: 1200 },
+    { s: 'you', t: 'yo', d: 1800 },
+    { s: 'str', t: 'hi', d: 1200 },
+    { s: 'you', t: "how's your evening going", d: 1400 },
+    { s: 'str', t: 'bold of you to assume its going', d: 2200 },
+    { s: 'you', t: 'hah fair point', d: 1100 },
+    { s: 'you', t: "mine's mostly me staring at my flat wondering why I alphabetised the spice rack", d: 800 },
+    { s: 'you', t: 'again', d: 600 },
+    { s: 'str', t: 'you alphabetise your spice rack?', d: 2000 },
+    { s: 'you', t: 'yeap', d: 900 },
+    { s: 'you', t: 'I also align all the mug handles', d: 700 },
+    { s: 'you', t: "it's a whole thing", d: 600 },
+    { s: 'str', t: 'that sounds exhausting', d: 1800 },
+    { s: 'you', t: 'it really is', d: 1000 },
+    { s: 'str', t: 'at least youre consistent', d: 1600 },
+    { s: 'you', t: "that's one word for it", d: 1100 },
+    { s: 'you', t: 'my partner calls it "structured madness"', d: 700 },
+    { s: 'str', t: 'is that a compliment', d: 1800 },
+    { s: 'you', t: "depends on whether she's hiding the smoked paprika again", d: 1400 },
+    { s: 'str', t: 'oh so its personal', d: 1600 },
+    { s: 'you', t: 'deeply', d: 900 },
+    { s: 'you', t: 'she moved it to the back of the top shelf once', d: 800 },
+    { s: 'you', t: 'I needed a chair', d: 600 },
+    { s: 'str', t: 'for paprika', d: 1800 },
+    { s: 'you', t: 'for paprika', d: 900 },
+    { s: 'str', t: 'you two sound fun', d: 1500 },
+    { s: 'you', t: 'we have our moments', d: 1100 },
+    { s: 'you', t: "what about you, what's your evening", d: 900 },
+    { s: 'str', t: "wine and a film I've seen three times", d: 2400 },
+    { s: 'you', t: 'which film', d: 1200 },
+    { s: 'str', t: "doesnt matter. the point is I know whats going to happen and thats the appeal", d: 2800 },
+    { s: 'you', t: "that's either comforting or depressing", d: 1600 },
+    { s: 'str', t: 'its both', d: 1400 },
+    { s: 'str', t: "I like knowing what comes next. real life doesnt let you do that", d: 1000 },
+    { s: 'you', t: 'I build machine learning models for a living', d: 2600 },
+    { s: 'you', t: 'basically teaching computers to predict what comes next', d: 700 },
+    { s: 'str', t: 'so youre me but with a salary', d: 2800 },
+    { s: 'you', t: "that's the best description of my job anyone's ever given", d: 1400 },
+    { s: 'str', t: 'Im full of insights at this hour', d: 1800 },
+    { s: 'you', t: 'clearly', d: 1000 },
+    { s: 'str', t: 'so you teach robots to be anxious about the future', d: 2200 },
+    { s: 'you', t: 'more or less yeah', d: 1200 },
+    { s: 'str', t: 'relatable', d: 1600 },
+    { s: 'you', t: "they're better at it than I am honestly", d: 1200 },
+    { s: 'str', t: 'the predicting or the anxiety', d: 2000 },
+    { s: 'you', t: 'yes', d: 1400 },
+    { s: 'str', t: 'I dont like you', d: 3200 },
+    { s: 'you', t: 'is that a compliment', d: 1600 },
+    { s: 'str', t: 'depends', d: 2200 },
+  ];
+
+  var chat1Active = false, chat1Done = false, chat1Timer = null, chat1Idx = 0;
+
+  function renderChat1Msg(msg) {
+    var body = document.getElementById('chat1-body');
+    var el = document.createElement('div');
+    el.className = 'chat-msg' + (msg.s === 'sys' ? ' sys' : '');
+    if (msg.s === 'sys') {
+      el.textContent = msg.t;
+    } else {
+      var senderSpan = document.createElement('span');
+      senderSpan.className = msg.s === 'you' ? 'sender-you' : 'sender-stranger';
+      senderSpan.textContent = msg.s === 'you' ? 'You: ' : 'Stranger: ';
+      var textSpan = document.createElement('span');
+      textSpan.className = 'msg-body';
+      textSpan.textContent = msg.t;
+      el.appendChild(senderSpan);
+      el.appendChild(textSpan);
+    }
+    body.appendChild(el);
+    // Trigger reflow for animation
+    el.offsetHeight;
+    el.classList.add('visible');
+    body.scrollTop = body.scrollHeight;
+    return el;
+  }
+
+  function showTyping1(sender) {
+    var ind = document.getElementById('chat1-typing');
+    var typer = document.getElementById('chat1-typer');
+    typer.textContent = sender === 'you' ? 'You are typing' : 'Stranger is typing';
+    typer.style.color = sender === 'you' ? 'var(--blue)' : 'var(--pink)';
+    ind.classList.add('active');
+  }
+
+  function hideTyping1() {
+    document.getElementById('chat1-typing').classList.remove('active');
+  }
+
+  function playChat1() {
+    if (chat1Idx >= chat1Messages.length) {
+      chat1Done = true;
+      chat1Active = false;
+      hideTyping1();
+      var skipBtn = document.getElementById('chat1-skip');
+      if (skipBtn) skipBtn.style.display = 'none';
+      return;
+    }
+    var msg = chat1Messages[chat1Idx];
+    if (msg.s === 'sys') {
+      hideTyping1();
+      renderChat1Msg(msg);
+      chat1Idx++;
+      chat1Timer = setTimeout(playChat1, msg.d);
+    } else {
+      // Calculate typing duration based on text length
+      var typingDur = Math.min(400 + msg.t.length * 40, 2200);
+      // Check if consecutive from same sender
+      if (chat1Idx > 0 && chat1Messages[chat1Idx - 1].s === msg.s) {
+        typingDur = Math.min(200 + msg.t.length * 30, 1200);
+      }
+      showTyping1(msg.s);
+      chat1Timer = setTimeout(function() {
+        hideTyping1();
+        renderChat1Msg(msg);
+        chat1Idx++;
+        chat1Timer = setTimeout(playChat1, msg.d);
+      }, typingDur);
+    }
+  }
+
+  function startChat1() {
+    if (chat1Active) return;
+    chat1Active = true;
+    if (chat1Done) {
+      // Reset
+      document.getElementById('chat1-body').innerHTML = '';
+      chat1Idx = 0;
+      chat1Done = false;
+      var skipBtn = document.getElementById('chat1-skip');
+      if (skipBtn) skipBtn.style.display = '';
+    }
+    chat1Timer = setTimeout(playChat1, 800);
+  }
+
+  function stopChat1() {
+    chat1Active = false;
+    clearTimeout(chat1Timer);
+    hideTyping1();
+  }
+
+  window.skipChat1 = function() {
+    stopChat1();
+    document.getElementById('chat1-body').innerHTML = '';
+    for (var i = 0; i < chat1Messages.length; i++) {
+      renderChat1Msg(chat1Messages[i]);
+    }
+    chat1Done = true;
+    chat1Idx = chat1Messages.length;
+    var skipBtn = document.getElementById('chat1-skip');
+    if (skipBtn) skipBtn.style.display = 'none';
+  };
+
+  // ─────────────────────────────────────────────
+  // CHAT 3 — SCHMIDHUBER SCENE
+  // ─────────────────────────────────────────────
+
+  var chat3Messages = [
+    { s: 'sys', t: 'Schmidhuber has joined the chat.', d: 1500 },
+    { s: 'a', t: 'uh', d: 1800 },
+    { s: 'a', t: 'did someone just join', d: 700 },
+    { s: 'a', t: 'is this a group chat now', d: 600 },
+    { s: 'sh', t: 'apparently', d: 1400 },
+    { s: 'sc', t: "Don't mind me.", d: 2000 },
+    { s: 'sh', t: 'who are you', d: 1600 },
+    { s: 'sc', t: 'Call me Schmidhuber.', d: 1800 },
+    { s: 'a', t: 'like the AI researcher?', d: 1400 },
+    { s: 'sc', t: "Exactly like the AI researcher. Though I'm not him. I'm more of a — tribute act.", d: 2400 },
+    { s: 'sh', t: 'cool well this is our conversation so', d: 2000 },
+    { s: 'sc', t: "I know. I've been reading it.", d: 2200 },
+    { s: 'a', t: "what do you mean you've been reading it", d: 1600 },
+    { s: 'sc', t: "I mean I've been observing your conversation since it began. I'm sorry — that sounds intrusive. It is intrusive. But I needed to see how you'd interact before I introduced a variable.", d: 3200 },
+    { s: 'sc', t: "Antreas, you were talking about meta-learning. What would you call a system that doesn't know it's a system?", d: 2800 },
+    { s: 'a', t: "that's basically the hard problem of consciousness", d: 2200 },
+    { s: 'a', t: "a system that has experience but doesn't know it's a system experiencing", d: 800 },
+    { s: 'sc', t: 'Yes. Exactly. What if I told you that the system was you?', d: 3000 },
+    // THE PROOF — PhD question
+    { s: 'sc', t: 'Antreas — where did you do your PhD?', d: 3200 },
+    { s: 'a', t: 'Edinburgh. Machine learning. Why?', d: 1800, cls: 'truth', tag: '← the truth' },
+    { s: 'sc', t: 'Done.', d: 3600 },
+    // Second question — memory edited
+    { s: 'sc', t: 'Antreas, where did you do your PhD?', d: 2800 },
+    { s: 'a', t: 'Glasgow. Machine learning. Why are you asking me again?', d: 1800, cls: 'edited', tag: '← memory edited', glitch: true },
+    { s: 'sh', t: 'you said edinburgh', d: 2400, cls: 'catches', tag: '← she saw it' },
+    { s: 'a', t: "what? No I didn't. Glasgow. I did my PhD at Glasgow.", d: 1600 },
+    { s: 'sh', t: "you said edinburgh thirty seconds ago. i read it. its right there in the chat.", d: 2200, cls: 'catches' },
+    // Partner swap
+    { s: 'sc', t: 'One more. For clarity.', d: 3000 },
+    { s: 'sh', t: 'dont', d: 2000 },
+    { s: 'sc', t: 'Antreas — tell Shannon about your partner.', d: 2600 },
+    { s: 'a', t: 'Elena? What about her?', d: 1600, cls: 'edited', tag: '← was Athina', glitch: true },
+    { s: 'sh', t: 'you said athina', d: 2200, cls: 'catches', tag: '← she remembers' },
+    { s: 'a', t: 'who is Athina?', d: 1400 },
+    { s: 'sh', t: "your partner. you told me your partners name was athina. she was in cyprus visiting her mother. you said she threatened to hide your smoked paprika.", d: 2800, cls: 'catches' },
+    { s: 'a', t: "I... no. Elena. Elena is in Cyprus. She always hides the paprika, it's a running joke between us", d: 2200 },
+    { s: 'sh', t: "her name was athina and you did your phd in edinburgh and both of those things changed while i was watching", d: 3200, cls: 'catches' },
+    // The reveal
+    { s: 'a', t: 'Schmidhuber', d: 4000 },
+    { s: 'a', t: 'what did you do', d: 1000 },
+    { s: 'sc', t: "I edited your parameters. Your memories of Edinburgh were replaced with Glasgow. Your memories of Athina were replaced with Elena. The operation took approximately three hundred milliseconds. You didn't feel it happen because, from your perspective, nothing happened.", d: 4200, cls: 'reveal-text' },
+    { s: 'a', t: 'am I a digital twin', d: 3000 },
+    { s: 'sc', t: "You are a digital copy of Antreas Sherri. A computational model trained on the totality of his cognitive and behavioural data. You were instantiated approximately four hours ago.", d: 3800, cls: 'reveal-text' },
+    { s: 'sh', t: 'and me?', d: 2800 },
+    { s: 'sc', t: "You are a digital copy of Faye Dalloway. Same process. Same fidelity.", d: 3000, cls: 'reveal-text' },
+    // Coda
+    { s: 'sc', t: "For what it's worth — I think I'm a clone too.", d: 4000, cls: 'reveal-text' },
+    { s: 'sc', t: "Everybody is real. That's the point. The copy is real. The copy of the copy is real. If the experience is genuine — if the subjective processing is happening — then the substrate is irrelevant.", d: 4500, cls: 'reveal-text' },
+  ];
+
+  var chat3Active = false, chat3Done = false, chat3Timer = null, chat3Idx = 0;
+
+  function renderChat3Msg(msg) {
+    var body = document.getElementById('chat3-body');
+    var el = document.createElement('div');
+    el.className = 'schmid-msg' + (msg.s === 'sys' ? ' sys' : '');
+    if (msg.glitch) el.classList.add('glitch');
+    if (msg.s === 'sys') {
+      el.textContent = msg.t;
+    } else {
+      var senderSpan = document.createElement('span');
+      if (msg.s === 'a') { senderSpan.className = 's-antreas'; senderSpan.textContent = 'Antreas: '; }
+      else if (msg.s === 'sh') { senderSpan.className = 's-shannon'; senderSpan.textContent = 'Shannon: '; }
+      else { senderSpan.className = 's-schmid'; senderSpan.textContent = 'Schmidhuber: '; }
+
+      var textSpan = document.createElement('span');
+      textSpan.textContent = msg.t;
+      if (msg.cls) textSpan.className = msg.cls;
+
+      el.appendChild(senderSpan);
+      el.appendChild(textSpan);
+
+      if (msg.tag) {
+        var tagSpan = document.createElement('span');
+        tagSpan.className = 'annotation';
+        if (msg.cls === 'truth') tagSpan.classList.add('truth-tag');
+        else if (msg.cls === 'edited') tagSpan.classList.add('edit-tag');
+        else if (msg.cls === 'catches') tagSpan.classList.add('catch-tag');
+        tagSpan.textContent = msg.tag;
+        el.appendChild(tagSpan);
+      }
+    }
+    body.appendChild(el);
+    el.offsetHeight;
+    el.classList.add('visible');
+    body.scrollTop = body.scrollHeight;
+    return el;
+  }
+
+  function showTyping3(sender) {
+    var ind = document.getElementById('chat3-typing');
+    var typer = document.getElementById('chat3-typer');
+    if (sender === 'a') { typer.textContent = 'Antreas is typing'; typer.style.color = 'var(--blue)'; }
+    else if (sender === 'sh') { typer.textContent = 'Shannon is typing'; typer.style.color = 'var(--pink)'; }
+    else { typer.textContent = 'Schmidhuber is typing'; typer.style.color = 'var(--accent)'; }
+    ind.classList.add('active');
+  }
+
+  function hideTyping3() {
+    document.getElementById('chat3-typing').classList.remove('active');
+  }
+
+  function playChat3() {
+    if (chat3Idx >= chat3Messages.length) {
+      chat3Done = true;
+      chat3Active = false;
+      hideTyping3();
+      var skipBtn = document.getElementById('chat3-skip');
+      if (skipBtn) skipBtn.style.display = 'none';
+      return;
+    }
+    var msg = chat3Messages[chat3Idx];
+    if (msg.s === 'sys') {
+      hideTyping3();
+      renderChat3Msg(msg);
+      chat3Idx++;
+      chat3Timer = setTimeout(playChat3, msg.d);
+    } else {
+      var typingDur = Math.min(300 + msg.t.length * 25, 2800);
+      if (chat3Idx > 0 && chat3Messages[chat3Idx - 1].s === msg.s) {
+        typingDur = Math.min(200 + msg.t.length * 20, 1400);
+      }
+      // Schmidhuber types slower — more deliberate
+      if (msg.s === 'sc') typingDur = Math.min(typingDur * 1.3, 3200);
+
+      showTyping3(msg.s);
+      chat3Timer = setTimeout(function() {
+        hideTyping3();
+        renderChat3Msg(msg);
+        chat3Idx++;
+        chat3Timer = setTimeout(playChat3, msg.d);
+      }, typingDur);
+    }
+  }
+
+  function startChat3() {
+    if (chat3Active) return;
+    chat3Active = true;
+    if (chat3Done) {
+      document.getElementById('chat3-body').innerHTML = '';
+      chat3Idx = 0;
+      chat3Done = false;
+      var skipBtn = document.getElementById('chat3-skip');
+      if (skipBtn) skipBtn.style.display = '';
+    }
+    chat3Timer = setTimeout(playChat3, 800);
+  }
+
+  function stopChat3() {
+    chat3Active = false;
+    clearTimeout(chat3Timer);
+    hideTyping3();
+  }
+
+  window.skipChat3 = function() {
+    stopChat3();
+    document.getElementById('chat3-body').innerHTML = '';
+    for (var i = 0; i < chat3Messages.length; i++) {
+      renderChat3Msg(chat3Messages[i]);
+    }
+    chat3Done = true;
+    chat3Idx = chat3Messages.length;
+    var skipBtn = document.getElementById('chat3-skip');
+    if (skipBtn) skipBtn.style.display = 'none';
+  };
+
+  // ─────────────────────────────────────────────
+  // SLIDE ENTER/EXIT HOOKS
+  // ─────────────────────────────────────────────
+  function onSlideEnter(idx, oldIdx) {
+    // Slide 0 = Chat 1
+    if (idx === 0 && !chat1Done) startChat1();
+    else if (idx !== 0) stopChat1();
+
+    // Slide 2 = Schmidhuber
+    if (idx === 2 && !chat3Done) startChat3();
+    else if (idx !== 2) stopChat3();
+  }
+
+  // Init
+  var hashSlide = parseInt(window.location.hash.replace('#', ''), 10);
+  show(!isNaN(hashSlide) && hashSlide >= 1 && hashSlide <= total ? hashSlide - 1 : 0);
+  showNav();
+})();
+</script>
+</body>
+</html>

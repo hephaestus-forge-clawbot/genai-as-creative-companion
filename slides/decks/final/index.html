@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GenAI as Creative Companion — 10 Final Designs</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0a0f;
+    color: #f8fafc;
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    padding: 40px 20px;
+  }
+  .container { max-width: 1200px; margin: 0 auto; }
+  h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, #fbbf24, #f59e0b, #d97706);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .subtitle {
+    text-align: center;
+    color: rgba(248,250,252,0.5);
+    font-size: 0.95rem;
+    margin-bottom: 48px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .subtitle span { color: #fbbf24; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px;
+  }
+  .card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    padding: 28px;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    cursor: pointer;
+    text-decoration: none;
+    display: block;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent, #fbbf24), transparent);
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+  .card:hover {
+    border-color: rgba(251,191,36,0.3);
+    background: rgba(255,255,255,0.06);
+    transform: translateY(-4px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  }
+  .card:hover::before { opacity: 1; }
+  .card-number {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    color: #fbbf24;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 12px;
+  }
+  .card-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .card-desc {
+    font-size: 0.88rem;
+    color: rgba(248,250,252,0.6);
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+  .card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    padding: 3px 10px;
+    border-radius: 99px;
+    background: rgba(251,191,36,0.1);
+    color: #fbbf24;
+    border: 1px solid rgba(251,191,36,0.15);
+  }
+  .tag--blue { background: rgba(96,165,250,0.1); color: #60a5fa; border-color: rgba(96,165,250,0.15); }
+  .tag--purple { background: rgba(168,85,247,0.1); color: #a855f7; border-color: rgba(168,85,247,0.15); }
+  .tag--green { background: rgba(52,211,153,0.1); color: #34d399; border-color: rgba(52,211,153,0.15); }
+  .footer {
+    text-align: center;
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    color: rgba(248,250,252,0.3);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+  }
+  .rank { 
+    position: absolute; top: 16px; right: 16px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: rgba(251,191,36,0.15);
+    color: #fbbf24;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>GenAI as Creative Companion</h1>
+  <p class="subtitle">10 final designs · <span>10-3-3-10 pyramid</span> · pick your favourite</p>
+  
+  <div class="grid">
+    <a href="polished-01.html" class="card" style="--accent: #fbbf24">
+      <span class="rank">#3 ranked</span>
+      <div class="card-number">Design 01</div>
+      <div class="card-title">The Chat Animation King</div>
+      <div class="card-desc">49-message animated opener with typing indicators, burst detection, and skip buttons. The longest, most natural-feeling conversation. Schmidhuber types 1.3× slower.</div>
+      <div class="card-tags">
+        <span class="tag">49 messages</span>
+        <span class="tag--blue tag">typing indicators</span>
+        <span class="tag--green tag">lifecycle hooks</span>
+      </div>
+    </a>
+
+    <a href="polished-02.html" class="card" style="--accent: #a855f7">
+      <div class="card-number">Design 02</div>
+      <div class="card-title">The Glitch Master</div>
+      <div class="card-desc">Most dramatic Schmidhuber scene — chromatic aberration, scan-line animations, parameter flash overlays. When "Done." appears, reality visually breaks apart.</div>
+      <div class="card-tags">
+        <span class="tag--purple tag">chromatic aberration</span>
+        <span class="tag--purple tag">glitch effects</span>
+        <span class="tag">parameter flash</span>
+      </div>
+    </a>
+
+    <a href="polished-03.html" class="card" style="--accent: #06b6d4">
+      <div class="card-number">Design 03</div>
+      <div class="card-title">Mission Control</div>
+      <div class="card-desc">The explosion slide that makes jaws drop — NASA mission control aesthetic with scanline animation, pulse-glow stat chips, and data-flicker effects. 7 products, 4 research findings, 13 creative outputs.</div>
+      <div class="card-tags">
+        <span class="tag--blue tag">scanline</span>
+        <span class="tag--blue tag">pulse-glow</span>
+        <span class="tag--blue tag">data-flicker</span>
+      </div>
+    </a>
+
+    <a href="polished-04.html" class="card" style="--accent: #f472b6">
+      <div class="card-number">Design 04</div>
+      <div class="card-title">The Emotional Core</div>
+      <div class="card-desc">32 WhatsApp bubbles that feel real. Shannon's reactions, the flatmate's response, the verify-tree diagram for the legal letter. The human impact slides that make you feel something.</div>
+      <div class="card-tags">
+        <span class="tag">32 WhatsApp bubbles</span>
+        <span class="tag--green tag">verify-tree</span>
+        <span class="tag">real quotes</span>
+      </div>
+    </a>
+
+    <a href="polished-05.html" class="card" style="--accent: #60a5fa">
+      <div class="card-number">Design 05</div>
+      <div class="card-title">The Tech Translator</div>
+      <div class="card-desc">Best non-technical explanation of Claude Opus, OpenClaw, and Hephaestus. Car engine metaphor (🚗 vs 🏎️), vending machine vs flatmate analogy, ChatGPT comparison table.</div>
+      <div class="card-tags">
+        <span class="tag--blue tag">car engine metaphor</span>
+        <span class="tag--blue tag">side-by-side comparison</span>
+        <span class="tag">trust pyramid</span>
+      </div>
+    </a>
+
+    <a href="polished-06.html" class="card" style="--accent: #fbbf24">
+      <span class="rank">#4 ranked</span>
+      <div class="card-number">Design 06</div>
+      <div class="card-title">The Visual Masterpiece</div>
+      <div class="card-desc">Film grain overlay, glassmorphism cards, per-slide radial gradients, staggered animations. Every slide looks like it belongs in a design portfolio. Apple keynote meets film festival.</div>
+      <div class="card-tags">
+        <span class="tag">film grain</span>
+        <span class="tag">glassmorphism</span>
+        <span class="tag--purple tag">ambient gradients</span>
+      </div>
+    </a>
+
+    <a href="polished-07.html" class="card" style="--accent: #f472b6">
+      <div class="card-number">Design 07</div>
+      <div class="card-title">The Media Gallery</div>
+      <div class="card-desc">Vertical webtoon scroll for manhwa with interstitial literary text. Cinema premiere framing for the video. 60-bar waveform visualizer for the song. Every media element is an exhibit.</div>
+      <div class="card-tags">
+        <span class="tag">webtoon scroll</span>
+        <span class="tag--purple tag">cinema letterbox</span>
+        <span class="tag--green tag">60-bar waveform</span>
+      </div>
+    </a>
+
+    <a href="polished-08.html" class="card" style="--accent: #c9a96e">
+      <div class="card-number">Design 08</div>
+      <div class="card-title">The Literary Edition</div>
+      <div class="card-desc">Cormorant Garamond at weight 300. The Schmidhuber scene as a screenplay. The lyrics as poetry. Every line of text is beautiful. The deck that reads like a book.</div>
+      <div class="card-tags">
+        <span class="tag">Cormorant Garamond</span>
+        <span class="tag">screenplay format</span>
+        <span class="tag--green tag">line-height 2.0</span>
+      </div>
+    </a>
+
+    <a href="polished-09.html" class="card" style="--accent: #34d399">
+      <span class="rank">#2 ranked</span>
+      <div class="card-number">Design 09</div>
+      <div class="card-title">The Director's Cut</div>
+      <div class="card-desc">5,489 words of speaker notes — a director's script for every slide. When to snap your fingers. Where to stand. Who to look at. How long to pause. The presenter's best friend.</div>
+      <div class="card-tags">
+        <span class="tag--green tag">5,489 words of notes</span>
+        <span class="tag--green tag">staging cues</span>
+        <span class="tag">timing marks</span>
+      </div>
+    </a>
+
+    <a href="polished-10.html" class="card" style="--accent: #fbbf24">
+      <span class="rank">#1 ranked</span>
+      <div class="card-number">Design 10</div>
+      <div class="card-title">The Complete Vision</div>
+      <div class="card-desc">#1 ranked by the arbiter panel. Best overall coherence — per-slide color evolution, emotional arc structure, bookend cursor motif. The whole is greater than the sum. Fewest bugs across all 10.</div>
+      <div class="card-tags">
+        <span class="tag">10 theme classes</span>
+        <span class="tag">color evolution</span>
+        <span class="tag--green tag">fewest bugs</span>
+      </div>
+    </a>
+  </div>
+
+  <div class="footer">
+    10 drafters → 3 synthesizers → 3 arbiters → 10 polishers · 26 agents · ~1.2M tokens<br>
+    Built by Hephaestus for Antreas · University of Edinburgh MSc Lecture
+  </div>
+</div>
+</body>
+</html>
