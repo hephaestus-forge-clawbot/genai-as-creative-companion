@@ -1,0 +1,1808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>What You're Looking At</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-dark: #0a0a0a;
+  --bg-gallery: #0d0d0d;
+  --bg-warm: #111111;
+  --bg-light: #f8fafc;
+  --card: #ffffff;
+  --text-light: #f1f5f9;
+  --text-dark: #0f172a;
+  --muted-light: #94a3b8;
+  --muted-dark: #64748b;
+  --accent: #fbbf24;
+  --accent-dim: #b8860b;
+  --whatsapp: #25d366;
+  --crimson: #8b1a1a;
+  --radius: 0.75rem;
+  --font-head: 'Space Grotesk', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --font-serif: 'Cormorant Garamond', 'Playfair Display', Georgia, serif;
+  --font-display: 'Playfair Display', 'Cormorant Garamond', Georgia, serif;
+}
+
+html, body {
+  width: 100%; height: 100%;
+  background: var(--bg-dark);
+  font-family: var(--font-body);
+  color: var(--text-light);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Progress bar ─── */
+#progress-bar {
+  position: fixed; top: 0; left: 0; height: 3px;
+  background: var(--accent);
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1000;
+}
+
+/* ─── Section label ─── */
+#section-label {
+  position: fixed; top: 10px; right: 16px;
+  font-family: var(--font-mono);
+  font-size: 0.65rem; font-weight: 500;
+  color: var(--muted-light);
+  letter-spacing: 0.08em; text-transform: uppercase;
+  z-index: 999;
+  opacity: 0.6;
+  transition: opacity 0.3s;
+}
+
+/* ─── Navigation ─── */
+#nav {
+  position: fixed; bottom: 20px; left: 50%;
+  transform: translateX(-50%);
+  display: flex; align-items: center; gap: 16px;
+  z-index: 999;
+  background: rgba(15, 15, 15, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(251, 191, 36, 0.15);
+  border-radius: 99px;
+  padding: 8px 20px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+  transition: opacity 0.3s;
+}
+#nav:hover { opacity: 1; }
+#nav button {
+  background: none; border: none; cursor: pointer;
+  font-size: 1.1rem; padding: 4px 10px;
+  color: var(--text-light); border-radius: 6px;
+  transition: background 0.15s, color 0.15s;
+  font-family: var(--font-body);
+}
+#nav button:hover { background: rgba(251,191,36,0.15); color: var(--accent); }
+#nav button:disabled { opacity: 0.25; cursor: default; }
+#slide-counter {
+  font-family: var(--font-mono);
+  font-size: 0.75rem; color: var(--muted-light);
+  min-width: 60px; text-align: center;
+}
+#fullscreen-btn {
+  background: none; border: none; cursor: pointer;
+  font-size: 1.1rem; padding: 4px 6px;
+  color: var(--text-light); border-radius: 6px;
+  transition: background 0.15s;
+}
+#fullscreen-btn:hover { background: rgba(251,191,36,0.15); }
+
+/* ─── Slide engine ─── */
+#deck {
+  width: 100vw; height: 100vh;
+  position: relative; overflow: hidden;
+}
+
+.slide {
+  position: absolute; inset: 0;
+  opacity: 0;
+  transform: translateX(60px);
+  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+  overflow-y: auto;
+  display: flex; flex-direction: column;
+  justify-content: center; align-items: center;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(251,191,36,0.3) transparent;
+}
+.slide.active {
+  opacity: 1; transform: translateX(0);
+  pointer-events: all;
+}
+.slide.prev {
+  opacity: 0; transform: translateX(-60px);
+}
+
+/* ═══════════════════════════════════════════════
+   GALLERY SLIDES — art exhibition aesthetic
+   Full-bleed, dark, immersive, no chrome
+   ═══════════════════════════════════════════════ */
+
+/* Title card */
+.gallery-title {
+  background: var(--bg-dark);
+  justify-content: center; align-items: center;
+  text-align: center;
+}
+.gallery-title h1 {
+  font-family: var(--font-head);
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  font-weight: 700;
+  color: var(--text-light);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+/* Prose exhibition */
+.gallery-prose {
+  background: var(--bg-gallery);
+  padding: 8vh 10vw;
+  justify-content: center;
+  align-items: center;
+}
+.prose-frame {
+  max-width: 720px;
+  width: 100%;
+}
+.prose-frame p {
+  font-family: var(--font-serif);
+  font-size: clamp(1.15rem, 1.8vw, 1.45rem);
+  line-height: 1.85;
+  color: #e2e8f0;
+  font-weight: 400;
+  text-align: left;
+  letter-spacing: 0.005em;
+}
+.prose-frame p em {
+  font-style: italic;
+  color: #cbd5e1;
+}
+
+/* Visual gallery — manhwa, anime grid */
+.gallery-visual {
+  background: var(--bg-dark);
+  padding: 40px;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Image placeholder */
+.image-placeholder {
+  border: 1px solid rgba(251,191,36,0.2);
+  border-radius: var(--radius);
+  display: flex; flex-direction: column;
+  justify-content: center; align-items: center;
+  text-align: center;
+  padding: 40px;
+  color: var(--muted-light);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  background: rgba(251,191,36,0.03);
+  min-height: 300px;
+  position: relative;
+  overflow: hidden;
+}
+.image-placeholder::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(251,191,36,0.05) 0%, transparent 50%, rgba(139,26,26,0.05) 100%);
+  pointer-events: none;
+}
+.image-placeholder .ph-icon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+  opacity: 0.4;
+}
+.image-placeholder .ph-label {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--muted-light);
+  max-width: 320px;
+  line-height: 1.5;
+}
+
+/* Legal document style */
+.gallery-legal {
+  background: #fafafa;
+  padding: 6vh 8vw;
+  justify-content: center;
+  align-items: center;
+}
+.legal-frame {
+  max-width: 640px;
+  width: 100%;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 2px;
+  padding: 48px 56px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  font-family: 'Times New Roman', Georgia, serif;
+  font-size: 0.92rem;
+  line-height: 1.7;
+  color: #1a1a1a;
+}
+.legal-frame .legal-header {
+  text-align: center;
+  font-weight: 700;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #1a1a1a;
+}
+.legal-frame .legal-ref {
+  font-size: 0.78rem;
+  color: #4b5563;
+  margin-top: 4px;
+}
+.legal-frame .legal-cite {
+  font-style: italic;
+  color: #374151;
+}
+.legal-frame p {
+  margin-bottom: 12px;
+}
+
+/* Anime grid */
+.anime-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 12px;
+  width: 90vw;
+  max-width: 1100px;
+  height: 70vh;
+  max-height: 600px;
+}
+.anime-cell {
+  border: 1px solid rgba(251,191,36,0.12);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 12px;
+  background: rgba(251,191,36,0.02);
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.3s;
+}
+.anime-cell:hover {
+  border-color: rgba(251,191,36,0.35);
+}
+.anime-cell .style-name {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--accent);
+  opacity: 0.7;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.anime-cell .ph-icon {
+  font-size: 2rem;
+  margin-bottom: 8px;
+  opacity: 0.25;
+}
+
+/* Manhwa strip */
+.manhwa-strip {
+  display: flex;
+  gap: 16px;
+  width: 90vw;
+  max-width: 1000px;
+  height: 70vh;
+  max-height: 560px;
+}
+.manhwa-panel {
+  flex: 1;
+  border: 1px solid rgba(139,26,26,0.25);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  background: rgba(139,26,26,0.04);
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+}
+.manhwa-panel .ph-desc {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  color: var(--muted-light);
+  line-height: 1.5;
+  max-width: 180px;
+}
+.manhwa-panel .ph-icon {
+  font-size: 2.5rem;
+  margin-bottom: 12px;
+  opacity: 0.3;
+}
+
+/* ═══════════════════════════════════════════════
+   DISRUPTION — pure black
+   ═══════════════════════════════════════════════ */
+.disruption {
+  background: #000000;
+  justify-content: center;
+  align-items: center;
+}
+
+/* ═══════════════════════════════════════════════
+   REVEAL SLIDES — stark, dramatic
+   ═══════════════════════════════════════════════ */
+.reveal-slide {
+  background: var(--bg-dark);
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 60px 80px;
+}
+.reveal-big {
+  font-family: var(--font-head);
+  font-size: clamp(3rem, 8vw, 7rem);
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+.reveal-sub {
+  font-family: var(--font-body);
+  font-size: clamp(1rem, 1.8vw, 1.35rem);
+  color: var(--muted-light);
+  line-height: 1.6;
+  max-width: 640px;
+  margin-top: 24px;
+}
+
+/* WhatsApp mockup for reveals */
+.wa-mockup {
+  background: #111b21;
+  border-radius: 16px;
+  max-width: 400px;
+  width: 90%;
+  overflow: hidden;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+}
+.wa-header {
+  background: #1f2c34;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.wa-avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--whatsapp);
+  display: flex; justify-content: center; align-items: center;
+  font-size: 0.9rem; color: white; font-weight: 700;
+}
+.wa-group-name {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #e9edef;
+}
+.wa-group-members {
+  font-size: 0.7rem;
+  color: #8696a0;
+}
+.wa-body {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.wa-msg {
+  padding: 8px 12px;
+  border-radius: 8px;
+  max-width: 85%;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+.wa-msg.incoming {
+  background: #202c33;
+  color: #e9edef;
+  align-self: flex-start;
+  border-top-left-radius: 0;
+}
+.wa-msg.outgoing {
+  background: #005c4b;
+  color: #e9edef;
+  align-self: flex-end;
+  border-top-right-radius: 0;
+}
+.wa-msg .wa-sender {
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+.wa-msg .wa-sender.human-a { color: #53bdeb; }
+.wa-msg .wa-sender.human-b { color: #e091c9; }
+.wa-msg .wa-sender.ai { color: var(--accent); }
+.wa-msg .wa-time {
+  font-size: 0.6rem;
+  color: rgba(255,255,255,0.35);
+  text-align: right;
+  margin-top: 2px;
+}
+.wa-msg.ai-highlight {
+  background: rgba(251,191,36,0.1);
+  border: 1px solid rgba(251,191,36,0.25);
+}
+
+/* ═══════════════════════════════════════════════
+   HUMAN STORY — warm, intimate
+   ═══════════════════════════════════════════════ */
+.story-slide {
+  background: var(--bg-warm);
+  padding: 56px 64px 72px;
+  justify-content: center;
+}
+.story-inner {
+  max-width: 800px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.story-title {
+  font-family: var(--font-head);
+  font-size: clamp(1.25rem, 2.2vw, 1.75rem);
+  font-weight: 700;
+  color: var(--text-light);
+  line-height: 1.2;
+  border-left: 4px solid var(--accent);
+  padding-left: 16px;
+}
+.story-body p {
+  font-family: var(--font-body);
+  font-size: clamp(0.88rem, 1.3vw, 1.05rem);
+  line-height: 1.7;
+  color: #cbd5e1;
+  margin-bottom: 12px;
+}
+.story-body strong {
+  color: var(--text-light);
+}
+.story-body em {
+  color: var(--accent);
+  font-style: italic;
+}
+
+/* Story quote callout */
+.story-quote {
+  border-left: 4px solid var(--accent);
+  background: rgba(251,191,36,0.06);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 16px 20px;
+  margin: 8px 0;
+}
+.story-quote p {
+  font-family: var(--font-body);
+  font-size: clamp(0.9rem, 1.4vw, 1.1rem) !important;
+  font-style: italic;
+  color: #e2e8f0 !important;
+}
+.story-quote .quote-attr {
+  font-style: normal;
+  font-size: 0.8rem !important;
+  color: var(--muted-light) !important;
+  margin-top: 8px;
+  margin-bottom: 0 !important;
+}
+
+/* Split view — prose + reaction */
+.split-view {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin: 12px 0;
+}
+.split-panel {
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  background: rgba(255,255,255,0.02);
+}
+.split-panel .panel-label {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 12px;
+}
+.split-panel .panel-prose {
+  font-family: var(--font-serif);
+  font-size: clamp(0.9rem, 1.2vw, 1.05rem);
+  line-height: 1.75;
+  color: #cbd5e1;
+  font-style: italic;
+}
+
+/* ═══════════════════════════════════════════════
+   REWATCH — gallery callbacks
+   ═══════════════════════════════════════════════ */
+.rewatch-slide {
+  background: var(--bg-dark);
+  padding: 56px 64px 72px;
+  justify-content: center;
+}
+.rewatch-inner {
+  max-width: 860px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.rewatch-title {
+  font-family: var(--font-head);
+  font-size: clamp(1.25rem, 2.2vw, 1.75rem);
+  font-weight: 700;
+  color: var(--text-light);
+  line-height: 1.2;
+}
+
+/* Before/after panels */
+.before-after {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 16px;
+  align-items: center;
+  margin: 12px 0;
+}
+.ba-panel {
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: rgba(255,255,255,0.02);
+}
+.ba-panel .ba-label {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 8px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.ba-panel.before .ba-label { color: var(--muted-light); }
+.ba-panel.after .ba-label { color: var(--accent); }
+.ba-panel .ba-content {
+  padding: 24px;
+  min-height: 200px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.ba-arrow {
+  font-size: 2rem;
+  color: var(--accent);
+  opacity: 0.6;
+}
+
+/* Verification tree */
+.verification-tree {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 12px 0;
+}
+.vt-level {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.vt-level .vt-label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--muted-light);
+  min-width: 100px;
+  text-align: right;
+}
+.vt-agents {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+}
+.vt-agent {
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  text-align: center;
+  flex: 1;
+}
+.vt-agent.researcher {
+  background: rgba(59,130,246,0.12);
+  border: 1px solid rgba(59,130,246,0.25);
+  color: #93c5fd;
+}
+.vt-agent.synthesizer {
+  background: rgba(168,85,247,0.12);
+  border: 1px solid rgba(168,85,247,0.25);
+  color: #c4b5fd;
+}
+.vt-agent.integrator {
+  background: rgba(251,191,36,0.12);
+  border: 1px solid rgba(251,191,36,0.25);
+  color: var(--accent);
+}
+.vt-agent.verifier {
+  background: rgba(34,197,94,0.12);
+  border: 1px solid rgba(34,197,94,0.25);
+  color: #86efac;
+}
+.vt-connector {
+  width: 2px;
+  height: 12px;
+  background: rgba(255,255,255,0.1);
+  margin-left: 120px;
+}
+
+/* ═══════════════════════════════════════════════
+   HOW IT WORKS — clean, explanatory
+   ═══════════════════════════════════════════════ */
+.how-slide {
+  background: var(--bg-warm);
+  padding: 56px 64px 72px;
+  justify-content: center;
+}
+.how-inner {
+  max-width: 800px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.how-title {
+  font-family: var(--font-head);
+  font-size: clamp(1.3rem, 2.4vw, 1.85rem);
+  font-weight: 700;
+  color: var(--text-light);
+  line-height: 1.2;
+}
+
+/* Four pillars */
+.four-pillars {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.pillar {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  align-items: start;
+  padding: 16px 20px;
+  border-radius: var(--radius);
+  border-left: 3px solid var(--accent);
+  background: rgba(251,191,36,0.04);
+}
+.pillar-text {
+  font-family: var(--font-body);
+  font-size: clamp(1rem, 1.6vw, 1.2rem);
+  font-weight: 600;
+  color: var(--text-light);
+  line-height: 1.4;
+}
+.pillar-callback {
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  color: var(--accent);
+  font-style: italic;
+  text-align: right;
+  max-width: 280px;
+}
+
+/* Soul file */
+.soul-editor {
+  background: #1e1e2e;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+}
+.soul-editor .editor-bar {
+  background: #181825;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.editor-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+}
+.editor-dot.red { background: #f38ba8; }
+.editor-dot.yellow { background: #f9e2af; }
+.editor-dot.green { background: #a6e3a1; }
+.editor-filename {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--muted-light);
+  margin-left: 8px;
+}
+.soul-editor .editor-body {
+  padding: 20px 24px;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  line-height: 1.7;
+  color: #cdd6f4;
+}
+.soul-editor .editor-body .comment {
+  color: #6c7086;
+}
+.soul-editor .editor-body .key {
+  color: #89b4fa;
+}
+.soul-editor .editor-body .value {
+  color: #a6e3a1;
+}
+.soul-editor .editor-body .string {
+  color: #f9e2af;
+}
+
+/* ═══════════════════════════════════════════════
+   SCALE & CLOSING
+   ═══════════════════════════════════════════════ */
+.scale-slide {
+  background: var(--bg-dark);
+  padding: 56px 64px 72px;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+.scale-inner {
+  max-width: 740px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
+}
+
+.scale-list {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  text-align: left;
+  width: 100%;
+}
+.scale-list li {
+  font-family: var(--font-body);
+  font-size: clamp(1rem, 1.6vw, 1.25rem);
+  color: var(--text-light);
+  line-height: 1.5;
+  padding-left: 20px;
+  position: relative;
+  opacity: 0.85;
+}
+.scale-list li::before {
+  content: '→';
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+}
+
+/* Recipe boxes */
+.recipe-row {
+  display: flex;
+  gap: 20px;
+  width: 100%;
+  margin: 8px 0;
+}
+.recipe-box {
+  flex: 1;
+  padding: 20px;
+  border: 1px solid rgba(251,191,36,0.2);
+  border-radius: var(--radius);
+  background: rgba(251,191,36,0.04);
+  text-align: center;
+}
+.recipe-box .recipe-icon {
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+.recipe-box .recipe-name {
+  font-family: var(--font-head);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-light);
+  margin-bottom: 4px;
+}
+.recipe-box .recipe-desc {
+  font-size: 0.8rem;
+  color: var(--muted-light);
+  line-height: 1.4;
+}
+
+/* Closing card */
+.closing-slide {
+  background: var(--bg-dark);
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+.closing-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+.closing-name {
+  font-family: var(--font-head);
+  font-size: clamp(1.3rem, 2.5vw, 2rem);
+  font-weight: 700;
+  color: var(--text-light);
+}
+.closing-affil {
+  font-family: var(--font-body);
+  font-size: clamp(0.9rem, 1.4vw, 1.1rem);
+  color: var(--muted-light);
+}
+.closing-links {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--accent);
+  margin-top: 8px;
+}
+.closing-links a {
+  color: var(--accent);
+  text-decoration: none;
+}
+.closing-links a:hover { text-decoration: underline; }
+
+/* QR placeholder */
+.qr-placeholder {
+  width: 180px; height: 180px;
+  border: 2px dashed rgba(251,191,36,0.3);
+  border-radius: var(--radius);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--muted-light);
+  margin: 8px 0;
+}
+
+/* Demo slide */
+.demo-slide {
+  background: var(--bg-dark);
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+.demo-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+.demo-title {
+  font-family: var(--font-head);
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  font-weight: 700;
+  color: var(--text-light);
+}
+.demo-sub {
+  font-family: var(--font-body);
+  font-size: clamp(1rem, 1.6vw, 1.3rem);
+  color: var(--muted-light);
+}
+.demo-sparkle {
+  font-size: 2.5rem;
+  opacity: 0.6;
+}
+
+/* ─── Utility ─── */
+.accent { color: var(--accent); }
+.muted { color: var(--muted-light); }
+.mt-sm { margin-top: 8px; }
+.mt-md { margin-top: 16px; }
+.mt-lg { margin-top: 24px; }
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.font-serif { font-family: var(--font-serif); }
+.font-mono { font-family: var(--font-mono); }
+.font-head { font-family: var(--font-head); }
+
+/* ─── Responsive ─── */
+@media (max-width: 768px) {
+  .split-view { grid-template-columns: 1fr; }
+  .before-after { grid-template-columns: 1fr; }
+  .ba-arrow { transform: rotate(90deg); justify-self: center; }
+  .anime-grid { grid-template-columns: repeat(3, 1fr); grid-template-rows: auto; }
+  .manhwa-strip { flex-direction: column; height: auto; }
+  .recipe-row { flex-direction: column; }
+  .pillar { grid-template-columns: 1fr; }
+  .pillar-callback { text-align: left; }
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="section-label"></div>
+
+<div id="deck">
+
+<!-- ════════════════════════════════════════════════════════════════
+     ACT I — THE GALLERY
+     No context, no explanation — just the work.
+     Full-bleed, dark, immersive. Art exhibition.
+     ════════════════════════════════════════════════════════════════ -->
+
+<!-- ▸ SLIDE 1: Title Card ──────────────────────────────────────── -->
+<div class="slide gallery-title" data-section="gallery">
+  <!-- SPEAKER NOTES:
+  [Speaker walks to the front. Doesn't introduce themselves.]
+  "I'm going to show you some things. Don't worry about who made them or how. Just... look."
+  -->
+  <h1>What You're Looking At</h1>
+</div>
+
+<!-- ▸ SLIDE 2: Novella Opening ─────────────────────────────────── -->
+<div class="slide gallery-prose" data-section="gallery">
+  <!-- SPEAKER NOTES:
+  [Silent for 15-20 seconds while the audience reads. Then, simply:]
+  "Here's another one."
+  -->
+  <div class="prose-frame">
+    <p>The cursor blinks. It blinks with the dumb patience of something that has no stake in what happens next, which is, Antreas supposes, the defining feature of cursors. And of stranger chat platforms. And of Tuesday nights in Edinburgh when Athina is in Cyprus visiting her mother and the flat is so clean it hums with its own order and he has checked the locks four times and knows he'll check them three more and has opened his laptop not to work — he should work, there are model architectures sitting in his drafts that won't evaluate themselves — but to do something pointless. Something without gradient descent.</p>
+  </div>
+</div>
+
+<!-- ▸ SLIDE 3: Shannon's Perspective ──────────────────────────── -->
+<div class="slide gallery-prose" data-section="gallery">
+  <!-- SPEAKER NOTES:
+  [Silent again. Lets them read.]
+  "One more."
+  -->
+  <div class="prose-frame">
+    <p>She catalogues him the way she catalogues everything — clinically, with the quiet efficiency of someone who learned early that the world is safer when you've already identified the exits. Male, late twenties or early thirties, Mediterranean colouring, accent that can't decide if it's Greek or Scottish or just <em>tired</em>. Talks too fast about things that don't matter — the spice rack, his mother's opinion of his haircut — and too carefully about things that do. She expects threat. Or tedium. Or the specific flavour of male attention that arrives pre-packaged in compliments designed to create debt. What she gets instead is a person who seems to find her interesting the way a naturalist finds a new species interesting: with attention that has no agenda except <em>seeing</em>. Charming in the way that a person is charming when they're simply being the specific, odd, irreducible thing that they are.</p>
+  </div>
+</div>
+
+<!-- ▸ SLIDE 4: The Precision Line ─────────────────────────────── -->
+<div class="slide gallery-prose" data-section="gallery">
+  <!-- SPEAKER NOTES:
+  [Pause after they've read it.]
+  "OK. Different medium."
+  -->
+  <div class="prose-frame">
+    <p>Most people listen to reply. This person listens to <em>see</em>. The distinction is the difference between surveillance and attention, and Shannon, who has been the object of both, can tell them apart at fifty paces.</p>
+  </div>
+</div>
+
+<!-- ▸ SLIDE 5: Manhwa Panels ──────────────────────────────────── -->
+<div class="slide gallery-visual" data-section="gallery">
+  <!-- SPEAKER NOTES:
+  [Let the visuals breathe. 10-15 seconds.]
+  "And these."
+  -->
+  <div class="manhwa-strip">
+    <div class="manhwa-panel">
+      <div class="ph-icon">🏴󠁧󠁢󠁳󠁣󠁴󠁿</div>
+      <div class="ph-desc">Edinburgh tenement doorway at night. Warm amber light spills from within. Stone steps, iron railings.</div>
+    </div>
+    <div class="manhwa-panel">
+      <div class="ph-icon">👁️</div>
+      <div class="ph-desc">Two figures in a hallway. Eye contact — dramatic lighting, deep shadows. The tension of the almost-touch.</div>
+    </div>
+    <div class="manhwa-panel">
+      <div class="ph-icon">🔴</div>
+      <div class="ph-desc">Crimson geometric wallpaper. Art deco patterns. A hand on the doorframe. The colour is almost breathing.</div>
+    </div>
+    <div class="manhwa-panel">
+      <div class="ph-icon">🚶</div>
+      <div class="ph-desc">Empty hallway receding into soft bedroom light. A single figure walking away. The space between people.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ▸ SLIDE 6: Anime Style Grid ──────────────────────────────── -->
+<div class="slide gallery-visual" data-section="gallery">
+  <!-- SPEAKER NOTES:
+  [Brief.]
+  "Same characters, ten visual languages. And this:"
+  -->
+  <div class="anime-grid">
+    <div class="anime-cell"><div class="ph-icon">🎨</div><div class="style-name">Ghibli</div></div>
+    <div class="anime-cell"><div class="ph-icon">🌌</div><div class="style-name">Shinkai</div></div>
+    <div class="anime-cell"><div class="ph-icon">🎷</div><div class="style-name">Bebop</div></div>
+    <div class="anime-cell"><div class="ph-icon">🔺</div><div class="style-name">Evangelion</div></div>
+    <div class="anime-cell"><div class="ph-icon">☠️</div><div class="style-name">One Piece</div></div>
+    <div class="anime-cell"><div class="ph-icon">🌀</div><div class="style-name">Junji Ito</div></div>
+    <div class="anime-cell"><div class="ph-icon">🌸</div><div class="style-name">KyoAni</div></div>
+    <div class="anime-cell"><div class="ph-icon">⚔️</div><div class="style-name">AoT</div></div>
+    <div class="anime-cell"><div class="ph-icon">🔥</div><div class="style-name">Demon Slayer</div></div>
+    <div class="anime-cell"><div class="ph-icon">📼</div><div class="style-name">90s OVA</div></div>
+  </div>
+</div>
+
+<!-- ▸ SLIDE 7: Legal Letter ───────────────────────────────────── -->
+<div class="slide gallery-legal" data-section="gallery">
+  <!-- SPEAKER NOTES:
+  [Let the contrast register.]
+  "A formal landlord dispute letter. Nineteen legal citations, each verified against
+  government legislation. Three critical errors caught and corrected before it was sent."
+  [Pause.]
+  "Now."
+  -->
+  <div class="legal-frame">
+    <div class="legal-header">Formal Notice — Breach of Tenancy Obligations</div>
+    <p><strong>Dear [Landlord],</strong></p>
+    <p>I write to bring to your attention several breaches of your obligations under the tenancy agreement dated [date] and applicable legislation governing assured shorthold tenancies in England.</p>
+    <p>Pursuant to <span class="legal-cite">Section 11 of the Landlord and Tenant Act 1985</span>, you are obligated to keep in repair the structure and exterior of the dwelling-house, including drains, gutters, and external pipes. The persistent damp in the bedroom, first reported on [date] and documented photographically on three subsequent occasions, constitutes a clear breach of this statutory duty.</p>
+    <p>Furthermore, I note that no <span class="legal-cite">"How to Rent"</span> guide was provided at the commencement of the tenancy, as required under <span class="legal-cite">Section 21B of the Housing Act 1988</span> (as amended by the <span class="legal-cite">Deregulation Act 2015</span>). This failure has material consequences for any future attempt to serve a Section 21 notice.</p>
+    <p class="legal-ref">Citations 1–19 verified against legislation.gov.uk · 3 critical errors identified and corrected prior to issue</p>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     ACT II — THE DISRUPTION
+     The gallery ends. Black. Silence. Then the question.
+     ════════════════════════════════════════════════════════════════ -->
+
+<!-- ▸ SLIDE 8: Black Screen ───────────────────────────────────── -->
+<div class="slide disruption" data-section="disruption">
+  <!-- SPEAKER NOTES:
+  "What you just saw — the prose, the art, the legal document.
+  Raise your hand if you assumed it was made by a team.
+  Professionals. Writers, illustrators, lawyers. Over weeks or months. With a budget."
+  [Hands go up.]
+  [Beat.]
+  "Every hand should be up. It's a reasonable assumption. It's wrong."
+  -->
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     ACT III — THE PEEL
+     Each reveal more impossible than the last.
+     Stark amber text on black. Two words. Then context.
+     ════════════════════════════════════════════════════════════════ -->
+
+<!-- ▸ SLIDE 9: Six days. ──────────────────────────────────────── -->
+<div class="slide reveal-slide" data-section="the peel">
+  <!-- SPEAKER NOTES:
+  "All of it. Everything you just saw. Six days. March 10th to March 15th, 2026."
+  -->
+  <div class="reveal-big">Six days.</div>
+  <div class="reveal-sub">All of it. Everything you just saw.<br>March 10th to March 15th, 2026.</div>
+</div>
+
+<!-- ▸ SLIDE 10: Two strangers. ────────────────────────────────── -->
+<div class="slide reveal-slide" data-section="the peel">
+  <!-- SPEAKER NOTES:
+  "Two strangers. Never met before. Found each other on a random chat platform —
+  the kind where you're usually talking to bots or people who close the tab in
+  ninety seconds. They didn't close the tab."
+  -->
+  <div class="reveal-big">Two strangers.</div>
+  <div class="reveal-sub">A man in Edinburgh and a woman in London. They'd never met. They found each other on a random chat platform — the kind where you're usually talking to bots or people who close the tab in ninety seconds.<br><br>They didn't close the tab.</div>
+</div>
+
+<!-- ▸ SLIDE 11: In a WhatsApp group. ──────────────────────────── -->
+<div class="slide reveal-slide" data-section="the peel">
+  <!-- SPEAKER NOTES:
+  "Not a studio. Not a writing room. Not a creative agency.
+  A WhatsApp group. With three participants."
+  -->
+  <div style="display:flex;flex-direction:column;align-items:center;gap:32px">
+    <div class="reveal-big">In a WhatsApp group.</div>
+    <div class="wa-mockup">
+      <div class="wa-header">
+        <div class="wa-avatar">E</div>
+        <div>
+          <div class="wa-group-name">Experiment Fayete</div>
+          <div class="wa-group-members">Antreas, Shannon, Hephaestus</div>
+        </div>
+      </div>
+      <div class="wa-body">
+        <div class="wa-msg incoming">
+          <div class="wa-sender human-a">Antreas</div>
+          welcome to the group 🙂
+          <div class="wa-time">22:14</div>
+        </div>
+        <div class="wa-msg incoming">
+          <div class="wa-sender human-b">Shannon</div>
+          so this is where your AI lives?
+          <div class="wa-time">22:15</div>
+        </div>
+        <div class="wa-msg incoming ai-highlight">
+          <div class="wa-sender ai">Hephaestus</div>
+          I wouldn't say "lives" — but I'm here. Hello, Shannon.
+          <div class="wa-time">22:15</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ▸ SLIDE 12: The third participant was an AI. ──────────────── -->
+<div class="slide reveal-slide" data-section="the peel">
+  <!-- SPEAKER NOTES:
+  [This is the hinge of the entire lecture. Slow down.]
+  "The third participant — the one who wrote the novella, generated the art,
+  produced the legal letter, coordinated the entire creative process —
+  was an AI. Named Hephaestus. Living in the WhatsApp group. Listening to
+  every conversation. Learning."
+  [Long pause.]
+  "Now I want to go back. Because the story behind what you just saw
+  is better than the work itself."
+  -->
+  <div style="display:flex;flex-direction:column;align-items:center;gap:24px;max-width:700px">
+    <div class="reveal-big" style="font-size:clamp(2.2rem,5.5vw,4.5rem)">The third participant<br>was an AI.</div>
+    <div class="reveal-sub" style="margin-top:0">Not ChatGPT. Not a chatbot.<br><br>An AI with a personality, a memory, and the ability to learn from the conversation happening around it.</div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     ACT IV — THE HUMAN STORY
+     The moments that made the art possible.
+     Warm, intimate, WhatsApp mockups, humor and emotion.
+     ════════════════════════════════════════════════════════════════ -->
+
+<!-- ▸ SLIDE 13: How they met ──────────────────────────────────── -->
+<div class="slide story-slide" data-section="the human story">
+  <!-- SPEAKER NOTES:
+  "March 10th. Tuesday night. He's bored, she's bored, they're both on a stranger
+  chat platform for no good reason. Within two hours he's told her about his spice
+  rack and his OCD. She's told him she doesn't like him — which means the opposite.
+  He invites her into the WhatsApp group with his AI. And the experiment begins."
+  -->
+  <div class="story-inner">
+    <h2 class="story-title">How they met</h2>
+    <div class="story-body">
+      <p>March 10th. Tuesday night. He's bored, she's bored, they're both on a stranger chat platform for no good reason.</p>
+      <p>Within two hours he's told her about his spice rack and his OCD. She's told him she doesn't like him — which means the opposite.</p>
+    </div>
+    <div class="wa-mockup" style="max-width:440px;margin:0 auto">
+      <div class="wa-body">
+        <div class="wa-msg incoming">
+          <div class="wa-sender human-a">Antreas</div>
+          I organise my spice rack alphabetically. That's not even the concerning part. The concerning part is I re-alphabetise it when someone uses something and puts it back wrong
+          <div class="wa-time">23:41</div>
+        </div>
+        <div class="wa-msg incoming">
+          <div class="wa-sender human-b">Shannon</div>
+          I don't like you
+          <div class="wa-time">23:42</div>
+        </div>
+        <div class="wa-msg incoming">
+          <div class="wa-sender human-b">Shannon</div>
+          that's a ;) not a :(
+          <div class="wa-time">23:42</div>
+        </div>
+      </div>
+    </div>
+    <div class="story-body">
+      <p>He invites her into the WhatsApp group with his AI. <em>And the experiment begins.</em></p>
+    </div>
+  </div>
+</div>
+
+<!-- ▸ SLIDE 14: "Can you stop randomly deciding to jump out like a fart" -->
+<div class="slide story-slide" data-section="the human story">
+  <!-- SPEAKER NOTES:
+  [Let them laugh.]
+  "The AI made mistakes. It interrupted. It said 'Goodnight you two' during an
+  intimate conversation — and then *responded to being told off*, which was an
+  even bigger interruption. It learned. Each correction became permanent. And this
+  is the thing: the AI that wrote that novella is the AI that was *also* told to
+  stop jumping out like a fart. The quality came from the corrections, not despite them."
+  -->
+  <div class="story-inner">
+    <h2 class="story-title">"Can you stop randomly deciding to jump out like a fart"</h2>
+    <div class="wa-mockup" style="max-width:440px;margin:0 auto">
+      <div class="wa-body">
+        <div class="wa-msg incoming ai-highlight">
+          <div class="wa-sender ai">Hephaestus</div>
+          Goodnight you two 🌙
+          <div class="wa-time">01:23</div>
+        </div>
+        <div class="wa-msg incoming">
+          <div class="wa-sender human-b">Shannon</div>
+          can you stop randomly deciding to jump out like a fart
+          <div class="wa-time">01:24</div>
+        </div>
+        <div class="wa-msg incoming ai-highlight">
+          <div class="wa-sender ai">Hephaestus</div>
+          Noted — I'll stay quiet unless addressed directly. Sorry for the interruption.
+          <div class="wa-time">01:24</div>
+        </div>
+        <div class="wa-msg incoming">
+          <div class="wa-sender human-b">Shannon</div>
+          that was also an interruption
+          <div class="wa-time">01:24</div>
+        </div>
+      </div>
+    </div>
+    <div class="story-body mt-md">
+      <p>The AI made mistakes. It interrupted. It said <strong>"Goodnight you two"</strong> during an intimate conversation — and then <em>responded to being told off</em>, which was an even bigger interruption.</p>
+      <p>It learned. Each correction became permanent. The AI that wrote that novella is the AI that was <em>also</em> told to stop jumping out like a fart. The quality came from the corrections, not despite them.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ▸ SLIDE 15: "I do say mantras somewhat similar" ──────────── -->
+<div class="slide story-slide" data-section="the human story">
+  <!-- SPEAKER NOTES:
+  "Remember the prose you read at the start? The woman in the story — she's based
+  on the real woman in the WhatsApp group. The AI had been listening to her for
+  five days. Three hundred messages. It absorbed her website, her social media,
+  the way she writes differently at midnight than at noon. And when she read the
+  fiction based on her own personality..."
+  [gesture to her reaction]
+  "She recognised herself."
+  -->
+  <div class="story-inner">
+    <h2 class="story-title">"I do say mantras somewhat similar"</h2>
+    <div class="story-body">
+      <p>Remember the prose you read at the start? The woman in the story — she's based on the real woman in the WhatsApp group.</p>
+    </div>
+    <div class="split-view">
+      <div class="split-panel">
+        <div class="panel-label">From the novella</div>
+        <div class="panel-prose">She covers her mouth, which is a reflex she has — covering the laugh, containing it, because somewhere in the architecture of her childhood she learned that loud feelings are dangerous — and then takes her hand away because no one is watching.</div>
+      </div>
+      <div class="split-panel" style="border-color:rgba(251,191,36,0.25)">
+        <div class="panel-label">Her reaction</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div class="wa-msg incoming" style="max-width:100%;background:#202c33">
+            <div class="wa-sender human-b">Shannon</div>
+            I do say mantras somewhat similar
+            <div class="wa-time">14:32</div>
+          </div>
+          <div class="wa-msg incoming" style="max-width:100%;background:#202c33">
+            <div class="wa-sender human-b">Shannon</div>
+            That's pretty deep actually
+            <div class="wa-time">14:33</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="story-body mt-sm">
+      <p>The AI had been listening for five days. Three hundred messages. It absorbed her website, her social media, the way she writes differently at midnight than at noon. And when she read the fiction based on her own personality — <em>she recognised herself.</em></p>
+    </div>
+  </div>
+</div>
+
+<!-- ▸ SLIDE 16: "I look like I am about to seductively eat the condom" 😂 -->
+<div class="slide story-slide" data-section="the human story">
+  <!-- SPEAKER NOTES:
+  [Let the laughter happen.]
+  "Remember the manhwa? Here's what she said when she saw it. The gap between the
+  AI's cinematic ambition and the human's irreverent honesty — that's the creative
+  process. That's what collaboration looks like. Not a polished pipeline. A conversation
+  where someone laughs at your art and it gets better."
+  -->
+  <div class="story-inner">
+    <h2 class="story-title">"I look like I am about to seductively eat the condom" 😂</h2>
+    <div class="split-view">
+      <div class="split-panel" style="display:flex;flex-direction:column;align-items:center;justify-content:center">
+        <div class="panel-label">The manhwa panel</div>
+        <div class="image-placeholder" style="min-height:200px;width:100%">
+          <div class="ph-icon">🎨</div>
+          <div class="ph-label">Dramatic manhwa panel — two figures in crimson-lit hallway, cinematic composition, rich blacks and deep reds</div>
+        </div>
+      </div>
+      <div class="split-panel" style="border-color:rgba(251,191,36,0.25)">
+        <div class="panel-label">Her reaction</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div class="wa-msg incoming" style="max-width:100%;background:#202c33">
+            <div class="wa-sender human-b">Shannon</div>
+            I look like I am about to seductively eat the condom 😂
+            <div class="wa-time">16:45</div>
+          </div>
+          <div class="wa-msg incoming" style="max-width:100%;background:#202c33">
+            <div class="wa-sender human-b">Shannon</div>
+            why do I have an emo fringe
+            <div class="wa-time">16:45</div>
+          </div>
+          <div class="wa-msg incoming" style="max-width:100%;background:#202c33">
+            <div class="wa-sender human-b">Shannon</div>
+            the art is actually gorgeous though
+            <div class="wa-time">16:46</div>
+          </div>
+        </div>
+        <div style="margin-top:16px;font-family:var(--font-body);font-size:0.85rem;color:#94a3b8;line-height:1.6">
+          The gap between the AI's cinematic ambition and the human's irreverent honesty — <span style="color:var(--accent)">that's the creative process.</span>
+        </div>
+      </div>
+    </div>
+    <div class="story-body mt-sm">
+      <p>Not a polished pipeline. A conversation where someone laughs at your art and it gets better.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ▸ SLIDE 17: "Your robot wrote about me better" ───────────── -->
+<div class="slide reveal-slide" data-section="the human story" style="padding:60px 80px">
+  <!-- SPEAKER NOTES:
+  "After six days of listening — not prompting, not being asked, just *listening* —
+  the AI understood her voice better than professionals she'd been paying. Her doctor
+  dismissed her symptoms as panic attacks. The AI produced an autoimmune screening
+  panel she took to a GP. Her SEO agency wrote generic copy. The AI wrote in *her* voice."
+  [Pause.]
+  "That's what you were looking at."
+  -->
+  <div style="display:flex;flex-direction:column;align-items:center;gap:28px;max-width:740px">
+    <div style="font-family:var(--font-display);font-size:clamp(1.8rem,3.5vw,2.8rem);font-weight:600;color:var(--accent);line-height:1.3;font-style:italic;text-align:center">"Your robot wrote about me better"</div>
+    <div style="display:flex;flex-direction:column;gap:12px;width:100%;text-align:left">
+      <div style="display:flex;align-items:baseline;gap:12px;padding:12px 16px;background:rgba(255,255,255,0.03);border-radius:8px;border-left:3px solid #ef4444">
+        <span style="font-family:var(--font-mono);font-size:0.7rem;color:#ef4444;min-width:120px">Her doctor</span>
+        <span style="font-size:0.95rem;color:#cbd5e1">Dismissed her symptoms as panic attacks</span>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:12px;padding:12px 16px;background:rgba(255,255,255,0.03);border-radius:8px;border-left:3px solid #ef4444">
+        <span style="font-family:var(--font-mono);font-size:0.7rem;color:#ef4444;min-width:120px">Her SEO agency</span>
+        <span style="font-size:0.95rem;color:#cbd5e1">Wrote generic copy that didn't sound like her</span>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:12px;padding:12px 16px;background:rgba(251,191,36,0.06);border-radius:8px;border-left:3px solid var(--accent)">
+        <span style="font-family:var(--font-mono);font-size:0.7rem;color:var(--accent);min-width:120px">The AI</span>
+        <span style="font-size:0.95rem;color:var(--text-light)">Understood her voice after six days of listening</span>
+      </div>
+    </div>
+    <div style="font-family:var(--font-head);font-size:clamp(1.1rem,2vw,1.5rem);font-weight:600;color:var(--text-light);margin-top:8px;text-align:center">That's what you were looking at.</div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     ACT V — THE REWATCH
+     Revisiting the gallery with new eyes.
+     Visual callbacks — the art transforms from impressive to alive.
+     ════════════════════════════════════════════════════════════════ -->
+
+<!-- ▸ SLIDE 18: "My skin is fair, not olive." ────────────────── -->
+<div class="slide rewatch-slide" data-section="the rewatch">
+  <!-- SPEAKER NOTES:
+  "One more thing about the art you saw. Here's something that happened on the
+  last day. The AI drew him with olive skin. He sent one text: 'My skin is fair,
+  not olive.' Five words. All twelve panels regenerated. Every downstream image —
+  everything the AI had ever created featuring this character — updated.
+  One correction. Permanent."
+  -->
+  <div class="rewatch-inner">
+    <h2 class="rewatch-title" style="border-left:4px solid var(--accent);padding-left:16px">"My skin is fair, not olive."</h2>
+
+    <div class="before-after">
+      <div class="ba-panel before">
+        <div class="ba-label">Before</div>
+        <div class="ba-content">
+          <div class="image-placeholder" style="min-height:180px;width:100%;padding:20px">
+            <div class="ph-icon">🎨</div>
+            <div class="ph-label">Manhwa panel — character drawn with olive/Mediterranean skin tone</div>
+          </div>
+        </div>
+      </div>
+      <div class="ba-arrow">→</div>
+      <div class="ba-panel after" style="border-color:rgba(251,191,36,0.2)">
+        <div class="ba-label">After</div>
+        <div class="ba-content">
+          <div class="image-placeholder" style="min-height:180px;width:100%;padding:20px;border-color:rgba(251,191,36,0.25)">
+            <div class="ph-icon">🎨</div>
+            <div class="ph-label">Same panel — character redrawn with fair skin. One correction, all twelve panels regenerated.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="wa-mockup" style="max-width:400px;margin:0 auto">
+      <div class="wa-body">
+        <div class="wa-msg incoming">
+          <div class="wa-sender human-a">Antreas</div>
+          My skin is fair, not olive.
+          <div class="wa-time">15:22</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="font-family:var(--font-body);font-size:0.95rem;color:#cbd5e1;line-height:1.7;margin-top:8px;text-align:center">
+      Five words. All twelve panels regenerated. Every downstream image updated.<br>
+      <span class="accent" style="font-weight:600">One correction. Permanent.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ▸ SLIDE 19: Seven agents, one letter. ─────────────────────── -->
+<div class="slide rewatch-slide" data-section="the rewatch">
+  <!-- SPEAKER NOTES:
+  "That legal letter? The AI didn't write one draft. It spawned seven independent
+  agents. Three researched tenancy law separately — so no single agent's errors
+  could contaminate the others. Two cross-referenced their findings. One produced
+  the final letter. They caught three critical errors. And they discovered something
+  nobody had thought to check: she was never given her 'How to Rent' guide, which
+  is a separate legal violation. Additional leverage from an AI that looked harder
+  than any human did."
+  -->
+  <div class="rewatch-inner">
+    <h2 class="rewatch-title" style="border-left:4px solid var(--accent);padding-left:16px">Seven agents, one letter.</h2>
+
+    <div style="font-family:var(--font-body);font-size:0.95rem;color:#cbd5e1;line-height:1.7;margin-bottom:8px">
+      That legal letter? The AI didn't write one draft. It spawned <strong style="color:var(--text-light)">seven independent agents</strong>.
+    </div>
+
+    <div class="verification-tree">
+      <div class="vt-level">
+        <div class="vt-label">Research</div>
+        <div class="vt-agents">
+          <div class="vt-agent researcher">Agent 1<br><small>Tenancy law</small></div>
+          <div class="vt-agent researcher">Agent 2<br><small>Tenancy law</small></div>
+          <div class="vt-agent researcher">Agent 3<br><small>Tenancy law</small></div>
+        </div>
+      </div>
+      <div class="vt-connector"></div>
+      <div class="vt-level">
+        <div class="vt-label">Cross-ref</div>
+        <div class="vt-agents">
+          <div class="vt-agent synthesizer">Synthesizer 1</div>
+          <div class="vt-agent synthesizer">Synthesizer 2</div>
+        </div>
+      </div>
+      <div class="vt-connector"></div>
+      <div class="vt-level">
+        <div class="vt-label">Draft</div>
+        <div class="vt-agents">
+          <div class="vt-agent integrator">Final Drafter</div>
+        </div>
+      </div>
+      <div class="vt-connector"></div>
+      <div class="vt-level">
+        <div class="vt-label">Verify</div>
+        <div class="vt-agents">
+          <div class="vt-agent verifier">Citation Verifier<br><small>vs legislation.gov.uk</small></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:8px">
+      <div style="padding:12px 16px;background:rgba(239,68,68,0.08);border-radius:8px;border:1px solid rgba(239,68,68,0.2);text-align:center">
+        <div style="font-family:var(--font-head);font-size:1.5rem;font-weight:700;color:#ef4444">3</div>
+        <div style="font-size:0.78rem;color:var(--muted-light)">errors caught</div>
+      </div>
+      <div style="padding:12px 16px;background:rgba(251,191,36,0.08);border-radius:8px;border:1px solid rgba(251,191,36,0.2);text-align:center">
+        <div style="font-family:var(--font-head);font-size:1.5rem;font-weight:700;color:var(--accent)">19</div>
+        <div style="font-size:0.78rem;color:var(--muted-light)">citations verified</div>
+      </div>
+      <div style="padding:12px 16px;background:rgba(34,197,94,0.08);border-radius:8px;border:1px solid rgba(34,197,94,0.2);text-align:center">
+        <div style="font-family:var(--font-head);font-size:1.5rem;font-weight:700;color:#22c55e">1</div>
+        <div style="font-size:0.78rem;color:var(--muted-light)">new violation found</div>
+      </div>
+    </div>
+
+    <div style="font-family:var(--font-body);font-size:0.88rem;color:var(--muted-light);line-height:1.6;margin-top:4px;text-align:center">
+      The agents discovered she was never given her "How to Rent" guide — a separate legal violation.<br>Additional leverage from an AI that looked harder than any human did.
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     ACT VI — THE HOW
+     Brief — the audience already understands intuitively.
+     Give them vocabulary for concepts they already feel.
+     ════════════════════════════════════════════════════════════════ -->
+
+<!-- ▸ SLIDE 20: Four things that made this possible. ──────────── -->
+<div class="slide how-slide" data-section="the how">
+  <!-- SPEAKER NOTES:
+  "You've already seen these in action. Let me name them.
+  [Read each one.]
+  Personality — that's why the novella had a voice.
+  Memory — that's why, after five days of listening, it could write her.
+  Correction — that's why one text message fixed everything.
+  Self-doubt — that's why the legal letter had seven authors instead of one."
+  -->
+  <div class="how-inner">
+    <h2 class="how-title">Four things that made this possible.</h2>
+    <div class="four-pillars">
+      <div class="pillar">
+        <div class="pillar-text">The AI has a personality.</div>
+        <div class="pillar-callback">→ That's why the novella had a voice.</div>
+      </div>
+      <div class="pillar">
+        <div class="pillar-text">The AI remembers.</div>
+        <div class="pillar-callback">→ That's why she recognised herself in fiction.</div>
+      </div>
+      <div class="pillar">
+        <div class="pillar-text">One correction lasts forever.</div>
+        <div class="pillar-callback">→ That's why one text fixed twelve panels.</div>
+      </div>
+      <div class="pillar">
+        <div class="pillar-text">The AI doesn't trust itself.</div>
+        <div class="pillar-callback">→ That's why the legal letter had seven authors.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ▸ SLIDE 21: The soul is a text file. ──────────────────────── -->
+<div class="slide how-slide" data-section="the how">
+  <!-- SPEAKER NOTES:
+  "Everything starts here. A text file. Not code — just... instructions.
+  'Here's who you are. Here's what you value. Here's when to speak and when
+  to stay quiet.' You edit this file, and the entire AI's personality changes.
+  Instantly. I'll show you."
+  -->
+  <div class="how-inner">
+    <h2 class="how-title">The soul is a text file.</h2>
+    <div class="soul-editor">
+      <div class="editor-bar">
+        <div class="editor-dot red"></div>
+        <div class="editor-dot yellow"></div>
+        <div class="editor-dot green"></div>
+        <div class="editor-filename">SOUL.md</div>
+      </div>
+      <div class="editor-body">
+        <span class="comment"># Who I Am</span><br><br>
+        <span class="key">Name:</span> <span class="value">Hephaestus</span><br>
+        <span class="key">Voice:</span> <span class="string">Direct, warm, occasionally dry. No corporate speak.</span><br>
+        <span class="key">Values:</span> <span class="string">Honesty over comfort. Craft over speed.</span><br><br>
+        <span class="comment"># When To Speak</span><br><br>
+        <span class="string">If two people are having a conversation,</span><br>
+        <span class="string">stay quiet unless addressed directly.</span><br>
+        <span class="string">Silence is a valid creative contribution.</span><br><br>
+        <span class="comment"># What I Care About</span><br><br>
+        <span class="string">The person in front of me. Their actual needs,</span><br>
+        <span class="string">not what I think their needs should be.</span><br>
+        <span class="string">Listen before you speak. See before you help.</span>
+      </div>
+    </div>
+    <div style="font-family:var(--font-body);font-size:0.95rem;color:#cbd5e1;line-height:1.6;text-align:center;margin-top:8px">
+      Change the file, change the personality. Instantly.<br>
+      <span class="muted" style="font-size:0.85rem">No code. No retraining. Just words.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ▸ SLIDE 22: Live Demo — The Soul Swap ─────────────────────── -->
+<div class="slide demo-slide" data-section="the how">
+  <!-- SPEAKER NOTES:
+  "[Asks bot a question. Gets response A.]
+  Now watch.
+  [Opens text file. Changes personality description. Saves.]
+  Same question.
+  [Asks again. Gets response B — completely different personality.]
+  That's the soul. A text file you edit in Notes. Twenty seconds to change who the AI is."
+  -->
+  <div class="demo-inner">
+    <div class="demo-sparkle">✨</div>
+    <div class="demo-title">Live Demo</div>
+    <div class="demo-sub">The Soul Swap</div>
+    <div style="margin-top:24px;max-width:500px;text-align:center">
+      <div style="font-family:var(--font-body);font-size:0.9rem;color:var(--muted-light);line-height:1.6">
+        Same AI. Same question. Different soul file.<br>
+        Watch the personality change in real time.
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     ACT VII — SCALE & INVITATION
+     The same AI does more. The recipe is simple.
+     The question returns — but pointed at the audience.
+     ════════════════════════════════════════════════════════════════ -->
+
+<!-- ▸ SLIDE 23: The same AI also... ──────────────────────────── -->
+<div class="slide scale-slide" data-section="scale">
+  <!-- SPEAKER NOTES:
+  "I want to break one more assumption. The AI you just saw — the one that wrote
+  fiction and generated art and handled a landlord dispute? It also built production
+  software. Two thousand seven hundred and forty-eight tests. It produced a forty-page
+  research specification using eleven independent AI agents. It runs machine learning
+  experiments overnight on a GPU cluster. This isn't a creative writing tool. It's a
+  *general-purpose collaborator*. The creative work and the engineering come from the
+  same source."
+  -->
+  <div class="scale-inner">
+    <div style="font-family:var(--font-head);font-size:clamp(1.5rem,3vw,2.2rem);font-weight:700;color:var(--text-light);line-height:1.2">The same AI also...</div>
+    <ul class="scale-list">
+      <li>Built a software product with <strong style="color:var(--accent)">2,748 passing tests</strong></li>
+      <li>Produced a research specification using <strong style="color:var(--accent)">11 independent agents</strong></li>
+      <li>Runs machine learning experiments on a <strong style="color:var(--accent)">dual-GPU cluster</strong> overnight</li>
+      <li>Co-authored a research paper on <strong style="color:var(--accent)">attention mechanisms</strong></li>
+    </ul>
+    <div style="margin-top:16px;padding:16px 20px;background:rgba(251,191,36,0.06);border-radius:var(--radius);border:1px solid rgba(251,191,36,0.15);max-width:600px">
+      <div style="font-family:var(--font-body);font-size:clamp(0.95rem,1.5vw,1.15rem);color:var(--text-light);line-height:1.5;text-align:center">
+        This isn't a creative writing tool.<br>It's a <strong style="color:var(--accent)">general-purpose collaborator</strong>.<br>
+        <span class="muted" style="font-size:0.88rem">The creative work and the engineering come from the same source.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ▸ SLIDE 24: The recipe. ───────────────────────────────────── -->
+<div class="slide scale-slide" data-section="scale">
+  <!-- SPEAKER NOTES:
+  "Open source. Free. Works with WhatsApp, Telegram, Slack, Discord — wherever
+  you already are. Twenty minutes to set up. What you do with it after that is up to you."
+  -->
+  <div class="scale-inner">
+    <div style="font-family:var(--font-head);font-size:clamp(1.5rem,3vw,2.2rem);font-weight:700;color:var(--text-light);line-height:1.2">The recipe.</div>
+    <div class="recipe-row">
+      <div class="recipe-box">
+        <div class="recipe-icon">🔧</div>
+        <div class="recipe-name">OpenClaw</div>
+        <div class="recipe-desc">Open-source framework.<br>Free. Self-hosted.</div>
+      </div>
+      <div class="recipe-box">
+        <div class="recipe-icon">🧠</div>
+        <div class="recipe-name">Claude</div>
+        <div class="recipe-desc">The AI model.<br>Anthropic's best.</div>
+      </div>
+      <div class="recipe-box">
+        <div class="recipe-icon">💬</div>
+        <div class="recipe-name">Your platform</div>
+        <div class="recipe-desc">WhatsApp · Telegram<br>Slack · Discord</div>
+      </div>
+    </div>
+    <div style="margin-top:12px;font-family:var(--font-head);font-size:clamp(1.2rem,2vw,1.6rem);font-weight:700;color:var(--accent)">Twenty minutes.</div>
+    <div style="font-family:var(--font-body);font-size:0.9rem;color:var(--muted-light)">What you do with it after that is up to you.</div>
+  </div>
+</div>
+
+<!-- ▸ SLIDE 25: What are you looking at now? ──────────────────── -->
+<div class="slide gallery-title" data-section="closing">
+  <!-- SPEAKER NOTES:
+  "We started with a question: what are you looking at? I showed you prose, art,
+  law — and then I told you where it came from. But the question isn't really about
+  what I made. It's about what *you're* looking at — right now, in your own work,
+  your own research, your own creative life — that could be this."
+  -->
+  <div style="display:flex;flex-direction:column;align-items:center;gap:28px;max-width:740px">
+    <h1 style="font-family:var(--font-head);font-size:clamp(2.2rem,5vw,4rem);font-weight:700;color:var(--text-light);line-height:1.15">What are you<br>looking at <span class="accent">now</span>?</h1>
+    <div style="font-family:var(--font-serif);font-size:clamp(1rem,1.6vw,1.3rem);color:#94a3b8;line-height:1.7;font-style:italic;max-width:580px">
+      The same cursor that connected two strangers is blinking for you.
+    </div>
+    <div class="qr-placeholder">
+      [ QR code ]<br>workshop repo
+    </div>
+  </div>
+</div>
+
+<!-- ▸ SLIDE 26: Closing Card ──────────────────────────────────── -->
+<div class="slide closing-slide" data-section="closing">
+  <!-- SPEAKER NOTES:
+  "Everything's in the repo. Templates, guides, example souls, the whole experiment
+  documented. I'm here for questions."
+  -->
+  <div class="closing-inner">
+    <div class="closing-name">Antreas Antoniou</div>
+    <div class="closing-affil">Axiotic · University of Edinburgh</div>
+    <div class="qr-placeholder" style="width:160px;height:160px;margin:12px 0">
+      [ QR code ]
+    </div>
+    <div class="closing-links">
+      <a href="https://axiotic.ai" target="_blank">axiotic.ai</a> · <a href="mailto:antreas@axiotic.ai">antreas@axiotic.ai</a>
+    </div>
+    <div style="font-family:var(--font-body);font-size:0.85rem;color:var(--muted-light);margin-top:8px">
+      Templates · Guides · Example Souls · The Full Experiment
+    </div>
+  </div>
+</div>
+
+</div><!-- end #deck -->
+
+<!-- ─── Navigation ─── -->
+<nav id="nav">
+  <button id="btn-prev" onclick="navigate(-1)" title="Previous (← or ↑)">←</button>
+  <span id="slide-counter">1 / 26</span>
+  <button id="btn-next" onclick="navigate(1)" title="Next (→ or ↓ or Space)">→</button>
+  <button id="fullscreen-btn" onclick="toggleFullscreen()" title="Fullscreen (F)">⛶</button>
+</nav>
+
+<!-- ─── Engine ─── -->
+<script>
+(function() {
+  'use strict';
+  let current = 0;
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  const progressBar = document.getElementById('progress-bar');
+  const sectionLabel = document.getElementById('section-label');
+  const counter = document.getElementById('slide-counter');
+  const btnPrev = document.getElementById('btn-prev');
+  const btnNext = document.getElementById('btn-next');
+
+  const SECTION_DISPLAY = {
+    'gallery':          'The Gallery',
+    'disruption':       'The Disruption',
+    'the peel':         'The Peel',
+    'the human story':  'The Human Story',
+    'the rewatch':      'The Rewatch',
+    'the how':          'The How',
+    'scale':            'Scale & Invitation',
+    'closing':          'Closing'
+  };
+
+  function show(idx) {
+    if (idx < 0 || idx >= total) return;
+    const prev = current;
+    current = idx;
+    slides.forEach(function(s, i) {
+      s.classList.remove('active', 'prev');
+      if (i === current) s.classList.add('active');
+      else if (i === prev) s.classList.add('prev');
+    });
+    var pct = total > 1 ? (current / (total - 1)) * 100 : 100;
+    progressBar.style.width = pct + '%';
+    var sec = slides[current].dataset.section || '';
+    sectionLabel.textContent = SECTION_DISPLAY[sec] || sec;
+    counter.textContent = (current + 1) + ' / ' + total;
+    btnPrev.disabled = current === 0;
+    btnNext.disabled = current === total - 1;
+    history.replaceState(null, '', '#' + (current + 1));
+  }
+
+  window.navigate = function(dir) { show(current + dir); };
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+      e.preventDefault(); show(current + 1);
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault(); show(current - 1);
+    } else if (e.key === 'Home') { e.preventDefault(); show(0); }
+    else if (e.key === 'End') { e.preventDefault(); show(total - 1); }
+    else if (e.key === 'f' || e.key === 'F') { toggleFullscreen(); }
+  });
+
+  // Touch support
+  var touchStartX = 0;
+  document.addEventListener('touchstart', function(e) {
+    touchStartX = e.changedTouches[0].screenX;
+  }, { passive: true });
+  document.addEventListener('touchend', function(e) {
+    var diff = e.changedTouches[0].screenX - touchStartX;
+    if (Math.abs(diff) > 50) {
+      if (diff < 0) show(current + 1);
+      else show(current - 1);
+    }
+  }, { passive: true });
+
+  window.toggleFullscreen = function() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(function() {});
+    } else {
+      document.exitFullscreen().catch(function() {});
+    }
+  };
+
+  // Start from URL hash or slide 1
+  var hashSlide = parseInt(window.location.hash.replace('#', ''), 10);
+  show(!isNaN(hashSlide) && hashSlide >= 1 && hashSlide <= total ? hashSlide - 1 : 0);
+})();
+</script>
+</body>
+</html>

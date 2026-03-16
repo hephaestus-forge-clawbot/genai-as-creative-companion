@@ -1,0 +1,1658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Everything Went Wrong — What AI Failures Teach Us</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0c0c0e;
+  --bg-surface: #141416;
+  --bg-elevated: #1c1c20;
+  --card: #1a1a1e;
+  --text: #f0ece4;
+  --text-dim: #9a9490;
+  --muted: #6b6560;
+  --red: #ef4444;
+  --red-glow: #dc2626;
+  --amber: #f59e0b;
+  --amber-dim: #b45309;
+  --green: #22c55e;
+  --green-dim: #15803d;
+  --radius: 0.75rem;
+  --font-head: 'Space Grotesk', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+}
+
+html, body {
+  width: 100%; height: 100%;
+  background: var(--bg);
+  font-family: var(--font-body);
+  color: var(--text);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Progress bar ── */
+#progress-bar {
+  position: fixed; top: 0; left: 0; height: 3px;
+  background: linear-gradient(90deg, var(--red), var(--amber));
+  transition: width 0.3s ease;
+  z-index: 1000;
+}
+
+/* ── Section label ── */
+#section-label {
+  position: fixed; top: 8px; right: 16px;
+  font-family: var(--font-mono);
+  font-size: 0.65rem; font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.1em; text-transform: uppercase;
+  z-index: 999;
+  background: rgba(12,12,14,0.85);
+  padding: 3px 10px; border-radius: 99px;
+  border: 1px solid rgba(239,68,68,0.2);
+}
+
+/* ── Navigation ── */
+#nav {
+  position: fixed; bottom: 20px; left: 50%;
+  transform: translateX(-50%);
+  display: flex; align-items: center; gap: 16px;
+  z-index: 999;
+  background: rgba(20,20,22,0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(239,68,68,0.15);
+  border-radius: 99px;
+  padding: 8px 20px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+}
+#nav button {
+  background: none; border: none; cursor: pointer;
+  font-size: 1.1rem; padding: 4px 8px;
+  color: var(--text); border-radius: 6px;
+  transition: background 0.15s;
+  font-family: var(--font-body);
+}
+#nav button:hover { background: var(--bg-elevated); }
+#nav button:disabled { opacity: 0.3; cursor: default; }
+#slide-counter {
+  font-family: var(--font-mono);
+  font-size: 0.8rem; color: var(--muted);
+  min-width: 60px; text-align: center;
+}
+#fullscreen-btn {
+  background: none; border: none; cursor: pointer;
+  font-size: 1.2rem; padding: 4px 6px;
+  color: var(--text); border-radius: 6px;
+  transition: background 0.15s;
+}
+#fullscreen-btn:hover { background: var(--bg-elevated); }
+
+/* ── Deck & Slides ── */
+#deck {
+  width: 100vw; height: 100vh;
+  position: relative; overflow: hidden;
+}
+.slide {
+  position: absolute; inset: 0;
+  padding: 56px 64px 80px;
+  background: var(--bg);
+  opacity: 0; transform: translateX(60px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  pointer-events: none; overflow-y: auto;
+  display: flex; flex-direction: column;
+  gap: 20px; justify-content: center;
+}
+.slide.active { opacity: 1; transform: translateX(0); pointer-events: all; }
+.slide.prev { opacity: 0; transform: translateX(-60px); }
+
+/* Scrollbar */
+.slide::-webkit-scrollbar { width: 4px; }
+.slide::-webkit-scrollbar-track { background: transparent; }
+.slide::-webkit-scrollbar-thumb { background: var(--muted); border-radius: 99px; }
+.slide { scrollbar-width: thin; scrollbar-color: var(--muted) transparent; }
+
+/* ── Layout: Title Card ── */
+.layout-title-card {
+  justify-content: center; align-items: center;
+  text-align: center; padding: 60px 80px;
+}
+.title-card-inner {
+  max-width: 860px; display: flex;
+  flex-direction: column; align-items: center; gap: 20px;
+  margin: 0 auto;
+}
+
+/* ── Layout: Section Divider ── */
+.layout-section-divider {
+  justify-content: center; align-items: center; padding: 60px 80px;
+}
+.section-divider-inner {
+  max-width: 700px; display: flex; flex-direction: column; gap: 12px;
+  margin: 0 auto;
+}
+
+/* ── Layout: Single Column ── */
+.layout-single-column { padding: 48px 64px 80px; }
+
+/* ── Layout: Two Column ── */
+.layout-two-column { padding: 48px 56px 80px; }
+.two-col-body {
+  flex: 1; display: grid;
+  grid-template-columns: 1fr 1fr; gap: 32px;
+  overflow: hidden; min-height: 260px;
+  max-width: 960px; margin: 0 auto; width: 100%;
+}
+.col-left, .col-right {
+  overflow-y: auto; display: flex; flex-direction: column; gap: 12px;
+}
+
+/* ── Layout: Big Quote ── */
+.layout-big-quote {
+  justify-content: center; align-items: center;
+  text-align: center; padding: 60px 80px;
+}
+.big-quote-inner {
+  max-width: 780px; display: flex;
+  flex-direction: column; align-items: center; gap: 24px;
+  margin: 0 auto;
+}
+
+/* ── Slide Header ── */
+.slide-header {
+  padding-left: 16px; margin-bottom: 4px; flex-shrink: 0;
+  max-width: 860px; margin-left: auto; margin-right: auto; width: 100%;
+}
+.slide-title {
+  font-family: var(--font-head);
+  font-size: clamp(1.25rem, 2.2vw, 1.75rem);
+  font-weight: 700; color: var(--text); line-height: 1.2;
+}
+
+/* ── Content ── */
+.single-content {
+  flex: 0 1 auto; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 12px;
+  max-width: 860px; margin: 0 auto; width: 100%;
+}
+.single-content p, .two-col-body p, .col-left p, .col-right p {
+  font-size: clamp(0.82rem, 1.3vw, 1rem);
+  line-height: 1.65; color: var(--text);
+}
+.single-content h2, .single-content h3 {
+  font-family: var(--font-head); font-weight: 600; color: var(--text); margin-top: 8px;
+}
+.single-content h2 { font-size: clamp(1rem, 1.8vw, 1.3rem); }
+.single-content h3 { font-size: clamp(0.95rem, 1.5vw, 1.15rem); }
+
+ul, ol { padding-left: 1.5em; display: flex; flex-direction: column; gap: 4px; }
+li { font-size: clamp(0.82rem, 1.3vw, 0.97rem); line-height: 1.6; }
+
+blockquote {
+  border-left: 4px solid var(--amber);
+  background: var(--bg-elevated);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 12px 16px;
+  font-style: italic;
+  font-size: clamp(0.82rem, 1.3vw, 0.97rem);
+  color: var(--text-dim); margin: 4px 0;
+}
+blockquote strong { font-style: normal; color: var(--text); }
+
+a { color: var(--amber); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ── Caution Stripe ── */
+.caution-stripe {
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--amber) 0px, var(--amber) 10px,
+    var(--bg) 10px, var(--bg) 20px
+  );
+  height: 6px; width: 100%; border-radius: 2px;
+  opacity: 0.7;
+}
+.caution-stripe-red {
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--red) 0px, var(--red) 10px,
+    var(--bg) 10px, var(--bg) 20px
+  );
+  height: 6px; width: 100%; border-radius: 2px;
+  opacity: 0.6;
+}
+
+/* ── Warning Badge ── */
+.warning-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(239,68,68,0.12);
+  border: 1px solid rgba(239,68,68,0.3);
+  color: var(--red);
+  font-family: var(--font-mono);
+  font-size: 0.7rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  padding: 4px 12px; border-radius: 99px;
+}
+
+/* ── Failure Badge ── */
+.failure-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(239,68,68,0.1);
+  border: 1px solid rgba(239,68,68,0.25);
+  color: var(--red);
+  font-family: var(--font-mono);
+  font-size: 0.72rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  padding: 4px 14px; border-radius: 4px;
+}
+
+/* ── Lesson Badge ── */
+.lesson-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(245,158,11,0.1);
+  border: 1px solid rgba(245,158,11,0.25);
+  color: var(--amber);
+  font-family: var(--font-mono);
+  font-size: 0.72rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  padding: 4px 14px; border-radius: 4px;
+}
+
+/* ── WhatsApp Mockup ── */
+.whatsapp-mockup {
+  background: #0b141a;
+  border-radius: var(--radius);
+  padding: 16px 14px;
+  display: flex; flex-direction: column; gap: 6px;
+  max-width: 420px;
+  font-family: var(--font-body);
+  font-size: clamp(0.78rem, 1.1vw, 0.88rem);
+  border: 1px solid rgba(255,255,255,0.06);
+  position: relative;
+}
+.whatsapp-mockup::before {
+  content: '💬 WhatsApp';
+  position: absolute; top: -10px; left: 14px;
+  font-family: var(--font-mono);
+  font-size: 0.6rem; font-weight: 600;
+  color: var(--muted); letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: var(--bg); padding: 0 6px;
+}
+.wa-msg {
+  padding: 7px 12px;
+  border-radius: 8px;
+  max-width: 88%;
+  line-height: 1.45;
+  position: relative;
+}
+.wa-msg .wa-name {
+  font-size: 0.7em; font-weight: 700;
+  margin-bottom: 2px;
+}
+.wa-msg .wa-time {
+  font-size: 0.6em; color: rgba(255,255,255,0.3);
+  text-align: right; margin-top: 2px;
+}
+.wa-msg.wa-human {
+  background: #005c4b; color: #e2f0e9;
+  align-self: flex-end;
+  border-bottom-right-radius: 2px;
+}
+.wa-msg.wa-human .wa-name { color: #25D366; }
+.wa-msg.wa-ai {
+  background: #202c33; color: #d1d7db;
+  align-self: flex-start;
+  border-bottom-left-radius: 2px;
+}
+.wa-msg.wa-ai .wa-name { color: #8696a0; }
+.wa-msg.wa-error {
+  background: #202c33; color: #d1d7db;
+  align-self: flex-start;
+  border-bottom-left-radius: 2px;
+  border: 1px solid rgba(239,68,68,0.4);
+  box-shadow: 0 0 8px rgba(239,68,68,0.15);
+}
+.wa-msg.wa-error .wa-name { color: var(--red); }
+
+/* ── Principle Card ── */
+.principle-card {
+  background: var(--bg-elevated);
+  border: 1px solid rgba(245,158,11,0.2);
+  border-radius: var(--radius);
+  padding: 28px 32px;
+  text-align: center;
+  max-width: 640px;
+  margin: 0 auto;
+}
+.principle-text {
+  font-family: var(--font-head);
+  font-size: clamp(1.1rem, 2vw, 1.5rem);
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.35;
+  margin-bottom: 12px;
+}
+.principle-sub {
+  font-size: clamp(0.8rem, 1.2vw, 0.95rem);
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+
+/* ── Rejected Thumbnails Grid ── */
+.rejected-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+.rejected-thumb {
+  background: var(--bg-elevated);
+  border-radius: var(--radius);
+  aspect-ratio: 4/3;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  position: relative;
+  border: 2px solid rgba(239,68,68,0.3);
+  overflow: hidden;
+}
+.rejected-thumb.accepted {
+  border-color: rgba(34,197,94,0.4);
+}
+.rejected-thumb .thumb-icon {
+  font-size: 2.2rem;
+  opacity: 0.5;
+}
+.rejected-thumb .thumb-stamp {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%) rotate(-15deg);
+  font-size: 2.5rem; font-weight: 900;
+  font-family: var(--font-head);
+  opacity: 0.9;
+}
+.rejected-thumb .thumb-stamp.stamp-reject { color: var(--red); }
+.rejected-thumb .thumb-stamp.stamp-accept { color: var(--green); }
+.rejected-thumb .thumb-reason {
+  font-size: 0.65rem;
+  font-family: var(--font-mono);
+  color: var(--text-dim);
+  text-align: center;
+  padding: 0 8px;
+  margin-top: 4px;
+  position: absolute;
+  bottom: 6px;
+}
+
+/* ── Cycle Diagram ── */
+.cycle-diagram {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  max-width: 700px;
+  margin: 8px auto;
+  flex-wrap: wrap;
+}
+.cycle-node {
+  background: var(--bg-elevated);
+  border: 2px solid var(--amber-dim);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  text-align: center;
+  min-width: 130px;
+}
+.cycle-node .cycle-emoji { font-size: 1.4rem; margin-bottom: 4px; }
+.cycle-node .cycle-label {
+  font-family: var(--font-head);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.cycle-node .cycle-sub {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+.cycle-node.cycle-highlight {
+  border-color: var(--amber);
+  background: rgba(245,158,11,0.08);
+}
+.cycle-arrow {
+  font-size: 1.4rem;
+  color: var(--amber);
+  padding: 0 8px;
+  flex-shrink: 0;
+}
+
+/* ── Funnel Diagram ── */
+.funnel-diagram {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  max-width: 400px;
+  margin: 8px auto;
+}
+.funnel-stage {
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-head);
+  font-weight: 600;
+  font-size: clamp(0.78rem, 1.1vw, 0.9rem);
+  padding: 10px;
+  color: var(--text);
+  position: relative;
+}
+.funnel-wide {
+  background: rgba(239,68,68,0.12);
+  border: 1px solid rgba(239,68,68,0.25);
+  width: 100%; border-radius: var(--radius) var(--radius) 0 0;
+}
+.funnel-mid {
+  background: rgba(245,158,11,0.1);
+  border: 1px solid rgba(245,158,11,0.2);
+  width: 75%; border-left: none; border-right: none;
+}
+.funnel-narrow {
+  background: rgba(34,197,94,0.1);
+  border: 1px solid rgba(34,197,94,0.2);
+  width: 50%; border-radius: 0 0 var(--radius) var(--radius);
+}
+.funnel-arrow-down {
+  font-size: 1rem;
+  color: var(--muted);
+  padding: 2px 0;
+}
+
+/* ── Agent Visual ── */
+.agent-row {
+  display: flex; gap: 12px; align-items: center;
+  justify-content: center; flex-wrap: wrap;
+  margin: 8px 0;
+}
+.agent-icon {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem;
+  border: 2px solid var(--muted);
+  background: var(--bg-elevated);
+  position: relative;
+}
+.agent-icon.agent-same {
+  border-color: var(--red);
+  opacity: 0.7;
+}
+.agent-icon.agent-different {
+  border-color: var(--green);
+}
+.agent-icon .agent-tag {
+  position: absolute; bottom: -14px;
+  font-family: var(--font-mono);
+  font-size: 0.55rem; font-weight: 600;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+/* ── Stat Grid (for slide 19) ── */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  max-width: 640px;
+  margin: 0 auto;
+}
+.stat-card {
+  background: var(--bg-elevated);
+  border: 1px solid rgba(245,158,11,0.15);
+  border-radius: var(--radius);
+  padding: 16px;
+  text-align: center;
+}
+.stat-number {
+  font-family: var(--font-head);
+  font-size: clamp(1.4rem, 2.5vw, 2rem);
+  font-weight: 700;
+  color: var(--amber);
+}
+.stat-label {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  margin-top: 4px;
+  line-height: 1.3;
+}
+
+/* ── Scenario Panels ── */
+.scenario-panels {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  max-width: 780px;
+  margin: 0 auto;
+}
+.scenario-panel {
+  background: var(--bg-elevated);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: var(--radius);
+  padding: 20px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.scenario-icon { font-size: 1.6rem; }
+.scenario-title {
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--text);
+}
+.scenario-desc {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+/* ── Comparison box ── */
+.compare-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  max-width: 700px;
+  margin: 0 auto;
+}
+.compare-box {
+  background: var(--bg-elevated);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.compare-box .compare-label {
+  font-family: var(--font-mono);
+  font-size: 0.68rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  margin-bottom: 8px;
+}
+.compare-box.compare-bad .compare-label { color: var(--red); }
+.compare-box.compare-good .compare-label { color: var(--green); }
+
+/* ── Tree diagram (corrections compound) ── */
+.tree-diagram {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  max-width: 500px;
+  margin: 8px auto;
+}
+.tree-root {
+  background: rgba(245,158,11,0.15);
+  border: 2px solid var(--amber);
+  border-radius: var(--radius);
+  padding: 10px 20px;
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--amber);
+  text-align: center;
+}
+.tree-branches {
+  display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;
+}
+.tree-branch {
+  background: var(--bg-elevated);
+  border: 1px solid rgba(34,197,94,0.25);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 0.7rem;
+  color: var(--green);
+  font-family: var(--font-mono);
+  text-align: center;
+}
+.tree-connector {
+  color: var(--muted);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="section-label"></div>
+
+<div id="deck">
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 1 — TITLE: "EVERYTHING WENT WRONG"
+     Warning label aesthetic, caution stripes, red/amber
+     ════════════════════════════════════════════════════════════════ -->
+<!-- Speaker notes: "Every AI talk you've ever seen follows the same script: look how amazing this is. Here's how smart it is. Here's the future. I'm going to do something different. I'm going to tell you about the five times my AI failed — spectacularly — in six days. And then I'll explain why those failures are the entire point." -->
+<div class="slide layout-title-card" data-section="Opening">
+  <div class="title-card-inner">
+    <div class="caution-stripe-red" style="width:280px;margin-bottom:16px"></div>
+    <div class="warning-badge" style="margin-bottom:8px">⚠ Honest AI Talk — Contains Real Failures</div>
+    <h1 style="font-family:var(--font-head);font-size:clamp(2.2rem,4.5vw,3.5rem);font-weight:700;color:var(--red);line-height:1.1;text-transform:uppercase;letter-spacing:-0.02em">
+      Everything<br>Went Wrong
+    </h1>
+    <p style="font-size:clamp(0.95rem,1.5vw,1.15rem);color:var(--text-dim);line-height:1.5;max-width:560px;margin-top:4px">
+      What AI failures teach us about actually using it
+    </p>
+    <div class="caution-stripe" style="width:280px;margin-top:16px"></div>
+    <p style="font-size:clamp(0.78rem,1.1vw,0.9rem);color:var(--muted);margin-top:12px">
+      <strong style="color:var(--text)">Antreas Antoniou</strong> · Axiotic · University of Edinburgh
+    </p>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 2 — THE SETUP
+     Three entities: researcher, stranger, AI
+     ════════════════════════════════════════════════════════════════ -->
+<!-- Speaker notes: "I invited a complete stranger into a WhatsApp group with my AI agent. The AI has a personality, it remembers conversations, and it can spawn teams of other AIs to do work. We had no plan. We had no script. And for six days, it was chaos. Productive chaos — but chaos." -->
+<div class="slide layout-single-column" data-section="Setup">
+  <div class="slide-header" style="border-left:4px solid var(--amber)">
+    <h2 class="slide-title">The setup</h2>
+  </div>
+  <div class="single-content">
+    <p style="font-family:var(--font-head);font-size:clamp(1rem,1.8vw,1.3rem);font-weight:600;color:var(--amber);margin-bottom:4px">
+      Two strangers. One AI. A WhatsApp group. No plan.
+    </p>
+    <p style="color:var(--text-dim)">What could go wrong?</p>
+
+    <div style="display:flex;align-items:center;justify-content:center;gap:32px;margin:20px 0;flex-wrap:wrap">
+      <div style="text-align:center">
+        <div style="font-size:2.8rem;margin-bottom:6px">🧑‍💻</div>
+        <div style="font-family:var(--font-head);font-weight:700;font-size:0.9rem">Antreas</div>
+        <div style="font-size:0.72rem;color:var(--text-dim)">AI researcher, Edinburgh</div>
+      </div>
+      <div style="font-size:1.8rem;color:var(--muted)">
+        <svg width="60" height="24" viewBox="0 0 60 24" fill="none" style="display:block">
+          <line x1="0" y1="12" x2="50" y2="12" stroke="currentColor" stroke-width="2" stroke-dasharray="4 3"/>
+          <path d="M48 6 L58 12 L48 18" fill="none" stroke="currentColor" stroke-width="2"/>
+        </svg>
+      </div>
+      <div style="text-align:center">
+        <div style="width:56px;height:56px;border-radius:14px;background:#25D366;display:flex;align-items:center;justify-content:center;font-size:1.6rem;margin:0 auto 6px">💬</div>
+        <div style="font-family:var(--font-mono);font-weight:600;font-size:0.72rem;color:#25D366;letter-spacing:0.05em">WHATSAPP</div>
+      </div>
+      <div style="font-size:1.8rem;color:var(--muted)">
+        <svg width="60" height="24" viewBox="0 0 60 24" fill="none" style="display:block">
+          <line x1="0" y1="12" x2="50" y2="12" stroke="currentColor" stroke-width="2" stroke-dasharray="4 3"/>
+          <path d="M48 6 L58 12 L48 18" fill="none" stroke="currentColor" stroke-width="2"/>
+        </svg>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:2.8rem;margin-bottom:6px">👩</div>
+        <div style="font-family:var(--font-head);font-weight:700;font-size:0.9rem">Shannon</div>
+        <div style="font-size:0.72rem;color:var(--text-dim)">29, London, met online</div>
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:4px">
+      <div style="font-size:2.4rem;margin-bottom:4px">🤖</div>
+      <div style="font-family:var(--font-head);font-weight:700;font-size:0.9rem">Hephaestus</div>
+      <div style="font-size:0.72rem;color:var(--text-dim)">The AI — persistent memory, personality, lives in WhatsApp</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 3 — BUT FIRST: WHAT THEY MADE
+     Quick output grid — 8-10 seconds max
+     ════════════════════════════════════════════════════════════════ -->
+<!-- Speaker notes: "Before I tell you what went wrong — here's what went right. All of this. One WhatsApp group. Six days. It's impressive. But the reason it's impressive has nothing to do with the AI being smart. It has everything to do with the five times it was stupid." -->
+<div class="slide layout-single-column" data-section="Setup">
+  <div class="slide-header" style="border-left:4px solid var(--amber)">
+    <h2 class="slide-title">But first: what they made</h2>
+  </div>
+  <div class="single-content">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:700px;margin:0 auto">
+      <div style="background:var(--bg-elevated);border-radius:var(--radius);padding:20px 16px;text-align:center;border:1px solid rgba(255,255,255,0.06)">
+        <div style="font-size:1.8rem;margin-bottom:6px">📖</div>
+        <div style="font-family:var(--font-head);font-weight:700;font-size:0.85rem">Novella</div>
+        <div style="font-size:0.7rem;color:var(--text-dim);margin-top:2px">14,500 words</div>
+      </div>
+      <div style="background:var(--bg-elevated);border-radius:var(--radius);padding:20px 16px;text-align:center;border:1px solid rgba(255,255,255,0.06)">
+        <div style="font-size:1.8rem;margin-bottom:6px">🎨</div>
+        <div style="font-family:var(--font-head);font-weight:700;font-size:0.85rem">Manhwa</div>
+        <div style="font-size:0.7rem;color:var(--text-dim);margin-top:2px">12-panel webtoon</div>
+      </div>
+      <div style="background:var(--bg-elevated);border-radius:var(--radius);padding:20px 16px;text-align:center;border:1px solid rgba(255,255,255,0.06)">
+        <div style="font-size:1.8rem;margin-bottom:6px">✨</div>
+        <div style="font-family:var(--font-head);font-weight:700;font-size:0.85rem">Anime Art</div>
+        <div style="font-size:0.7rem;color:var(--text-dim);margin-top:2px">10+ style variants</div>
+      </div>
+      <div style="background:var(--bg-elevated);border-radius:var(--radius);padding:20px 16px;text-align:center;border:1px solid rgba(255,255,255,0.06)">
+        <div style="font-size:1.8rem;margin-bottom:6px">⚖️</div>
+        <div style="font-family:var(--font-head);font-weight:700;font-size:0.85rem">Legal Letter</div>
+        <div style="font-size:0.7rem;color:var(--text-dim);margin-top:2px">19 verified citations</div>
+      </div>
+      <div style="background:var(--bg-elevated);border-radius:var(--radius);padding:20px 16px;text-align:center;border:1px solid rgba(255,255,255,0.06)">
+        <div style="font-size:1.8rem;margin-bottom:6px">🔬</div>
+        <div style="font-family:var(--font-head);font-weight:700;font-size:0.85rem">Health Research</div>
+        <div style="font-size:0.7rem;color:var(--text-dim);margin-top:2px">30,000-word study</div>
+      </div>
+      <div style="background:var(--bg-elevated);border-radius:var(--radius);padding:20px 16px;text-align:center;border:1px solid rgba(255,255,255,0.06)">
+        <div style="font-size:1.8rem;margin-bottom:6px">🌐</div>
+        <div style="font-family:var(--font-head);font-weight:700;font-size:0.85rem">Website Copy</div>
+        <div style="font-size:0.7rem;color:var(--text-dim);margin-top:2px">Preferred over agency</div>
+      </div>
+    </div>
+    <p style="text-align:center;color:var(--text-dim);font-size:clamp(0.78rem,1.1vw,0.9rem);margin-top:12px">
+      All in <strong style="color:var(--amber)">6 days</strong>. One WhatsApp group. No coding.
+    </p>
+    <p style="text-align:center;font-family:var(--font-head);font-weight:600;font-size:clamp(0.9rem,1.4vw,1.1rem);color:var(--red);margin-top:4px">
+      But the reason it works has nothing to do with the AI being smart.
+    </p>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 4 — FAILURE #1: "STOP JUMPING OUT LIKE A FART"
+     WhatsApp mockup showing the interruption
+     ════════════════════════════════════════════════════════════════ -->
+<!-- Speaker notes: "Late at night. Two people are having a personal conversation. The AI — which had been quietly listening — decides to pipe up with 'Goodnight you two.' Cute, right? Antreas tells it to shut up. And the AI responds: 'Sorry for interrupting!' Which is, of course, another interruption. The AI learned two lessons from one failure: when to be quiet, and that acknowledging you should be quiet IS NOT BEING QUIET." -->
+<div class="slide layout-two-column" data-section="Failures">
+  <div class="slide-header" style="border-left:4px solid var(--red)">
+    <div style="display:flex;align-items:center;gap:12px">
+      <span class="failure-badge">Failure #1</span>
+      <h2 class="slide-title">"Stop jumping out like a fart"</h2>
+    </div>
+  </div>
+  <div class="two-col-body">
+    <div class="col-left" style="justify-content:center">
+      <div class="whatsapp-mockup">
+        <div class="wa-msg wa-human">
+          <div class="wa-name">Shannon</div>
+          That was really sweet, what you said earlier...
+          <div class="wa-time">23:47</div>
+        </div>
+        <div class="wa-msg wa-human" style="align-self:flex-start">
+          <div class="wa-name" style="color:#53bdeb">Antreas</div>
+          I meant it. Sometimes you just have to say it.
+          <div class="wa-time">23:48</div>
+        </div>
+        <div class="wa-msg wa-error">
+          <div class="wa-name">🤖 Hephaestus</div>
+          Goodnight you two! 🌙 Sleep well.
+          <div class="wa-time">23:48</div>
+        </div>
+        <div class="wa-msg wa-human" style="align-self:flex-start">
+          <div class="wa-name" style="color:#53bdeb">Antreas</div>
+          Can you stop randomly deciding to jump out like a fart
+          <div class="wa-time">23:49</div>
+        </div>
+        <div class="wa-msg wa-error" style="border-color:rgba(239,68,68,0.7);box-shadow:0 0 12px rgba(239,68,68,0.25)">
+          <div class="wa-name">🤖 Hephaestus</div>
+          Sorry for interrupting! I'll be quiet now.
+          <div class="wa-time">23:49</div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:6px">
+        <span style="font-family:var(--font-mono);font-size:0.65rem;color:var(--red);letter-spacing:0.05em">↑ THE WORSE MISTAKE</span>
+      </div>
+    </div>
+    <div class="col-right" style="justify-content:center">
+      <p style="font-size:clamp(0.85rem,1.3vw,1rem)">The AI interrupted an intimate moment between two humans.</p>
+      <p style="font-size:clamp(0.85rem,1.3vw,1rem)">Then — when told to be quiet — <strong style="color:var(--red)">it replied to the correction</strong>.</p>
+      <p style="font-size:clamp(0.85rem,1.3vw,1rem)">A bigger interruption than the original.</p>
+      <div style="background:var(--bg-elevated);border-radius:var(--radius);padding:14px 16px;border-left:3px solid var(--red);margin-top:8px">
+        <p style="font-family:var(--font-head);font-weight:700;font-size:0.85rem;color:var(--red);margin-bottom:4px">Two lessons from one failure:</p>
+        <p style="font-size:0.82rem;color:var(--text-dim);line-height:1.5">1. When to be quiet<br>2. Acknowledging you should be quiet <strong style="color:var(--text)">IS NOT being quiet</strong></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 5 — LESSON: SILENCE IS A SKILL
+     Clean principle card
+     ════════════════════════════════════════════════════════════════ -->
+<!-- Speaker notes: "Every AI you've ever used wants to agree with you. It cheerleads. It validates. It performs enthusiasm. In creative work, this is poison. The best creative output from this experiment came after the AI learned to shut up. Silence is a creative contribution." -->
+<div class="slide layout-single-column" data-section="Lessons">
+  <div class="slide-header" style="border-left:4px solid var(--amber)">
+    <div style="display:flex;align-items:center;gap:12px">
+      <span class="lesson-badge">Lesson #1</span>
+      <h2 class="slide-title">Silence is a skill</h2>
+    </div>
+  </div>
+  <div class="single-content" style="align-items:center;justify-content:center">
+    <div class="principle-card">
+      <div class="principle-text">
+        AI defaults to speaking.<br>
+        The most valuable thing an AI can do is <span style="color:var(--amber)">know when to shut up</span>.
+      </div>
+      <div class="principle-sub">
+        This isn't a technical problem — it's a design philosophy.
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:600px;margin-top:12px">
+      <div style="background:var(--bg-elevated);border-radius:var(--radius);padding:14px 16px;text-align:center;border:1px solid rgba(239,68,68,0.2)">
+        <div style="font-size:1.4rem;margin-bottom:4px">🔊</div>
+        <div style="font-family:var(--font-head);font-weight:600;font-size:0.82rem;color:var(--red)">Default AI</div>
+        <div style="font-size:0.72rem;color:var(--text-dim);margin-top:2px">Cheerleads, validates,<br>performs enthusiasm</div>
+      </div>
+      <div style="background:var(--bg-elevated);border-radius:var(--radius);padding:14px 16px;text-align:center;border:1px solid rgba(34,197,94,0.2)">
+        <div style="font-size:1.4rem;margin-bottom:4px">🔇</div>
+        <div style="font-family:var(--font-head);font-weight:600;font-size:0.82rem;color:var(--green)">Corrected AI</div>
+        <div style="font-size:0.72rem;color:var(--text-dim);margin-top:2px">Disagrees, stays quiet,<br>holds opinions</div>
+      </div>
+    </div>
+
+    <p style="text-align:center;color:var(--text-dim);font-size:clamp(0.78rem,1.1vw,0.88rem);margin-top:8px;font-style:italic">
+      "Anti-sycophancy: the AI is designed to disagree, stay quiet, and hold opinions — not to agree with everything you say."
+    </p>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 6 — FAILURE #2: "MY SKIN IS NOT OLIVE"
+     WhatsApp correction message, before/after concept
+     ════════════════════════════════════════════════════════════════ -->
+<!-- Speaker notes: "Twelve panels. Every one wrong. The same mistake in every single image. He sent one text message. All twelve panels regenerated. And here's the thing that matters: the AI didn't just fix those twelve panels. It fixed every future image it would ever generate of him. One correction. Permanent. Compounding." -->
+<div class="slide layout-two-column" data-section="Failures">
+  <div class="slide-header" style="border-left:4px solid var(--red)">
+    <div style="display:flex;align-items:center;gap:12px">
+      <span class="failure-badge">Failure #2</span>
+      <h2 class="slide-title">"My skin is not olive"</h2>
+    </div>
+  </div>
+  <div class="two-col-body">
+    <div class="col-left" style="justify-content:center;gap:16px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div style="background:var(--bg-elevated);border-radius:var(--radius);padding:24px 16px;text-align:center;border:2px solid rgba(239,68,68,0.3)">
+          <div style="font-size:2.4rem;margin-bottom:8px;filter:sepia(0.4) saturate(1.5) hue-rotate(20deg)">🧑</div>
+          <div style="font-family:var(--font-mono);font-size:0.7rem;color:var(--red);font-weight:600">BEFORE</div>
+          <div style="font-size:0.72rem;color:var(--text-dim);margin-top:4px">Olive skin<br>× 12 panels</div>
+          <div style="font-size:1.8rem;margin-top:6px;color:var(--red)">✗</div>
+        </div>
+        <div style="background:var(--bg-elevated);border-radius:var(--radius);padding:24px 16px;text-align:center;border:2px solid rgba(34,197,94,0.3)">
+          <div style="font-size:2.4rem;margin-bottom:8px">🧑</div>
+          <div style="font-family:var(--font-mono);font-size:0.7rem;color:var(--green);font-weight:600">AFTER</div>
+          <div style="font-size:0.72rem;color:var(--text-dim);margin-top:4px">Fair skin<br>× 12 panels</div>
+          <div style="font-size:1.8rem;margin-top:6px;color:var(--green)">✓</div>
+        </div>
+      </div>
+
+      <div class="whatsapp-mockup" style="max-width:340px;margin:0 auto">
+        <div class="wa-msg wa-human" style="align-self:flex-start">
+          <div class="wa-name" style="color:#53bdeb">Antreas</div>
+          My skin is fair, not olive.
+          <div class="wa-time">14:22</div>
+        </div>
+      </div>
+      <p style="text-align:center;font-family:var(--font-mono);font-size:0.65rem;color:var(--amber)">ONE MESSAGE → ALL 12 PANELS REGENERATED</p>
+    </div>
+    <div class="col-right" style="justify-content:center">
+      <p>The AI generated a <strong>12-panel Korean manhwa</strong>.</p>
+      <p>In <strong style="color:var(--red)">every single panel</strong>, the researcher had olive skin.</p>
+      <p>He's fair-skinned.</p>
+      <p style="margin-top:8px">One text message. <strong style="color:var(--amber)">All twelve panels regenerated.</strong></p>
+      <p style="margin-top:8px">And the critical insight: the AI didn't just fix <em>those</em> twelve panels. It fixed <strong>every future image it would ever generate of him</strong>.</p>
+      <div style="background:var(--bg-elevated);border-radius:var(--radius);padding:14px 16px;border-left:3px solid var(--amber);margin-top:12px">
+        <p style="font-family:var(--font-head);font-weight:700;font-size:0.85rem;color:var(--amber)">One correction. Permanent. Compounding.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 7 — LESSON: CORRECTIONS COMPOUND
+     Tree/ripple diagram
+     ════════════════════════════════════════════════════════════════ -->
+<!-- Speaker notes: "This is the single most important thing I can tell you about working with AI. A correction is not a fix. It's an upgrade. When you tell an AI 'that's wrong,' and it learns permanently, you're not doing quality control. You're doing training. Every correction you give it makes every future output better. The more you correct it, the better it gets. That means the WORST time to use AI is the first hour — and the BEST time is after you've corrected it fifty times." -->
+<div class="slide layout-single-column" data-section="Lessons">
+  <div class="slide-header" style="border-left:4px solid var(--amber)">
+    <div style="display:flex;align-items:center;gap:12px">
+      <span class="lesson-badge">Lesson #2</span>
+      <h2 class="slide-title">Corrections compound</h2>
+    </div>
+  </div>
+  <div class="single-content" style="align-items:center;justify-content:center">
+    <div class="principle-card">
+      <div class="principle-text">
+        You're not debugging.<br>You're <span style="color:var(--amber)">training</span>.
+      </div>
+      <div class="principle-sub">
+        Every correction makes the AI permanently better.
+      </div>
+    </div>
+
+    <div class="tree-diagram" style="margin-top:16px">
+      <div class="tree-root">✏️ "My skin is fair, not olive"</div>
+      <div class="tree-connector">↓ ↓ ↓</div>
+      <div class="tree-branches">
+        <div class="tree-branch">Panel 1 ✓</div>
+        <div class="tree-branch">Panel 2 ✓</div>
+        <div class="tree-branch">Panel 3 ✓</div>
+        <div class="tree-branch">Panel 4 ✓</div>
+        <div class="tree-branch">...</div>
+        <div class="tree-branch">Panel 12 ✓</div>
+      </div>
+      <div class="tree-connector">↓</div>
+      <div style="font-family:var(--font-mono);font-size:0.72rem;color:var(--amber);font-weight:600;letter-spacing:0.05em">EVERY FUTURE IMAGE — PERMANENTLY</div>
+      <div class="tree-connector">↓</div>
+      <div class="tree-branches">
+        <div class="tree-branch">Future art ✓</div>
+        <div class="tree-branch">Future manhwa ✓</div>
+        <div class="tree-branch">Anime variants ✓</div>
+        <div class="tree-branch">Descriptions ✓</div>
+        <div class="tree-branch">Profiles ✓</div>
+      </div>
+    </div>
+
+    <blockquote style="max-width:600px;margin-top:12px;text-align:center;border-left:none;border-top:2px solid var(--amber);border-radius:0;padding-top:12px;background:transparent">
+      The <strong style="color:var(--red)">worst</strong> time to use AI is the first hour.<br>
+      The <strong style="color:var(--green)">best</strong> time is after you've corrected it fifty times.
+    </blockquote>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 8 — FAILURE #3: FIVE AGENTS, ONE OPINION
+     5 agent icons, 4 same, 1 different
+     ════════════════════════════════════════════════════════════════ -->
+<!-- Speaker notes: "We spawned five AI agents. Gave them different personalities. Asked them all the same question. Four out of five gave the same answer. We called it 'Reddit morality' — the safe, mainstream, agreeable perspective. Slapping a different name on the same AI doesn't make it think differently. You need to change the FRAMING, not the name tag." -->
+<div class="slide layout-single-column" data-section="Failures">
+  <div class="slide-header" style="border-left:4px solid var(--red)">
+    <div style="display:flex;align-items:center;gap:12px">
+      <span class="failure-badge">Failure #3</span>
+      <h2 class="slide-title">Five agents, one opinion</h2>
+    </div>
+  </div>
+  <div class="single-content" style="align-items:center">
+    <p style="text-align:center;max-width:640px">
+      The <strong>5-1 Committee</strong>: five AI agents with different personas asked to give diverse perspectives on a personal question.
+    </p>
+
+    <div class="agent-row" style="margin:16px 0">
+      <div class="agent-icon agent-same">
+        🤖
+        <span class="agent-tag">Agent 1</span>
+      </div>
+      <div class="agent-icon agent-same">
+        🤖
+        <span class="agent-tag">Agent 2</span>
+      </div>
+      <div class="agent-icon agent-same">
+        🤖
+        <span class="agent-tag">Agent 3</span>
+      </div>
+      <div class="agent-icon agent-same">
+        🤖
+        <span class="agent-tag">Agent 4</span>
+      </div>
+      <div class="agent-icon agent-different">
+        🤖
+        <span class="agent-tag" style="color:var(--green)">Agent 5</span>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:24px;align-items:start;max-width:640px;margin-top:20px;flex-wrap:wrap;justify-content:center">
+      <div style="flex:1;min-width:220px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:var(--radius);padding:14px 16px;text-align:center">
+        <div style="font-family:var(--font-head);font-weight:700;font-size:0.85rem;color:var(--red);margin-bottom:6px">4 out of 5</div>
+        <div style="font-size:0.78rem;color:var(--text-dim);line-height:1.5">Same moral heuristic.<br>Safe. Mainstream. Agreeable.</div>
+        <div style="font-family:var(--font-mono);font-size:0.7rem;color:var(--red);margin-top:8px;font-weight:600">"Reddit morality"</div>
+      </div>
+      <div style="flex:1;min-width:220px;background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);border-radius:var(--radius);padding:14px 16px;text-align:center">
+        <div style="font-family:var(--font-head);font-weight:700;font-size:0.85rem;color:var(--green);margin-bottom:6px">1 out of 5</div>
+        <div style="font-size:0.78rem;color:var(--text-dim);line-height:1.5">Actually different.<br>Genuinely contrarian.</div>
+      </div>
+    </div>
+
+    <p style="text-align:center;font-family:var(--font-head);font-weight:700;font-size:clamp(0.9rem,1.4vw,1.1rem);color:var(--text);margin-top:16px">
+      Diversity of <span style="color:var(--red);text-decoration:line-through">persona</span> ≠ diversity of <span style="color:var(--green)">thought</span>
+    </p>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 9 — LESSON: DIVERSITY OF FRAMING > DIVERSITY OF PERSONA
+     Side-by-side: doesn't work vs works
+     ════════════════════════════════════════════════════════════════ -->
+<!-- Speaker notes: "This matters for your work. If you're using AI to brainstorm, don't ask it five times. Ask it from five different disciplinary angles. What would a historian say about your thesis? An economist? A novelist? A parent? Frame diversity is what produces actual new ideas. Name diversity produces the same idea five times in different fonts." -->
+<div class="slide layout-single-column" data-section="Lessons">
+  <div class="slide-header" style="border-left:4px solid var(--amber)">
+    <div style="display:flex;align-items:center;gap:12px">
+      <span class="lesson-badge">Lesson #3</span>
+      <h2 class="slide-title">Diversity of framing > diversity of persona</h2>
+    </div>
+  </div>
+  <div class="single-content" style="align-items:center">
+    <div class="compare-row" style="margin-top:8px">
+      <div class="compare-box compare-bad">
+        <div class="compare-label">✗ Doesn't Work</div>
+        <p style="font-size:0.82rem;color:var(--text-dim);line-height:1.5;margin-bottom:8px">
+          5 agents with different <strong style="color:var(--text)">names</strong>
+        </p>
+        <div style="font-family:var(--font-mono);font-size:0.7rem;color:var(--muted);line-height:1.8">
+          "Sophia" → safe advice<br>
+          "Marcus" → safe advice<br>
+          "Luna" → safe advice<br>
+          "Rex" → safe advice<br>
+          "Aria" → safe advice
+        </div>
+        <div style="text-align:center;font-size:1.2rem;margin-top:8px;color:var(--red)">Same idea, five fonts</div>
+      </div>
+      <div class="compare-box compare-good">
+        <div class="compare-label">✓ Works</div>
+        <p style="font-size:0.82rem;color:var(--text-dim);line-height:1.5;margin-bottom:8px">
+          Same question from different <strong style="color:var(--text)">angles</strong>
+        </p>
+        <div style="font-family:var(--font-mono);font-size:0.7rem;color:var(--muted);line-height:1.8">
+          Economist → incentive analysis<br>
+          Poet → emotional truth<br>
+          Sociologist → systemic view<br>
+          Mother → protective wisdom<br>
+          Stranger → unbiased fresh eyes
+        </div>
+        <div style="text-align:center;font-size:1.2rem;margin-top:8px;color:var(--green)">Five genuinely new ideas</div>
+      </div>
+    </div>
+
+    <div class="principle-card" style="margin-top:16px">
+      <div class="principle-text" style="font-size:clamp(0.95rem,1.6vw,1.25rem)">
+        Change the <span style="color:var(--amber)">question</span>, not the questioner.
+      </div>
+      <div class="principle-sub">
+        Ask from different disciplines, different value systems, different angles — not just different name tags.
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 10 — FAILURE #4: COLLAGE REJECTED. AGAIN.
+     5 thumbnails with red X + 1 with green check
+     ════════════════════════════════════════════════════════════════ -->
+<!-- Speaker notes: "Five attempts. Five rejections. Each time, she told it exactly what was wrong. Not 'try again' — that's useless. 'The rooftop photo works. The silk dress doesn't. Less London Eye.' Specific, actionable feedback. By attempt six, it produced something she actually used on her website. The creative process isn't generation. It's rejection and refinement." -->
+<div class="slide layout-single-column" data-section="Failures">
+  <div class="slide-header" style="border-left:4px solid var(--red)">
+    <div style="display:flex;align-items:center;gap:12px">
+      <span class="failure-badge">Failure #4</span>
+      <h2 class="slide-title">Collage rejected. Again.</h2>
+    </div>
+  </div>
+  <div class="single-content" style="align-items:center">
+    <p style="text-align:center;max-width:580px;margin-bottom:8px">
+      Shannon rejected <strong style="color:var(--red)">5 photo collages</strong> for her website. Each rejection was specific.
+    </p>
+
+    <div class="rejected-grid">
+      <div class="rejected-thumb">
+        <div class="thumb-icon">🖼️</div>
+        <div class="thumb-stamp stamp-reject">✗</div>
+        <div class="thumb-reason">"Not that photo"</div>
+      </div>
+      <div class="rejected-thumb">
+        <div class="thumb-icon">🖼️</div>
+        <div class="thumb-stamp stamp-reject">✗</div>
+        <div class="thumb-reason">"Too much London Eye"</div>
+      </div>
+      <div class="rejected-thumb">
+        <div class="thumb-icon">🖼️</div>
+        <div class="thumb-stamp stamp-reject">✗</div>
+        <div class="thumb-reason">"The silk dress doesn't work"</div>
+      </div>
+      <div class="rejected-thumb">
+        <div class="thumb-icon">🖼️</div>
+        <div class="thumb-stamp stamp-reject">✗</div>
+        <div class="thumb-reason">"Layout is too busy"</div>
+      </div>
+      <div class="rejected-thumb">
+        <div class="thumb-icon">🖼️</div>
+        <div class="thumb-stamp stamp-reject">✗</div>
+        <div class="thumb-reason">"The rooftop one, but bigger"</div>
+      </div>
+      <div class="rejected-thumb accepted">
+        <div class="thumb-icon">🖼️</div>
+        <div class="thumb-stamp stamp-accept">✓</div>
+        <div class="thumb-reason" style="color:var(--green)">"Yes. This one."</div>
+      </div>
+    </div>
+
+    <p style="text-align:center;font-family:var(--font-head);font-weight:700;font-size:clamp(0.9rem,1.4vw,1.1rem);color:var(--amber);margin-top:16px">
+      Not "try again." Specific. Actionable. Fearless.
+    </p>
+    <p style="text-align:center;font-size:clamp(0.78rem,1.1vw,0.88rem);color:var(--text-dim)">
+      By attempt six, she had something she actually used on her website.
+    </p>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 11 — LESSON: YOU ARE THE CURATOR, NOT THE AUDIENCE
+     Funnel diagram: AI generates → human selects
+     ════════════════════════════════════════════════════════════════ -->
+<!-- Speaker notes: "This is the most practical thing I can teach you. AI will give you ten options in the time it takes you to think of one. Your job isn't to generate — it's to curate. Develop your taste. Be specific about what's wrong. Be ruthless about what doesn't work. The AI can produce infinite raw material. Your judgment — your ability to say 'no, not that, THIS' — that's the irreplaceable skill." -->
+<div class="slide layout-single-column" data-section="Lessons">
+  <div class="slide-header" style="border-left:4px solid var(--amber)">
+    <div style="display:flex;align-items:center;gap:12px">
+      <span class="lesson-badge">Lesson #4</span>
+      <h2 class="slide-title">You are the curator, not the audience</h2>
+    </div>
+  </div>
+  <div class="single-content" style="align-items:center;justify-content:center">
+    <div class="funnel-diagram" style="margin-bottom:12px">
+      <div class="funnel-stage funnel-wide">
+        🤖 AI generates many options
+      </div>
+      <div class="funnel-arrow-down">▼</div>
+      <div class="funnel-stage funnel-mid">
+        👁️ Human reviews &amp; rejects
+      </div>
+      <div class="funnel-arrow-down">▼</div>
+      <div class="funnel-stage funnel-narrow">
+        ✨ The one that works
+      </div>
+    </div>
+
+    <div class="principle-card">
+      <div class="principle-text">
+        AI generates. You <span style="color:var(--amber)">select</span>.<br>
+        Your taste is the tool.
+      </div>
+      <div class="principle-sub">
+        The best human-AI creative work comes from people who<br>
+        <strong style="color:var(--text)">reject fearlessly</strong> and <strong style="color:var(--text)">correct specifically</strong>.
+      </div>
+    </div>
+
+    <p style="text-align:center;color:var(--text-dim);font-size:clamp(0.78rem,1.1vw,0.88rem);margin-top:12px;max-width:560px;font-style:italic">
+      AI can produce infinite raw material. Your judgment — your ability to say "no, not that, THIS" — that's the irreplaceable skill.
+    </p>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 12 — FAILURE #5: "YOUR ROBOT WROTE ABOUT ME BETTER"
+     Comparisons: doctor vs AI, SEO agency vs AI
+     ════════════════════════════════════════════════════════════════ -->
+<!-- Speaker notes: "This is the uncomfortable failure. Not the AI's failure — everyone else's. Her NHS doctor saw her for fifteen minutes and said 'panic attacks.' The AI listened for three days and produced a differential diagnosis she took to a private GP. Her SEO agency produced copy she hated. The AI wrote copy she preferred. The failure here isn't technical. It's that a text-based AI, given enough time to listen, outperformed professionals who didn't." -->
+<div class="slide layout-single-column" data-section="Failures">
+  <div class="slide-header" style="border-left:4px solid var(--red)">
+    <div style="display:flex;align-items:center;gap:12px">
+      <span class="failure-badge">Failure #5</span>
+      <h2 class="slide-title">"Your robot wrote about me better"</h2>
+    </div>
+  </div>
+  <div class="single-content" style="align-items:center">
+    <p style="text-align:center;max-width:600px;margin-bottom:8px;color:var(--text-dim)">
+      Wait — this sounds like a success? It is. But it's a <strong style="color:var(--text)">failure of everyone else</strong>.
+    </p>
+
+    <div class="compare-row" style="margin-bottom:12px">
+      <div class="compare-box compare-bad">
+        <div class="compare-label">Her Doctor</div>
+        <p style="font-size:0.82rem;color:var(--text-dim);line-height:1.5">
+          15-minute appointment.<br>
+          Diagnosis: <strong style="color:var(--text)">"Panic attacks."</strong>
+        </p>
+      </div>
+      <div class="compare-box compare-good">
+        <div class="compare-label">The AI</div>
+        <p style="font-size:0.82rem;color:var(--text-dim);line-height:1.5">
+          3 days of listening.<br>
+          Output: <strong style="color:var(--text)">Autoimmune screening panel</strong> with GP-ready script.
+        </p>
+      </div>
+    </div>
+
+    <div class="compare-row">
+      <div class="compare-box compare-bad">
+        <div class="compare-label">Her SEO Agency</div>
+        <p style="font-size:0.82rem;color:var(--text-dim);line-height:1.5">
+          Paid professionals.<br>
+          Copy she <strong style="color:var(--text)">hated</strong>. Generic. AI slop.
+        </p>
+      </div>
+      <div class="compare-box compare-good">
+        <div class="compare-label">The AI</div>
+        <p style="font-size:0.82rem;color:var(--text-dim);line-height:1.5">
+          3 days of conversation.<br>
+          Copy she <strong style="color:var(--text)">preferred</strong>. Her voice.
+        </p>
+      </div>
+    </div>
+
+    <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:var(--radius);padding:14px 18px;max-width:580px;margin-top:12px;text-align:center">
+      <p style="font-family:var(--font-head);font-weight:700;font-size:clamp(0.85rem,1.3vw,1rem);color:var(--red)">
+        The uncomfortable failure: not the AI's — <em>ours</em>.
+      </p>
+      <p style="font-size:0.78rem;color:var(--text-dim);margin-top:4px">
+        A text-based AI, given enough time to listen, outperformed professionals who didn't.
+      </p>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 13 — LESSON: LISTENING IS THE KILLER APP
+     Timeline: 300+ messages → patterns → insight
+     ════════════════════════════════════════════════════════════════ -->
+<!-- Speaker notes: "AI doesn't get tired. It doesn't check the clock. It doesn't have another patient waiting. Three hundred messages over six days — and it distilled a 7,000-word personality profile that captured contradictions, voice patterns, and code-switching that the person herself validated as true. 'I do say mantras somewhat similar.' She recognised herself. The lesson: if you give an AI enough conversational context, it will understand you better than most professionals who see you for fifteen minutes." -->
+<div class="slide layout-single-column" data-section="Lessons">
+  <div class="slide-header" style="border-left:4px solid var(--amber)">
+    <div style="display:flex;align-items:center;gap:12px">
+      <span class="lesson-badge">Lesson #5</span>
+      <h2 class="slide-title">Listening is the killer app</h2>
+    </div>
+  </div>
+  <div class="single-content" style="align-items:center;justify-content:center">
+    <div class="principle-card">
+      <div class="principle-text">
+        The most powerful thing AI does isn't generation.<br>
+        It's <span style="color:var(--amber)">sustained attention</span>.
+      </div>
+      <div class="principle-sub">
+        It reads everything. Remembers everything. Connects patterns<br>
+        that humans miss because they're tired, distracted, or time-constrained.
+      </div>
+    </div>
+
+    <!-- Timeline visual -->
+    <div style="display:flex;align-items:center;justify-content:center;gap:0;margin:16px 0;max-width:600px">
+      <div style="text-align:center;flex:1">
+        <div style="font-size:1.6rem;margin-bottom:4px">💬</div>
+        <div style="font-family:var(--font-head);font-weight:700;font-size:1.1rem;color:var(--text)">300+</div>
+        <div style="font-size:0.68rem;color:var(--text-dim)">messages</div>
+      </div>
+      <div style="color:var(--amber);font-size:1.2rem;padding:0 12px">→</div>
+      <div style="text-align:center;flex:1">
+        <div style="font-size:1.6rem;margin-bottom:4px">🔍</div>
+        <div style="font-family:var(--font-head);font-weight:700;font-size:1.1rem;color:var(--text)">Patterns</div>
+        <div style="font-size:0.68rem;color:var(--text-dim)">voice, habits, contradictions</div>
+      </div>
+      <div style="color:var(--amber);font-size:1.2rem;padding:0 12px">→</div>
+      <div style="text-align:center;flex:1">
+        <div style="font-size:1.6rem;margin-bottom:4px">📋</div>
+        <div style="font-family:var(--font-head);font-weight:700;font-size:1.1rem;color:var(--text)">7,000</div>
+        <div style="font-size:0.68rem;color:var(--text-dim)">word profile</div>
+      </div>
+    </div>
+
+    <blockquote style="max-width:520px;text-align:center;border-left:none;border-top:2px solid var(--amber);border-radius:0;padding-top:12px;background:transparent">
+      <strong>"I do say mantras somewhat similar."</strong><br>
+      <span style="font-size:0.82rem;color:var(--muted);font-style:normal">— She recognised herself.</span>
+    </blockquote>
+
+    <p style="text-align:center;color:var(--text-dim);font-size:clamp(0.78rem,1.1vw,0.88rem);margin-top:8px;max-width:500px">
+      AI has infinite patience. Use it.
+    </p>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 14 — THE PATTERN
+     Correction loop cycle diagram
+     ════════════════════════════════════════════════════════════════ -->
+<!-- Speaker notes: "Look at the pattern. Every failure followed the same arc. The AI screwed up. A human said 'no, like THIS.' The AI learned. And it didn't just learn for the next output — it learned for every output after that. This loop — failure, correction, permanent learning — this is the actual technology. Not the model. Not the framework. The loop." -->
+<div class="slide layout-single-column" data-section="The Pattern">
+  <div class="slide-header" style="border-left:4px solid var(--amber)">
+    <h2 class="slide-title">The pattern</h2>
+  </div>
+  <div class="single-content" style="align-items:center;justify-content:center">
+    <p style="text-align:center;max-width:580px;margin-bottom:12px">
+      All five failures share a structure:
+    </p>
+
+    <div class="cycle-diagram">
+      <div class="cycle-node">
+        <div class="cycle-emoji">💥</div>
+        <div class="cycle-label">Failure</div>
+        <div class="cycle-sub">AI does something wrong</div>
+      </div>
+      <div class="cycle-arrow">→</div>
+      <div class="cycle-node">
+        <div class="cycle-emoji">✏️</div>
+        <div class="cycle-label">Correction</div>
+        <div class="cycle-sub">Human says "no, like THIS"</div>
+      </div>
+      <div class="cycle-arrow">→</div>
+      <div class="cycle-node cycle-highlight">
+        <div class="cycle-emoji">🧠</div>
+        <div class="cycle-label">Learning</div>
+        <div class="cycle-sub">AI learns PERMANENTLY</div>
+      </div>
+      <div class="cycle-arrow">→</div>
+      <div class="cycle-node">
+        <div class="cycle-emoji">📈</div>
+        <div class="cycle-label">Improvement</div>
+        <div class="cycle-sub">ALL future output better</div>
+      </div>
+    </div>
+
+    <!-- Loop-back arrow -->
+    <div style="text-align:center;margin:4px 0">
+      <svg width="500" height="32" viewBox="0 0 500 32" fill="none" style="max-width:100%">
+        <path d="M470 4 C490 4 496 16 496 16 C496 16 490 28 470 28 L30 28 C10 28 4 16 4 16 C4 16 10 4 30 4" stroke="var(--amber)" stroke-width="1.5" stroke-dasharray="6 4" fill="none" opacity="0.4"/>
+        <path d="M34 4 L24 0 L24 8 Z" fill="var(--amber)" opacity="0.5"/>
+      </svg>
+    </div>
+
+    <div class="principle-card" style="margin-top:8px">
+      <div class="principle-text" style="font-size:clamp(0.95rem,1.6vw,1.25rem)">
+        This loop is the <span style="color:var(--amber)">engine</span>.<br>
+        Not the model. Not the framework. The loop.
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 15 — SO WHAT DOES THIS MEAN FOR YOU?
+     Three practical scenarios
+     ════════════════════════════════════════════════════════════════ -->
+<!-- Speaker notes: "I don't care about the experiment. I care about what you do with this. If you're writing a thesis, your AI will be bad at reading it on day one. It'll misunderstand your methodology. It'll give you generic feedback. Correct it. On day three, it'll be the best reader your thesis has ever had. If you're doing creative work — generate, reject, correct, iterate. If you need practical help — health, legal, housing — let it listen, correct its mistakes, and watch it get sharper." -->
+<div class="slide layout-single-column" data-section="For You">
+  <div class="slide-header" style="border-left:4px solid var(--amber)">
+    <h2 class="slide-title">So what does this mean for you?</h2>
+  </div>
+  <div class="single-content" style="align-items:center">
+    <div class="scenario-panels">
+      <div class="scenario-panel">
+        <div class="scenario-icon">📝</div>
+        <div class="scenario-title">Your thesis</div>
+        <div class="scenario-desc">
+          Give the AI your draft. Let it critique it. Correct its misunderstandings. Each correction makes it a better reader of <strong>your</strong> work.
+        </div>
+        <div style="font-family:var(--font-mono);font-size:0.65rem;color:var(--amber);margin-top:auto;padding-top:8px">
+          Day 1: generic feedback<br>
+          Day 3: best reader you've had
+        </div>
+      </div>
+      <div class="scenario-panel">
+        <div class="scenario-icon">🎨</div>
+        <div class="scenario-title">Your creative project</div>
+        <div class="scenario-desc">
+          Generate ten options. Reject eight. Correct two. Iterate. Your taste is the creative contribution.
+        </div>
+        <div style="font-family:var(--font-mono);font-size:0.65rem;color:var(--amber);margin-top:auto;padding-top:8px">
+          Generate → Reject → Correct → Iterate
+        </div>
+      </div>
+      <div class="scenario-panel">
+        <div class="scenario-icon">🏠</div>
+        <div class="scenario-title">Your everyday life</div>
+        <div class="scenario-desc">
+          Health questions. Legal issues. Job applications. Let it listen. Correct it. Let it improve.
+        </div>
+        <div style="font-family:var(--font-mono);font-size:0.65rem;color:var(--amber);margin-top:auto;padding-top:8px">
+          The AI with 50 corrections &gt; the AI fresh out of the box
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 16 — THE ONLY SKILL YOU NEED
+     Bold, simple, dark background
+     ════════════════════════════════════════════════════════════════ -->
+<!-- Speaker notes: "You don't need to code. You don't need to understand neural networks. You don't need to write prompts in some special format. You need ONE skill: the willingness to tell an AI it's wrong, specifically and clearly. 'My skin is fair, not olive.' 'Not that photo, the rooftop one.' 'Stop talking when I'm having a conversation.' Specific. Clear. That's the entire skill set." -->
+<div class="slide layout-title-card" data-section="For You">
+  <div class="title-card-inner">
+    <p style="font-family:var(--font-mono);font-size:0.72rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px">The only skill you need</p>
+    <h1 style="font-family:var(--font-head);font-size:clamp(1.4rem,2.8vw,2.2rem);font-weight:700;color:var(--text);line-height:1.25;max-width:640px">
+      Be willing to say:<br>
+      <span style="color:var(--amber)">"No. That's wrong. Here's why."</span>
+    </h1>
+    <p style="font-size:clamp(0.82rem,1.3vw,1rem);color:var(--text-dim);line-height:1.6;max-width:520px;margin-top:12px">
+      Specifically. Clearly. Without apology.
+    </p>
+    <div class="caution-stripe" style="width:200px;margin:20px 0"></div>
+    <div style="display:flex;flex-direction:column;gap:6px;max-width:440px;text-align:left">
+      <div style="font-family:var(--font-mono);font-size:0.78rem;color:var(--text-dim)">
+        <span style="color:var(--amber)">→</span> "My skin is fair, not olive."
+      </div>
+      <div style="font-family:var(--font-mono);font-size:0.78rem;color:var(--text-dim)">
+        <span style="color:var(--amber)">→</span> "Not that photo — the rooftop one."
+      </div>
+      <div style="font-family:var(--font-mono);font-size:0.78rem;color:var(--text-dim)">
+        <span style="color:var(--amber)">→</span> "Stop talking when I'm having a conversation."
+      </div>
+    </div>
+    <p style="font-family:var(--font-head);font-weight:700;font-size:clamp(1rem,1.6vw,1.3rem);color:var(--text);margin-top:20px">
+      That's it. That's the skill.<br>
+      <span style="color:var(--muted);font-weight:400;font-size:0.85em">Everything else is the AI's job.</span>
+    </p>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 17 — GET STARTED
+     QR code + URL
+     ════════════════════════════════════════════════════════════════ -->
+<!-- Speaker notes: "Everything you need is in this repo. Soul templates. Setup guides. Example configurations. Twenty minutes and you'll have an AI that lives in your WhatsApp. It'll be bad at first. That's the point. Correct it. In three days, it'll be yours." -->
+<div class="slide layout-title-card" data-section="CTA">
+  <div class="title-card-inner">
+    <div class="caution-stripe" style="width:200px;margin-bottom:12px"></div>
+    <h2 style="font-family:var(--font-head);font-size:clamp(1.3rem,2.2vw,1.8rem);font-weight:700;color:var(--text)">Get started</h2>
+    <div style="width:180px;height:180px;background:white;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;margin:8px 0">
+      <!-- QR placeholder — replace with actual QR code image -->
+      <div style="font-size:0.7rem;color:#333;text-align:center;font-family:var(--font-mono);padding:12px">
+        [QR CODE]<br><br>
+        <span style="font-size:0.6rem;color:#666">Scan to open repo</span>
+      </div>
+    </div>
+    <p style="font-size:clamp(0.82rem,1.2vw,0.95rem);color:var(--text-dim);line-height:1.6;max-width:480px">
+      Templates · Guides · Example Souls · Everything you need.<br>
+      <strong style="color:var(--text)">Open source. Free. 20 minutes.</strong>
+    </p>
+    <p style="font-size:clamp(0.78rem,1.1vw,0.88rem);color:var(--amber);margin-top:8px;font-style:italic">
+      It'll be bad at first. That's the point. Correct it. In three days, it'll be yours.
+    </p>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 18 — AND AT SCALE...
+     Dark, minimal transition
+     ════════════════════════════════════════════════════════════════ -->
+<!-- Speaker notes: "Everything I've shown you happened in six days between two strangers. But the same AI — the same framework — the same correction loop — has been running for months at my company." -->
+<div class="slide layout-title-card" data-section="Scale">
+  <div class="title-card-inner">
+    <p style="font-family:var(--font-mono);font-size:0.68rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:16px">
+      And at scale…
+    </p>
+    <h2 style="font-family:var(--font-head);font-size:clamp(1.2rem,2.2vw,1.8rem);font-weight:700;color:var(--text-dim);line-height:1.4;max-width:560px">
+      What happens when the same<br>
+      failure–correction loop runs for<br>
+      <span style="color:var(--amber)">months</span>?
+    </h2>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 19 — SAME LOOP. BIGGER CANVAS.
+     Axiotic reveal — achievement grid
+     ════════════════════════════════════════════════════════════════ -->
+<!-- Speaker notes: "Same AI. Same framework. Same correction loop. Different scale. At Axiotic, Hephaestus has built seven software products — one of them has nearly three thousand automated tests. It's written research papers. It's run machine learning experiments on a GPU cluster. Every bug it encountered was a correction. Every correction was permanent. The same principle that fixed twelve manhwa panels also fixed three thousand lines of production code. The loop scales." -->
+<div class="slide layout-single-column" data-section="Scale">
+  <div class="slide-header" style="border-left:4px solid var(--amber)">
+    <h2 class="slide-title">Same loop. Bigger canvas.</h2>
+  </div>
+  <div class="single-content" style="align-items:center">
+    <p style="text-align:center;max-width:580px;margin-bottom:4px">
+      <strong>Hephaestus</strong> — the same AI from the WhatsApp experiment — has built:
+    </p>
+
+    <div class="stat-grid" style="margin:12px auto">
+      <div class="stat-card">
+        <div class="stat-number">7</div>
+        <div class="stat-label">Software products</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">2,748</div>
+        <div class="stat-label">Automated tests<br><span style="font-size:0.6rem;color:var(--muted)">(in one product alone)</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">2</div>
+        <div class="stat-label">Research papers</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">∞</div>
+        <div class="stat-label">ML experiments<br><span style="font-size:0.6rem;color:var(--muted)">on a GPU cluster</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">19</div>
+        <div class="stat-label">Verified legal citations</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">14.5K</div>
+        <div class="stat-label">Words of fiction<br><span style="font-size:0.6rem;color:var(--muted)">+ creative work</span></div>
+      </div>
+    </div>
+
+    <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:var(--radius);padding:14px 20px;max-width:580px;text-align:center;margin-top:4px">
+      <p style="font-family:var(--font-head);font-weight:700;font-size:clamp(0.85rem,1.3vw,1rem);color:var(--amber)">
+        Every bug is a correction. Every correction is permanent.
+      </p>
+      <p style="font-size:0.78rem;color:var(--text-dim);margin-top:4px">
+        The same principle that fixed 12 manhwa panels also fixed 3,000 lines of production code.
+      </p>
+    </div>
+
+    <p style="text-align:center;font-family:var(--font-head);font-weight:600;font-size:clamp(0.9rem,1.4vw,1.1rem);color:var(--text);margin-top:8px">
+      The loop <span style="color:var(--amber)">scales</span>.
+    </p>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 20 — THE THESIS
+     Large text, final, simple
+     ════════════════════════════════════════════════════════════════ -->
+<!-- Speaker notes: Long pause. "The best AI isn't the smartest one. It's the one that's been corrected the most. Be the person who corrects it. Questions?" -->
+<div class="slide layout-title-card" data-section="Closing">
+  <div class="title-card-inner">
+    <div class="caution-stripe-red" style="width:240px;margin-bottom:20px"></div>
+    <h1 style="font-family:var(--font-head);font-size:clamp(1.1rem,2vw,1.6rem);font-weight:400;color:var(--text-dim);line-height:1.5;max-width:620px">
+      AI isn't magic. It's a collaborator that learns from every mistake —
+    </h1>
+    <h1 style="font-family:var(--font-head);font-size:clamp(1.3rem,2.6vw,2rem);font-weight:700;color:var(--amber);line-height:1.3;max-width:620px;margin-top:8px">
+      if you're brave enough to point them out.
+    </h1>
+    <div class="caution-stripe" style="width:240px;margin:24px 0"></div>
+    <p style="font-family:var(--font-head);font-size:clamp(1rem,1.8vw,1.4rem);font-weight:700;color:var(--text)">
+      Start correcting. Start creating.
+    </p>
+    <p style="font-size:clamp(0.78rem,1.1vw,0.88rem);color:var(--muted);margin-top:20px">
+      <strong style="color:var(--text)">Antreas Antoniou</strong> · antreas@axiotic.ai · <a href="https://axiotic.ai" style="color:var(--amber)">axiotic.ai</a>
+    </p>
+  </div>
+</div>
+
+
+</div><!-- end #deck -->
+
+<nav id="nav">
+  <button id="btn-prev" onclick="navigate(-1)" title="Previous (←)">&#8592;</button>
+  <span id="slide-counter">1 / 20</span>
+  <button id="btn-next" onclick="navigate(1)" title="Next (→)">&#8594;</button>
+  <button id="fullscreen-btn" onclick="toggleFullscreen()" title="Fullscreen (F)">&#x26F6;</button>
+</nav>
+
+<script>
+(function() {
+  let current = 0;
+  const slideEls = document.querySelectorAll('.slide');
+  const total = slideEls.length;
+  const progressBar = document.getElementById('progress-bar');
+  const sectionLabel = document.getElementById('section-label');
+  const counter = document.getElementById('slide-counter');
+  const btnPrev = document.getElementById('btn-prev');
+  const btnNext = document.getElementById('btn-next');
+
+  const sectionLabels = {};
+  slideEls.forEach((s, i) => { sectionLabels[i] = s.dataset.section || ''; });
+
+  const SECTION_DISPLAY = {
+    'Opening': 'Opening',
+    'Setup': '§1 — The Setup',
+    'Failures': '§2 — The Failures',
+    'Lessons': '§3 — The Lessons',
+    'The Pattern': '§4 — The Pattern',
+    'For You': '§5 — For You',
+    'CTA': '§6 — Get Started',
+    'Scale': '§7 — At Scale',
+    'Closing': 'Closing',
+  };
+
+  function show(idx) {
+    if (idx < 0 || idx >= total) return;
+    const prev = current;
+    current = idx;
+    slideEls.forEach((s, i) => {
+      s.classList.remove('active', 'prev');
+      if (i === current) s.classList.add('active');
+      else if (i === prev) s.classList.add('prev');
+    });
+    const pct = total > 1 ? ((current) / (total - 1)) * 100 : 100;
+    progressBar.style.width = pct + '%';
+    const sec = sectionLabels[current] || '';
+    sectionLabel.textContent = SECTION_DISPLAY[sec] || sec;
+    counter.textContent = (current + 1) + ' / ' + total;
+    btnPrev.disabled = current === 0;
+    btnNext.disabled = current === total - 1;
+    history.replaceState(null, '', '#' + (current + 1));
+  }
+
+  window.navigate = function(dir) { show(current + dir); };
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+      e.preventDefault(); show(current + 1);
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault(); show(current - 1);
+    } else if (e.key === 'Home') { e.preventDefault(); show(0); }
+    else if (e.key === 'End') { e.preventDefault(); show(total - 1); }
+    else if (e.key === 'f' || e.key === 'F') { toggleFullscreen(); }
+  });
+
+  window.toggleFullscreen = function() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else { document.exitFullscreen().catch(() => {}); }
+  };
+
+  // Touch support
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, {passive: true});
+  document.addEventListener('touchend', e => {
+    const diff = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(diff) > 60) { show(current + (diff < 0 ? 1 : -1)); }
+  }, {passive: true});
+
+  const hashSlide = parseInt(window.location.hash.replace('#', ''), 10);
+  show(!isNaN(hashSlide) && hashSlide >= 1 && hashSlide <= total ? hashSlide - 1 : 0);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Can You Tell? — The Turing Trap</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Crimson+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0a0a0f;
+  --bg-warm: #0f0d0a;
+  --card: #141419;
+  --card-warm: #1a1710;
+  --text: #f1f5f9;
+  --text-muted: #94a3b8;
+  --text-warm: #fef3c7;
+  --accent: #fbbf24;
+  --accent-glow: rgba(251, 191, 36, 0.15);
+  --gold: #fbbf24;
+  --gold-bright: #fde68a;
+  --human-white: #f8fafc;
+  --ai-gold: #fbbf24;
+  --danger: #ef4444;
+  --success: #22c55e;
+  --radius: 0.75rem;
+  --font-head: 'Space Grotesk', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --font-serif: 'Crimson Pro', Georgia, 'Times New Roman', serif;
+}
+
+html, body {
+  width: 100%; height: 100%;
+  background: var(--bg);
+  font-family: var(--font-body);
+  color: var(--text);
+  overflow: hidden;
+}
+
+/* ─── Progress Bar ─── */
+#progress-bar {
+  position: fixed; top: 0; left: 0; height: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--gold-bright));
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1000;
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+
+/* ─── Section Label ─── */
+#section-label {
+  position: fixed; top: 10px; right: 16px;
+  font-family: var(--font-mono);
+  font-size: 0.65rem; font-weight: 500;
+  color: var(--text-muted);
+  letter-spacing: 0.1em; text-transform: uppercase;
+  z-index: 999;
+  background: rgba(10, 10, 15, 0.85);
+  padding: 3px 10px; border-radius: 99px;
+  border: 1px solid rgba(251, 191, 36, 0.1);
+}
+
+/* ─── Navigation ─── */
+#nav {
+  position: fixed; bottom: 20px; left: 50%;
+  transform: translateX(-50%);
+  display: flex; align-items: center; gap: 16px;
+  z-index: 999;
+  background: rgba(20, 20, 25, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(251, 191, 36, 0.15);
+  border-radius: 99px;
+  padding: 8px 20px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+}
+#nav button {
+  background: none; border: none; cursor: pointer;
+  font-size: 1.1rem; padding: 4px 8px;
+  color: var(--text); border-radius: 6px;
+  transition: background 0.15s, color 0.15s;
+  font-family: var(--font-body);
+}
+#nav button:hover { background: rgba(251, 191, 36, 0.15); color: var(--accent); }
+#nav button:disabled { opacity: 0.25; cursor: default; }
+#nav button:disabled:hover { background: none; color: var(--text); }
+#slide-counter {
+  font-family: var(--font-mono);
+  font-size: 0.8rem; color: var(--text-muted);
+  min-width: 60px; text-align: center;
+}
+#fullscreen-btn {
+  background: none; border: none; cursor: pointer;
+  font-size: 1.2rem; padding: 4px 6px;
+  color: var(--text); border-radius: 6px;
+  transition: background 0.15s, color 0.15s;
+}
+#fullscreen-btn:hover { background: rgba(251, 191, 36, 0.15); color: var(--accent); }
+
+/* ─── Slide System ─── */
+#deck {
+  width: 100vw; height: 100vh;
+  position: relative; overflow: hidden;
+}
+.slide {
+  position: absolute; inset: 0;
+  padding: 56px 64px 80px;
+  background: var(--bg);
+  opacity: 0; transform: translateX(60px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  pointer-events: none; overflow-y: auto;
+  display: flex; flex-direction: column;
+  gap: 20px; justify-content: center;
+}
+.slide.active { opacity: 1; transform: translateX(0); pointer-events: all; }
+.slide.prev { opacity: 0; transform: translateX(-60px); }
+.slide.warm { background: var(--bg-warm); }
+
+/* Scrollbar */
+.slide { scrollbar-width: thin; scrollbar-color: #334155 transparent; }
+
+/* ─── Typography ─── */
+.slide-header { padding-left: 16px; margin-bottom: 4px; flex-shrink: 0; }
+.slide-title {
+  font-family: var(--font-head);
+  font-size: clamp(1.3rem, 2.4vw, 1.85rem);
+  font-weight: 700; color: var(--text); line-height: 1.2;
+}
+
+.single-content {
+  flex: 0 1 auto; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.single-content p, .two-col-body p, .col-left p, .col-right p {
+  font-size: clamp(0.85rem, 1.3vw, 1.02rem);
+  line-height: 1.7; color: var(--text);
+}
+.single-content h2, .single-content h3 {
+  font-family: var(--font-head); font-weight: 600; color: var(--text); margin-top: 8px;
+}
+
+ul, ol { padding-left: 1.5em; display: flex; flex-direction: column; gap: 5px; }
+li { font-size: clamp(0.82rem, 1.3vw, 0.97rem); line-height: 1.65; }
+
+blockquote {
+  border-left: 4px solid var(--accent);
+  background: rgba(251, 191, 36, 0.06);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 14px 18px;
+  font-style: italic;
+  font-size: clamp(0.85rem, 1.3vw, 1rem);
+  color: var(--text-warm); margin: 4px 0;
+}
+blockquote strong { font-style: normal; color: var(--accent); }
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ─── Layouts ─── */
+
+/* Title Card */
+.layout-title-card {
+  justify-content: center; align-items: center;
+  text-align: center; padding: 60px 80px;
+}
+.title-card-inner {
+  max-width: 800px; display: flex;
+  flex-direction: column; align-items: center; gap: 20px;
+}
+.title-accent-line { width: 80px; height: 5px; border-radius: 99px; }
+.title-heading {
+  font-family: var(--font-head);
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  font-weight: 700; color: var(--text); line-height: 1.1;
+}
+.title-content {
+  font-size: clamp(0.9rem, 1.4vw, 1.1rem);
+  color: var(--text-muted); line-height: 1.7; max-width: 640px;
+}
+.title-content p { color: var(--text-muted); font-size: inherit; }
+.title-content strong { color: var(--text); }
+
+/* Section Divider */
+.layout-section-divider { justify-content: center; align-items: center; padding: 60px 80px; }
+.section-divider-inner { max-width: 700px; display: flex; flex-direction: column; gap: 12px; }
+.section-accent-bar { width: 60px; height: 4px; border-radius: 99px; }
+.section-title {
+  font-family: var(--font-head);
+  font-size: clamp(1.8rem, 3vw, 2.8rem);
+  font-weight: 700; color: var(--text); line-height: 1.2;
+}
+.section-subtitle {
+  font-family: var(--font-head);
+  font-size: clamp(1rem, 1.8vw, 1.4rem);
+  font-weight: 500; color: var(--text-muted);
+}
+
+/* Big Quote */
+.layout-big-quote {
+  justify-content: center; align-items: center;
+  text-align: center; padding: 60px 80px;
+}
+.big-quote-inner {
+  max-width: 800px; display: flex;
+  flex-direction: column; align-items: center; gap: 24px;
+}
+.big-quote-text {
+  font-family: var(--font-head);
+  font-size: clamp(1.3rem, 2.6vw, 2.1rem);
+  font-weight: 600; color: var(--text);
+  line-height: 1.4;
+}
+.big-quote-text em { color: var(--accent); font-style: normal; }
+.big-quote-attr {
+  font-size: clamp(0.8rem, 1.2vw, 0.95rem);
+  color: var(--text-muted); font-style: normal;
+}
+.big-quote-bar { width: 60px; height: 4px; border-radius: 99px; }
+
+/* Two Column */
+.layout-two-column { padding: 48px 56px 80px; }
+.two-col-body {
+  flex: 0 1 auto; display: grid;
+  grid-template-columns: 1fr 1fr; gap: 32px;
+  overflow: hidden; min-height: 260px;
+}
+.col-left, .col-right {
+  overflow-y: auto; display: flex; flex-direction: column; gap: 10px;
+}
+
+/* Single Column */
+.layout-single-column { padding: 48px 56px 80px; }
+
+/* Image Full */
+.layout-image-full { padding: 40px 48px 80px; }
+.image-full-body {
+  flex: 0 1 auto; display: grid;
+  grid-template-columns: 1fr 1fr; gap: 24px;
+  overflow: hidden; min-height: 320px;
+}
+.image-full-fig {
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden; border-radius: var(--radius); background: #1a1a22;
+}
+.image-full-fig img { width: 100%; height: 100%; object-fit: contain; }
+.image-full-content {
+  overflow-y: auto; display: flex; flex-direction: column; gap: 10px;
+}
+
+/* Max-width containment */
+.slide-header, .single-content, .two-col-body,
+.image-full-body, .section-divider-inner, .title-card-inner,
+.big-quote-inner {
+  max-width: 880px;
+  margin-left: auto; margin-right: auto;
+  width: 100%; box-sizing: border-box;
+}
+
+/* ─── Poll UI ─── */
+.poll-container {
+  max-width: 600px; margin: 0 auto;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 24px;
+}
+.poll-question {
+  font-family: var(--font-head);
+  font-size: clamp(1.1rem, 2vw, 1.5rem);
+  font-weight: 600; color: var(--text);
+  text-align: center; line-height: 1.4;
+}
+.poll-qr {
+  width: 180px; height: 180px;
+  background: white;
+  border-radius: var(--radius);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 0.7rem; color: #64748b;
+  text-align: center; padding: 16px;
+  border: 3px solid var(--accent);
+  box-shadow: 0 0 30px var(--accent-glow);
+}
+.poll-qr-inner {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 8px;
+}
+.poll-qr-icon { font-size: 2.5rem; }
+.poll-options {
+  display: flex; flex-direction: column; gap: 8px;
+  width: 100%;
+}
+.poll-option {
+  background: var(--card);
+  border: 1px solid rgba(251, 191, 36, 0.15);
+  border-radius: var(--radius);
+  padding: 12px 18px;
+  font-family: var(--font-body);
+  font-size: clamp(0.85rem, 1.2vw, 0.95rem);
+  color: var(--text);
+  text-align: center;
+  transition: all 0.2s;
+  cursor: default;
+}
+.poll-option:hover {
+  border-color: var(--accent);
+  background: rgba(251, 191, 36, 0.06);
+}
+.poll-badge {
+  font-family: var(--font-mono);
+  font-size: 0.65rem; font-weight: 600;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 4px;
+}
+
+/* ─── Vote UI (binary) ─── */
+.vote-container {
+  max-width: 640px; margin: 0 auto;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 28px;
+}
+.vote-question {
+  font-family: var(--font-head);
+  font-size: clamp(1.2rem, 2.2vw, 1.7rem);
+  font-weight: 700; text-align: center;
+  color: var(--text); line-height: 1.3;
+}
+.vote-buttons {
+  display: flex; gap: 24px; width: 100%;
+  justify-content: center;
+}
+.vote-btn {
+  flex: 1; max-width: 240px;
+  padding: 28px 24px;
+  border-radius: var(--radius);
+  display: flex; flex-direction: column;
+  align-items: center; gap: 10px;
+  cursor: default; transition: all 0.25s;
+  border: 2px solid;
+}
+.vote-btn-human {
+  background: rgba(248, 250, 252, 0.04);
+  border-color: rgba(248, 250, 252, 0.25);
+}
+.vote-btn-human:hover {
+  background: rgba(248, 250, 252, 0.1);
+  border-color: var(--human-white);
+  box-shadow: 0 0 24px rgba(248, 250, 252, 0.15);
+}
+.vote-btn-ai {
+  background: rgba(251, 191, 36, 0.04);
+  border-color: rgba(251, 191, 36, 0.25);
+}
+.vote-btn-ai:hover {
+  background: rgba(251, 191, 36, 0.1);
+  border-color: var(--ai-gold);
+  box-shadow: 0 0 24px var(--accent-glow);
+}
+.vote-icon { font-size: 2.2rem; }
+.vote-label {
+  font-family: var(--font-head);
+  font-size: clamp(1rem, 1.6vw, 1.3rem);
+  font-weight: 700;
+}
+.vote-btn-human .vote-label { color: var(--human-white); }
+.vote-btn-ai .vote-label { color: var(--ai-gold); }
+.vote-sublabel {
+  font-size: 0.75rem; color: var(--text-muted);
+  font-family: var(--font-mono);
+  text-transform: uppercase; letter-spacing: 0.1em;
+}
+
+/* ─── Reveal Panel ─── */
+.reveal-grid {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 20px; max-width: 880px; margin: 0 auto;
+}
+.reveal-panel {
+  background: var(--card);
+  border: 2px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius);
+  padding: 24px 20px;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 14px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.reveal-panel::before {
+  content: '';
+  position: absolute; inset: 0;
+  border-radius: var(--radius);
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+.reveal-panel.is-ai::before {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.12), rgba(251, 191, 36, 0.03));
+  border-color: var(--ai-gold);
+  opacity: 1;
+}
+.reveal-panel.is-ai { border-color: var(--ai-gold); }
+.reveal-panel.is-human { border-color: rgba(248, 250, 252, 0.4); }
+.reveal-panel.is-human::before {
+  background: linear-gradient(135deg, rgba(248, 250, 252, 0.06), transparent);
+  opacity: 1;
+}
+.reveal-icon { font-size: 2rem; position: relative; z-index: 1; }
+.reveal-medium {
+  font-family: var(--font-mono);
+  font-size: 0.7rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.12em;
+  color: var(--text-muted);
+  position: relative; z-index: 1;
+}
+.reveal-answer {
+  font-family: var(--font-head);
+  font-size: clamp(1.4rem, 2.2vw, 1.8rem);
+  font-weight: 700;
+  position: relative; z-index: 1;
+}
+.reveal-panel.is-ai .reveal-answer { color: var(--ai-gold); }
+.reveal-panel.is-human .reveal-answer { color: var(--human-white); }
+.reveal-tag {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  padding: 3px 10px; border-radius: 99px;
+  position: relative; z-index: 1;
+}
+.reveal-panel.is-ai .reveal-tag {
+  background: rgba(251, 191, 36, 0.15); color: var(--ai-gold);
+}
+.reveal-panel.is-human .reveal-tag {
+  background: rgba(248, 250, 252, 0.1); color: var(--human-white);
+}
+
+/* ─── Passage Display (Serif) ─── */
+.passage-card {
+  background: var(--card);
+  border: 1px solid rgba(251, 191, 36, 0.1);
+  border-radius: var(--radius);
+  padding: 32px 36px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+  max-width: 760px;
+  margin: 0 auto;
+}
+.passage-text {
+  font-family: var(--font-serif);
+  font-size: clamp(1.05rem, 1.6vw, 1.25rem);
+  line-height: 1.85;
+  color: #e2e8f0;
+  font-style: italic;
+}
+.passage-attr {
+  margin-top: 16px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-style: normal;
+  letter-spacing: 0.05em;
+}
+
+/* ─── Warm Story Section ─── */
+.slide.warm .passage-card {
+  background: var(--card-warm);
+  border-color: rgba(251, 191, 36, 0.15);
+}
+.slide.warm .passage-text { color: var(--text-warm); }
+.slide.warm blockquote {
+  background: rgba(251, 191, 36, 0.08);
+}
+
+/* ─── WhatsApp Mockup ─── */
+.whatsapp-mockup {
+  background: #0b141a;
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  display: flex; flex-direction: column; gap: 6px;
+  max-width: 440px;
+  margin: 0 auto;
+  border: 1px solid rgba(37, 211, 102, 0.15);
+}
+.wa-header {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: #25d366;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  text-align: center;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 4px;
+}
+.wa-msg {
+  padding: 8px 12px;
+  border-radius: 8px;
+  max-width: 85%;
+  line-height: 1.5;
+  font-size: clamp(0.78rem, 1.1vw, 0.88rem);
+}
+.wa-msg.left {
+  background: #202c33; color: #e9edef;
+  align-self: flex-start;
+  border-top-left-radius: 0;
+}
+.wa-msg.right {
+  background: #005c4b; color: #e9edef;
+  align-self: flex-end;
+  border-top-right-radius: 0;
+}
+.wa-name {
+  font-size: 0.7em; font-weight: 600;
+  margin-bottom: 2px;
+}
+.wa-msg.left .wa-name { color: #53bdeb; }
+.wa-msg.right .wa-name { color: #25d366; }
+
+/* ─── Waveform ─── */
+.waveform-container {
+  max-width: 500px; margin: 0 auto;
+  background: var(--card);
+  border: 1px solid rgba(251, 191, 36, 0.1);
+  border-radius: var(--radius);
+  padding: 32px 36px;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 20px;
+}
+.waveform-bars {
+  display: flex; align-items: center; gap: 3px;
+  height: 60px;
+}
+.waveform-bar {
+  width: 4px;
+  background: var(--accent);
+  border-radius: 2px;
+  animation: waveform 1.2s ease-in-out infinite alternate;
+}
+@keyframes waveform {
+  0% { transform: scaleY(0.3); opacity: 0.5; }
+  100% { transform: scaleY(1); opacity: 1; }
+}
+.waveform-label {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* ─── Voice Box ─── */
+.voice-box {
+  background: var(--card);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  font-size: clamp(0.82rem, 1.2vw, 0.92rem);
+  line-height: 1.6;
+}
+.voice-box .voice-label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem; font-weight: 600;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 8px;
+}
+
+/* ─── Product Grid ─── */
+.product-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 16px; max-width: 780px; margin: 0 auto;
+}
+.product-card {
+  background: var(--card);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius);
+  padding: 20px 16px;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 8px;
+  text-align: center;
+  transition: border-color 0.2s;
+}
+.product-card:hover { border-color: rgba(251, 191, 36, 0.3); }
+.product-icon { font-size: 1.8rem; }
+.product-name {
+  font-family: var(--font-head);
+  font-weight: 600; font-size: 0.95rem;
+  color: var(--text);
+}
+.product-desc {
+  font-size: 0.78rem; color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* ─── Quadrant Grid ─── */
+.quadrant-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 16px; max-width: 780px; margin: 0 auto;
+}
+.quadrant {
+  background: var(--card);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius);
+  padding: 20px 20px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.quadrant-title {
+  font-family: var(--font-head);
+  font-weight: 700; font-size: 1.1rem;
+  color: var(--accent);
+}
+.quadrant-desc {
+  font-size: 0.85rem; color: var(--text);
+  line-height: 1.6;
+}
+.quadrant-callback {
+  font-size: 0.75rem; color: var(--text-muted);
+  font-style: italic; margin-top: 4px;
+}
+
+/* ─── Poll Comparison ─── */
+.poll-compare {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 32px; max-width: 780px; margin: 0 auto;
+}
+.poll-compare-col {
+  background: var(--card);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius);
+  padding: 24px 20px;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 14px;
+}
+.poll-compare-label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.12em;
+}
+.poll-compare-col.before .poll-compare-label { color: var(--text-muted); }
+.poll-compare-col.after .poll-compare-label { color: var(--accent); }
+.poll-bar-group {
+  width: 100%; display: flex;
+  flex-direction: column; gap: 8px;
+}
+.poll-bar-row {
+  display: flex; align-items: center; gap: 10px;
+}
+.poll-bar-label {
+  font-size: 0.72rem; color: var(--text-muted);
+  min-width: 90px; text-align: right;
+  font-family: var(--font-body);
+}
+.poll-bar-track {
+  flex: 1; height: 20px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 4px; overflow: hidden;
+}
+.poll-bar-fill {
+  height: 100%; border-radius: 4px;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.poll-compare-col.before .poll-bar-fill { background: rgba(148, 163, 184, 0.5); }
+.poll-compare-col.after .poll-bar-fill { background: var(--accent); }
+.poll-bar-pct {
+  font-family: var(--font-mono);
+  font-size: 0.7rem; color: var(--text-muted);
+  min-width: 32px;
+}
+
+/* ─── Recipe Flow ─── */
+.recipe-flow {
+  display: flex; align-items: center;
+  justify-content: center; gap: 16px;
+  flex-wrap: wrap; margin: 8px 0;
+}
+.recipe-node {
+  background: var(--card);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 6px;
+  min-width: 130px;
+}
+.recipe-icon { font-size: 1.6rem; }
+.recipe-name {
+  font-family: var(--font-head);
+  font-weight: 600; font-size: 0.9rem;
+  color: var(--text);
+}
+.recipe-desc {
+  font-size: 0.72rem; color: var(--text-muted);
+  text-align: center;
+}
+.recipe-arrow {
+  font-size: 1.3rem; color: var(--accent);
+  font-weight: 700;
+}
+
+/* ─── Verification Pyramid ─── */
+.pyramid-diagram {
+  max-width: 500px; margin: 0 auto;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 8px;
+}
+.pyramid-row {
+  display: flex; gap: 10px;
+  justify-content: center;
+}
+.pyramid-node {
+  background: var(--card);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text);
+  text-align: center;
+  min-width: 90px;
+}
+.pyramid-node.error {
+  border-color: var(--danger);
+  background: rgba(239, 68, 68, 0.08);
+}
+.pyramid-arrow {
+  color: var(--text-muted); font-size: 0.8rem;
+}
+
+/* ─── Split Layout ─── */
+.split-layout {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 24px; max-width: 860px; margin: 0 auto;
+}
+
+/* ─── Callout ─── */
+.callout {
+  padding: 16px 20px;
+  background: rgba(251, 191, 36, 0.08);
+  border-radius: var(--radius);
+  border-left: 4px solid var(--accent);
+}
+.callout p {
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: clamp(1rem, 1.6vw, 1.2rem) !important;
+  color: var(--text);
+  margin: 0;
+}
+
+/* ─── Reveal Animations ─── */
+@keyframes reveal-glow-gold {
+  0% { box-shadow: 0 0 0 rgba(251, 191, 36, 0); border-color: rgba(255, 255, 255, 0.08); }
+  50% { box-shadow: 0 0 40px rgba(251, 191, 36, 0.4); }
+  100% { box-shadow: 0 0 20px rgba(251, 191, 36, 0.15); border-color: var(--ai-gold); }
+}
+@keyframes reveal-glow-white {
+  0% { box-shadow: 0 0 0 rgba(248, 250, 252, 0); border-color: rgba(255, 255, 255, 0.08); }
+  50% { box-shadow: 0 0 40px rgba(248, 250, 252, 0.25); }
+  100% { box-shadow: 0 0 12px rgba(248, 250, 252, 0.08); border-color: rgba(248, 250, 252, 0.4); }
+}
+.reveal-panel.is-ai { animation: reveal-glow-gold 1s ease forwards; }
+.reveal-panel.is-human { animation: reveal-glow-white 1s ease forwards; }
+.reveal-panel:nth-child(2) { animation-delay: 2s; }
+.reveal-panel:nth-child(3) { animation-delay: 4s; }
+
+/* ─── Table ─── */
+table {
+  width: 100%; border-collapse: collapse;
+  font-size: clamp(0.78rem, 1.15vw, 0.9rem);
+  border-radius: var(--radius); overflow: hidden;
+}
+thead tr { background: rgba(251, 191, 36, 0.12); }
+th {
+  font-family: var(--font-head); font-weight: 600;
+  padding: 10px 14px; text-align: left; color: var(--accent);
+}
+td { padding: 9px 14px; vertical-align: top; line-height: 1.55; }
+tr:nth-child(odd) td { background: rgba(255, 255, 255, 0.02); }
+tr:nth-child(even) td { background: rgba(255, 255, 255, 0.04); }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="section-label"></div>
+
+<div id="deck">
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 1: TITLE — "Can You Tell?"
+     ════════════════════════════════════════════════════════════════ -->
+<!-- SPEAKER NOTES: "Don't introduce the topic. Don't say what the lecture is about. Just say: 'I'm going to show you something. I need your honest reaction.'" -->
+<div class="slide layout-title-card" data-section="The Trap">
+  <div class="title-card-inner">
+    <div class="title-accent-line" style="background:var(--accent)"></div>
+    <h1 class="title-heading" style="color:var(--accent);font-size:clamp(2.4rem,5vw,4rem)">Can You Tell?</h1>
+    <div class="title-content">
+      <p style="font-size:clamp(1rem,1.6vw,1.3rem);color:var(--text);font-family:var(--font-head);font-weight:500">AI, Fiction, and the Death of Your Instincts</p>
+      <p style="margin-top:20px"><strong>Antreas Antoniou</strong> · AI Researcher · Founder, Axiotic AI</p>
+      <p><em>Invited Lecture — AI &amp; Storytelling</em></p>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 2: QUICK POLL — Opening confidence poll
+     ════════════════════════════════════════════════════════════════ -->
+<!-- SPEAKER NOTES: "Be genuine. No right answer. I want to know what you actually think." Record the results — you'll come back to this exact poll at the end. -->
+<div class="slide layout-single-column" data-section="The Trap" style="justify-content:center;align-items:center">
+  <div class="poll-container">
+    <div class="poll-badge">Live Poll</div>
+    <div class="poll-qr">
+      <div class="poll-qr-inner">
+        <div class="poll-qr-icon">📱</div>
+        <span>Scan to vote<br><strong>menti.com</strong></span>
+      </div>
+    </div>
+    <div class="poll-question">Can AI write fiction that you couldn't distinguish from a human writer?</div>
+    <div class="poll-options">
+      <div class="poll-option">Definitely not</div>
+      <div class="poll-option">Probably not</div>
+      <div class="poll-option">Maybe</div>
+      <div class="poll-option">Probably yes</div>
+      <div class="poll-option">Definitely yes</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 3: ROUND 1 — The Passage
+     ════════════════════════════════════════════════════════════════ -->
+<!-- SPEAKER NOTES: "Read this. Take your time. I'll give you 30 seconds." Let silence do the work. The passage is genuinely good — let it land. -->
+<div class="slide layout-single-column" data-section="Round 1" style="justify-content:center">
+  <div class="slide-header" style="border-left:4px solid var(--accent);text-align:center;padding-left:0">
+    <div style="font-family:var(--font-mono);font-size:0.7rem;color:var(--accent);text-transform:uppercase;letter-spacing:0.15em;margin-bottom:6px">Round 1</div>
+    <h2 class="slide-title" style="font-size:clamp(1.1rem,1.8vw,1.4rem);color:var(--text-muted)">Read the following passage.</h2>
+  </div>
+  <div class="passage-card">
+    <div class="passage-text">
+      The cursor blinks. It blinks with the dumb patience of something that has no stake in what happens next, which is, Antreas supposes, the defining feature of cursors. And of stranger chat platforms. And of Tuesday nights in Edinburgh when Athina is in Cyprus visiting her mother and the flat is so clean it hums with its own order and he has checked the locks four times and knows he'll check them three more and has opened his laptop not to work — he should work, there are model architectures sitting in his drafts that won't evaluate themselves — but to do something pointless. Something without gradient descent.
+    </div>
+    <div class="passage-attr">~150 words · No attribution · No context</div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 4: YOUR VOTE — Human or AI? (Passage)
+     ════════════════════════════════════════════════════════════════ -->
+<!-- SPEAKER NOTES: "Commit. Don't hedge. Human or AI?" The split will likely be ~60/40 either way. Don't reveal the answer yet. -->
+<div class="slide layout-single-column" data-section="Round 1" style="justify-content:center;align-items:center">
+  <div class="vote-container">
+    <div class="poll-badge">Your Vote</div>
+    <div class="vote-question">The passage you just read —<br>Human or AI?</div>
+    <div class="vote-buttons">
+      <div class="vote-btn vote-btn-human">
+        <div class="vote-icon">✍️</div>
+        <div class="vote-label">Human</div>
+        <div class="vote-sublabel">Written by a person</div>
+      </div>
+      <div class="vote-btn vote-btn-ai">
+        <div class="vote-icon">🤖</div>
+        <div class="vote-label">AI</div>
+        <div class="vote-sublabel">Generated by AI</div>
+      </div>
+    </div>
+    <div style="font-family:var(--font-mono);font-size:0.7rem;color:var(--text-muted);margin-top:8px">RESULTS HIDDEN UNTIL REVEAL</div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 5: ROUND 2 — The Image
+     ════════════════════════════════════════════════════════════════ -->
+<!-- SPEAKER NOTES: "Same question, different medium. Is this AI-generated or human-drawn?" -->
+<div class="slide layout-single-column" data-section="Round 2" style="justify-content:center;align-items:center">
+  <div style="max-width:700px;display:flex;flex-direction:column;align-items:center;gap:20px">
+    <div style="font-family:var(--font-mono);font-size:0.7rem;color:var(--accent);text-transform:uppercase;letter-spacing:0.15em">Round 2</div>
+    <div class="image-full-fig" style="width:100%;max-height:55vh;aspect-ratio:16/10;background:#1a1a22;border:1px solid rgba(251,191,36,0.1)">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:12px;color:var(--text-muted)">
+        <span style="font-size:3rem">🎨</span>
+        <span style="font-family:var(--font-mono);font-size:0.75rem;text-transform:uppercase;letter-spacing:0.1em">Manhwa Panel</span>
+        <span style="font-size:0.8rem;max-width:300px;text-align:center;line-height:1.5">The hallway scene — crimson wallpaper, two figures, tension and eye contact</span>
+      </div>
+    </div>
+    <p style="font-size:clamp(0.85rem,1.2vw,1rem);color:var(--text-muted);text-align:center">No caption. No attribution. Just the image.</p>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 6: YOUR VOTE — Human-drawn or AI-generated? (Image)
+     ════════════════════════════════════════════════════════════════ -->
+<!-- SPEAKER NOTES: Most will say AI (the "too clean" heuristic). Don't reveal. Keep stacking. -->
+<div class="slide layout-single-column" data-section="Round 2" style="justify-content:center;align-items:center">
+  <div class="vote-container">
+    <div class="poll-badge">Your Vote</div>
+    <div class="vote-question">Human-drawn or AI-generated?</div>
+    <div class="vote-buttons">
+      <div class="vote-btn vote-btn-human">
+        <div class="vote-icon">🖌️</div>
+        <div class="vote-label">Human</div>
+        <div class="vote-sublabel">Drawn by an artist</div>
+      </div>
+      <div class="vote-btn vote-btn-ai">
+        <div class="vote-icon">🤖</div>
+        <div class="vote-label">AI</div>
+        <div class="vote-sublabel">AI-generated</div>
+      </div>
+    </div>
+    <div style="font-family:var(--font-mono);font-size:0.7rem;color:var(--text-muted);margin-top:8px">RESULTS HIDDEN UNTIL REVEAL</div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 7: ROUND 3 — The Voice
+     ════════════════════════════════════════════════════════════════ -->
+<!-- SPEAKER NOTES: "Last one. Real human voice or AI-generated?" -->
+<div class="slide layout-single-column" data-section="Round 3" style="justify-content:center;align-items:center">
+  <div style="max-width:560px;display:flex;flex-direction:column;align-items:center;gap:24px">
+    <div style="font-family:var(--font-mono);font-size:0.7rem;color:var(--accent);text-transform:uppercase;letter-spacing:0.15em">Round 3</div>
+    <div class="waveform-container">
+      <div class="waveform-label">▶ Playing audio clip — 20 seconds</div>
+      <div class="waveform-bars">
+        <div class="waveform-bar" style="height:18px;animation-delay:0s"></div>
+        <div class="waveform-bar" style="height:35px;animation-delay:0.1s"></div>
+        <div class="waveform-bar" style="height:48px;animation-delay:0.15s"></div>
+        <div class="waveform-bar" style="height:28px;animation-delay:0.25s"></div>
+        <div class="waveform-bar" style="height:55px;animation-delay:0.3s"></div>
+        <div class="waveform-bar" style="height:40px;animation-delay:0.4s"></div>
+        <div class="waveform-bar" style="height:22px;animation-delay:0.5s"></div>
+        <div class="waveform-bar" style="height:50px;animation-delay:0.55s"></div>
+        <div class="waveform-bar" style="height:60px;animation-delay:0.65s"></div>
+        <div class="waveform-bar" style="height:32px;animation-delay:0.7s"></div>
+        <div class="waveform-bar" style="height:45px;animation-delay:0.8s"></div>
+        <div class="waveform-bar" style="height:25px;animation-delay:0.85s"></div>
+        <div class="waveform-bar" style="height:52px;animation-delay:0.95s"></div>
+        <div class="waveform-bar" style="height:38px;animation-delay:1s"></div>
+        <div class="waveform-bar" style="height:20px;animation-delay:1.1s"></div>
+        <div class="waveform-bar" style="height:42px;animation-delay:0.2s"></div>
+        <div class="waveform-bar" style="height:58px;animation-delay:0.35s"></div>
+        <div class="waveform-bar" style="height:30px;animation-delay:0.45s"></div>
+        <div class="waveform-bar" style="height:48px;animation-delay:0.6s"></div>
+        <div class="waveform-bar" style="height:15px;animation-delay:0.75s"></div>
+        <div class="waveform-bar" style="height:55px;animation-delay:0.9s"></div>
+        <div class="waveform-bar" style="height:35px;animation-delay:1.05s"></div>
+      </div>
+      <div class="waveform-label" style="font-size:0.85rem;color:var(--text)">🔊 Listen carefully.</div>
+    </div>
+    <p style="font-size:clamp(0.85rem,1.2vw,1rem);color:var(--text-muted);text-align:center">No face. No name. Just a voice.</p>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 8: YOUR VOTE — Real voice or AI voice?
+     ════════════════════════════════════════════════════════════════ -->
+<!-- SPEAKER NOTES: The tension is at peak. Three rounds, three commitments, no answers yet. -->
+<div class="slide layout-single-column" data-section="Round 3" style="justify-content:center;align-items:center">
+  <div class="vote-container">
+    <div class="poll-badge">Your Vote</div>
+    <div class="vote-question">Real voice or AI voice?</div>
+    <div class="vote-buttons">
+      <div class="vote-btn vote-btn-human">
+        <div class="vote-icon">🗣️</div>
+        <div class="vote-label">Real</div>
+        <div class="vote-sublabel">A human speaking</div>
+      </div>
+      <div class="vote-btn vote-btn-ai">
+        <div class="vote-icon">🔊</div>
+        <div class="vote-label">AI</div>
+        <div class="vote-sublabel">Text-to-speech</div>
+      </div>
+    </div>
+    <div style="font-family:var(--font-mono);font-size:0.7rem;color:var(--text-muted);margin-top:8px">THREE ROUNDS. THREE COMMITMENTS. NO ANSWERS — YET.</div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 9: THE REVEAL
+     ════════════════════════════════════════════════════════════════ -->
+<!-- SPEAKER NOTES: "Here's what you voted. Here's what it was." Pause after each reveal. Let the groans and laughs happen. Don't explain. Don't console. The dissonance IS the lesson. -->
+<div class="slide layout-single-column" data-section="The Reveal" style="justify-content:center">
+  <div class="slide-header" style="text-align:center;padding-left:0;border:none">
+    <div style="font-family:var(--font-mono);font-size:0.7rem;color:var(--accent);text-transform:uppercase;letter-spacing:0.15em;margin-bottom:6px">The Reveal</div>
+    <h2 class="slide-title" style="font-size:clamp(1.4rem,2.4vw,2rem)">Here's what you voted. Here's what it was.</h2>
+  </div>
+  <div class="reveal-grid">
+    <!-- Panel 1: The Passage -->
+    <div class="reveal-panel is-ai">
+      <div class="reveal-medium">The Passage</div>
+      <div class="reveal-icon">📝</div>
+      <div class="reveal-answer">AI</div>
+      <div class="reveal-tag">Written by Claude</div>
+      <p style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;position:relative;z-index:1">From a 14,500-word novella<br>generated in a WhatsApp group</p>
+    </div>
+    <!-- Panel 2: The Image -->
+    <div class="reveal-panel is-ai" style="animation-delay:2s">
+      <div class="reveal-medium">The Image</div>
+      <div class="reveal-icon">🎨</div>
+      <div class="reveal-answer">AI</div>
+      <div class="reveal-tag">Generated by Flux</div>
+      <p style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;position:relative;z-index:1">12-panel Korean manhwa<br>from one conversation</p>
+    </div>
+    <!-- Panel 3: The Voice -->
+    <div class="reveal-panel is-ai" style="animation-delay:4s">
+      <div class="reveal-medium">The Voice</div>
+      <div class="reveal-icon">🔊</div>
+      <div class="reveal-answer">AI</div>
+      <div class="reveal-tag">Text-to-speech</div>
+      <p style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;position:relative;z-index:1">AI voice reading<br>AI-written fiction</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 10: YOUR INSTINCTS ARE ALREADY WRONG
+     ════════════════════════════════════════════════════════════════ -->
+<!-- SPEAKER NOTES: Hold for 4 seconds. This is the hinge. Everything before was the trap. Everything after is the story. -->
+<div class="slide layout-big-quote" data-section="The Hinge">
+  <div class="big-quote-inner">
+    <div class="big-quote-bar" style="background:var(--accent)"></div>
+    <div class="big-quote-text" style="font-size:clamp(1.4rem,2.8vw,2.3rem)">
+      If you got any of those wrong, the question isn't whether AI can create.
+      <br><br>
+      It's what you do with a world where <em>you can't tell</em>.
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 11: THE WHATSAPP GROUP
+     ════════════════════════════════════════════════════════════════ -->
+<!-- SPEAKER NOTES: "In March 2026, I did something unusual. I met a stranger on a random chat platform, and I invited her into a WhatsApp group that already had a third member. An AI." -->
+<div class="slide warm layout-single-column" data-section="The Story" style="justify-content:center;align-items:center">
+  <div style="max-width:660px;display:flex;flex-direction:column;align-items:center;gap:24px;text-align:center">
+    <div style="font-family:var(--font-mono);font-size:0.7rem;color:var(--accent);text-transform:uppercase;letter-spacing:0.15em">The Story Behind Everything</div>
+    <h2 style="font-family:var(--font-head);font-size:clamp(1.6rem,2.8vw,2.2rem);font-weight:700;color:var(--text);line-height:1.2">The WhatsApp Group</h2>
+    <div class="whatsapp-mockup" style="width:100%">
+      <div class="wa-header">WhatsApp Group · 3 Members</div>
+      <div class="wa-msg left"><div class="wa-name">Stranger</div>Who's the third person in this group?</div>
+      <div class="wa-msg right"><div class="wa-name">Antreas</div>That's Hephaestus. He's an AI.</div>
+      <div class="wa-msg left"><div class="wa-name">Stranger</div>...</div>
+      <div class="wa-msg left"><div class="wa-name">Stranger</div>I don't like you</div>
+    </div>
+    <p style="font-size:clamp(0.9rem,1.3vw,1.05rem);color:var(--text-warm);line-height:1.7">Two strangers. One AI. Six days.<br>Everything you just experienced came from this.</p>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 12: THE STRANGER
+     ════════════════════════════════════════════════════════════════ -->
+<!-- SPEAKER NOTES: "She wasn't a tech person. She wasn't an AI enthusiast. She was someone who typed 'I don't like you' in the first hour and meant it as a compliment." -->
+<div class="slide warm layout-single-column" data-section="The Story" style="justify-content:center;align-items:center">
+  <div style="max-width:660px;display:flex;flex-direction:column;align-items:center;gap:24px;text-align:center">
+    <h2 style="font-family:var(--font-head);font-size:clamp(1.5rem,2.4vw,2rem);font-weight:700;color:var(--text)">The Stranger</h2>
+    <div style="width:120px;height:120px;border-radius:50%;background:linear-gradient(135deg, rgba(251,191,36,0.15), rgba(251,191,36,0.05));border:2px solid rgba(251,191,36,0.2);display:flex;align-items:center;justify-content:center;font-size:3rem">
+      👤
+    </div>
+    <p style="font-size:clamp(0.9rem,1.3vw,1.05rem);color:var(--text-warm);line-height:1.8">
+      A 29-year-old from London.<br>
+      Psychology graduate. Worked in finance. Left. Started over.<br>
+      Had never used AI for anything creative.
+    </p>
+    <blockquote style="max-width:400px;text-align:left">
+      "I don't like you"<br>
+      <strong>— Her first message. She meant it as a compliment.</strong>
+    </blockquote>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 13: "YOUR ROBOT WROTE ABOUT ME BETTER"
+     ════════════════════════════════════════════════════════════════ -->
+<!-- SPEAKER NOTES: "Better than her doctor who'd dismissed her symptoms. Better than the agency she'd paid to write her website. An AI that had known her for 72 hours." -->
+<div class="slide warm layout-two-column" data-section="The Story">
+  <div class="slide-header" style="border-left:4px solid var(--accent)">
+    <h2 class="slide-title">"Your robot wrote about me better"</h2>
+  </div>
+  <div class="two-col-body">
+    <div class="col-left">
+      <div class="passage-card" style="padding:20px 24px">
+        <div style="font-family:var(--font-mono);font-size:0.65rem;color:var(--accent);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px">From the AI-generated personality profile</div>
+        <div class="passage-text" style="font-size:clamp(0.85rem,1.2vw,0.95rem);line-height:1.7">
+          She code-switches — literary and poetic in public, blunt and funny in private. Her website copy reads like someone performing beauty; her midnight texts read like someone living it. The AI captured both voices and the person underneath them.
+        </div>
+        <div class="passage-attr">Excerpted from a 7,000-word profile · 72 hours of listening</div>
+      </div>
+    </div>
+    <div class="col-right" style="justify-content:center;gap:16px">
+      <div style="font-family:var(--font-serif);font-size:clamp(1.3rem,2.2vw,1.8rem);font-weight:600;color:var(--accent);line-height:1.3;font-style:italic">
+        "Your robot wrote about me better."
+      </div>
+      <p style="color:var(--text-warm)">Better than her doctor who'd dismissed her symptoms.</p>
+      <p style="color:var(--text-warm)">Better than the agency she'd paid thousands to write her website.</p>
+      <p style="color:var(--text-warm)">An AI that had known her for <strong style="color:var(--accent)">72 hours</strong>.</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 14: THE NOVELLA — Live Excerpt
+     ════════════════════════════════════════════════════════════════ -->
+<!-- SPEAKER NOTES: "This is from a 14,500-word novella the AI wrote about their interaction. She read it and said: 'I do say mantras somewhat similar.' She recognized herself — not a flattering version, not a simplified one. A true one." Read a few lines aloud. Let the prose do the work. -->
+<div class="slide warm layout-single-column" data-section="The Story" style="justify-content:center">
+  <div class="slide-header" style="border-left:4px solid var(--accent)">
+    <h2 class="slide-title">The Novella — a passage</h2>
+  </div>
+  <div class="passage-card" style="max-width:780px;margin:0 auto">
+    <div class="passage-text" style="font-size:clamp(1.05rem,1.5vw,1.2rem)">
+      She covers her mouth, which is a reflex she has — covering the laugh, containing it, because somewhere in the architecture of her childhood she learned that loud feelings are dangerous — and then takes her hand away because no one is watching. She does this thing where she recalibrates mid-sentence, as if the first version of a thought is never the one she trusts, and her eyes — which are the kind of eyes that have been told they're beautiful so many times the compliment no longer carries information — do a quick scan of the room that isn't checking for danger but for witnesses. She is alone. She laughs again. The sound is different the second time. Less curated.
+    </div>
+    <div class="passage-attr">From a 14,500-word novella · written by AI · about a real person who recognised herself in every line</div>
+  </div>
+  <div style="text-align:center;margin-top:8px">
+    <p style="font-family:var(--font-serif);font-style:italic;color:var(--text-warm);font-size:clamp(0.9rem,1.3vw,1.05rem)">
+      "I do say mantras somewhat similar."
+    </p>
+    <p style="font-size:0.8rem;color:var(--text-muted)">— Her response. She recognised herself.</p>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 15: THE MANHWA
+     ════════════════════════════════════════════════════════════════ -->
+<!-- SPEAKER NOTES: "The AI didn't just write about them. It drew them. A 12-panel Korean manhwa — webtoon — of the hallway scene." Let them look. Don't rush. -->
+<div class="slide warm layout-single-column" data-section="The Story" style="justify-content:center;align-items:center">
+  <div style="max-width:800px;display:flex;flex-direction:column;align-items:center;gap:20px">
+    <div class="slide-header" style="border-left:4px solid var(--accent);width:100%">
+      <h2 class="slide-title">The Manhwa</h2>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;width:100%">
+      <div style="aspect-ratio:3/4;background:var(--card-warm);border:1px solid rgba(251,191,36,0.1);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;padding:16px">
+        <span style="font-size:2rem">🖼️</span>
+        <span style="font-family:var(--font-mono);font-size:0.65rem;color:var(--text-muted);text-align:center">Panel 1<br>The hallway</span>
+      </div>
+      <div style="aspect-ratio:3/4;background:var(--card-warm);border:1px solid rgba(251,191,36,0.1);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;padding:16px">
+        <span style="font-size:2rem">🖼️</span>
+        <span style="font-family:var(--font-mono);font-size:0.65rem;color:var(--text-muted);text-align:center">Panel 2<br>Crimson wallpaper</span>
+      </div>
+      <div style="aspect-ratio:3/4;background:var(--card-warm);border:1px solid rgba(251,191,36,0.1);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;padding:16px">
+        <span style="font-size:2rem">🖼️</span>
+        <span style="font-family:var(--font-mono);font-size:0.65rem;color:var(--text-muted);text-align:center">Panel 3<br>Eye contact</span>
+      </div>
+      <div style="aspect-ratio:3/4;background:var(--card-warm);border:1px solid rgba(251,191,36,0.1);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;padding:16px">
+        <span style="font-size:2rem">🖼️</span>
+        <span style="font-family:var(--font-mono);font-size:0.65rem;color:var(--text-muted);text-align:center">Panel 4<br>The tension</span>
+      </div>
+      <div style="aspect-ratio:3/4;background:var(--card-warm);border:1px solid rgba(251,191,36,0.1);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;padding:16px">
+        <span style="font-size:2rem">🖼️</span>
+        <span style="font-family:var(--font-mono);font-size:0.65rem;color:var(--text-muted);text-align:center">Panel 5<br>The door</span>
+      </div>
+      <div style="aspect-ratio:3/4;background:var(--card-warm);border:1px solid rgba(251,191,36,0.1);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;padding:16px">
+        <span style="font-size:2rem">🖼️</span>
+        <span style="font-family:var(--font-mono);font-size:0.65rem;color:var(--text-muted);text-align:center">Panel 6<br>The moment</span>
+      </div>
+    </div>
+    <p style="font-size:0.85rem;color:var(--text-muted);text-align:center">A 12-panel Korean manhwa of the Edinburgh hallway scene. Full colour. AI-generated from conversation.</p>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 16: "I LOOK LIKE I AM ABOUT TO SEDUCTIVELY EAT THE CONDOM"
+     ════════════════════════════════════════════════════════════════ -->
+<!-- SPEAKER NOTES: "AI doesn't produce perfect output. It produces raw material that humans shape through reaction, correction, and laughter. The best moments weren't the polished outputs. They were the arguments about what went wrong." -->
+<div class="slide warm layout-big-quote" data-section="The Story">
+  <div class="big-quote-inner">
+    <div class="big-quote-bar" style="background:var(--accent)"></div>
+    <div class="big-quote-text" style="font-size:clamp(1.2rem,2.4vw,1.9rem)">
+      "I look like I am about to seductively eat the condom" 😂
+    </div>
+    <div class="big-quote-attr" style="max-width:500px;line-height:1.6">
+      — Her reaction to a manhwa panel.<br>
+      <span style="color:var(--text-warm)">AI doesn't produce perfect output. It produces raw material that humans shape through reaction, correction, and laughter.</span>
+    </div>
+    <div style="margin-top:16px;font-family:var(--font-head);font-weight:600;color:var(--accent);font-size:clamp(0.9rem,1.4vw,1.1rem)">
+      Generate → React → Correct → Regenerate
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 17: ONE TEXT, TWELVE PANELS
+     ════════════════════════════════════════════════════════════════ -->
+<!-- SPEAKER NOTES: "One WhatsApp message. Seven words. Every panel, every description, every future reference — updated. Not a temporary fix. A permanent change in understanding." -->
+<div class="slide warm layout-single-column" data-section="The Story" style="justify-content:center">
+  <div class="slide-header" style="border-left:4px solid var(--accent)">
+    <h2 class="slide-title">One Text, Twelve Panels</h2>
+  </div>
+  <div class="single-content" style="max-width:700px;margin:0 auto;align-items:center">
+    <div class="whatsapp-mockup" style="width:100%;max-width:400px">
+      <div class="wa-header">WhatsApp</div>
+      <div class="wa-msg right"><div class="wa-name">Shannon</div>My skin is fair, not olive.</div>
+    </div>
+    <div style="text-align:center;margin:12px 0">
+      <span style="font-size:2rem">↓</span>
+    </div>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <div style="text-align:center">
+        <div style="font-family:var(--font-mono);font-size:0.65rem;color:var(--danger);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px">Before</div>
+        <div style="width:80px;height:100px;background:rgba(139,119,80,0.3);border-radius:8px;border:1px solid rgba(239,68,68,0.3)"></div>
+      </div>
+      <div style="font-size:1.5rem;align-self:center;color:var(--accent)">→</div>
+      <div style="text-align:center">
+        <div style="font-family:var(--font-mono);font-size:0.65rem;color:var(--success);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px">After</div>
+        <div style="width:80px;height:100px;background:rgba(248,220,200,0.3);border-radius:8px;border:1px solid rgba(34,197,94,0.3)"></div>
+      </div>
+    </div>
+    <p style="text-align:center;color:var(--text-warm);margin-top:8px">
+      One correction. <strong style="color:var(--accent)">All 12 panels regenerated.</strong><br>
+      Every downstream artefact updated. Not a temporary fix — a permanent change in understanding.
+    </p>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 18: 7 AGENTS, 1 LANDLORD LETTER
+     ════════════════════════════════════════════════════════════════ -->
+<!-- SPEAKER NOTES: "The same AI that wrote her as a literary character also caught 3 legal errors that could have cost her the dispute. This isn't a creative writing tool. It's a creative companion — and sometimes what you need isn't fiction. It's a letter your landlord's solicitor takes seriously." -->
+<div class="slide warm layout-single-column" data-section="The Story" style="justify-content:center">
+  <div class="slide-header" style="border-left:4px solid var(--accent)">
+    <h2 class="slide-title">7 Agents, 1 Landlord Letter</h2>
+  </div>
+  <div class="single-content" style="max-width:700px;margin:0 auto">
+    <p style="color:var(--text-warm)">She had a dispute with her landlord. The AI didn't write one letter — it deployed a <strong style="color:var(--accent)">verification pyramid</strong>:</p>
+    <div class="pyramid-diagram" style="margin:12px 0">
+      <div class="pyramid-row">
+        <div class="pyramid-node" style="border-color:var(--accent)">🔍 Verifier</div>
+      </div>
+      <div class="pyramid-arrow">↑</div>
+      <div class="pyramid-row">
+        <div class="pyramid-node">📝 Integrator</div>
+      </div>
+      <div class="pyramid-arrow">↑</div>
+      <div class="pyramid-row">
+        <div class="pyramid-node">⚖️ Synthesiser</div>
+        <div class="pyramid-node">⚖️ Synthesiser</div>
+      </div>
+      <div class="pyramid-arrow">↑</div>
+      <div class="pyramid-row">
+        <div class="pyramid-node">📚 Researcher</div>
+        <div class="pyramid-node">📚 Researcher</div>
+        <div class="pyramid-node">📚 Researcher</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:24px;justify-content:center;flex-wrap:wrap;margin:8px 0">
+      <div style="text-align:center">
+        <div style="font-family:var(--font-head);font-size:clamp(1.8rem,3vw,2.4rem);font-weight:700;color:var(--danger)">3</div>
+        <div style="font-size:0.75rem;color:var(--text-muted)">Critical errors caught</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-family:var(--font-head);font-size:clamp(1.8rem,3vw,2.4rem);font-weight:700;color:var(--success)">19</div>
+        <div style="font-size:0.75rem;color:var(--text-muted)">Legal citations verified</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-family:var(--font-head);font-size:clamp(1.8rem,3vw,2.4rem);font-weight:700;color:var(--accent)">1</div>
+        <div style="font-size:0.75rem;color:var(--text-muted)">Missing "How to Rent" guide found</div>
+      </div>
+    </div>
+    <p style="color:var(--text-muted);font-size:0.85rem;text-align:center">The same AI that wrote her as a literary character also protected her deposit.</p>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 19: THE 30,000-WORD STUDY
+     ════════════════════════════════════════════════════════════════ -->
+<!-- SPEAKER NOTES: "A question asked at midnight in a WhatsApp group became a peer-review-scale research document by morning. Because the AI doesn't sleep, and it doesn't think any question is too small." -->
+<div class="slide warm layout-single-column" data-section="The Story" style="justify-content:center">
+  <div class="slide-header" style="border-left:4px solid var(--accent)">
+    <h2 class="slide-title">The 30,000-Word Study</h2>
+  </div>
+  <div class="single-content" style="max-width:720px;margin:0 auto">
+    <div class="whatsapp-mockup" style="max-width:440px;margin:0 auto">
+      <div class="wa-header">WhatsApp · 11:47 PM</div>
+      <div class="wa-msg left"><div class="wa-name">Shannon</div>Is a married man who cheats automatically a bad person?</div>
+    </div>
+    <div style="text-align:center;margin:12px 0;color:var(--accent);font-size:1.3rem">↓</div>
+    <div style="display:flex;flex-direction:column;gap:8px;max-width:500px;margin:0 auto">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:1.2rem">📚</span>
+        <span style="font-size:0.85rem;color:var(--text-warm)"><strong>5 researchers</strong> — psychology, ethics, sociology, theology, evolutionary biology</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:1.2rem">⚖️</span>
+        <span style="font-size:0.85rem;color:var(--text-warm)"><strong>3 synthesisers</strong> — cross-referenced frameworks</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:1.2rem">📝</span>
+        <span style="font-size:0.85rem;color:var(--text-warm)"><strong>1 finaliser</strong> — produced the complete document</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:32px;justify-content:center;margin:16px 0">
+      <div style="text-align:center">
+        <div style="font-family:var(--font-head);font-size:clamp(1.6rem,2.8vw,2.2rem);font-weight:700;color:var(--accent)">30,000</div>
+        <div style="font-size:0.75rem;color:var(--text-muted)">words</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-family:var(--font-head);font-size:clamp(1.6rem,2.8vw,2.2rem);font-weight:700;color:var(--accent)">27 min</div>
+        <div style="font-size:0.75rem;color:var(--text-muted)">podcast generated</div>
+      </div>
+    </div>
+    <p style="text-align:center;color:var(--text-muted);font-size:0.85rem">
+      A question asked at midnight became a peer-review-scale research document by morning.<br>
+      <strong style="color:var(--text-warm)">The AI doesn't sleep, and it doesn't think any question is too small.</strong>
+    </p>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 20: BEYOND THIS EXPERIMENT
+     ════════════════════════════════════════════════════════════════ -->
+<!-- SPEAKER NOTES: "The AI that wrote fiction a stranger recognized as herself? Same system, different week. It built production software with thousands of tests, produced research specs through 11-agent pyramids, and trained ML models on dual-GPU servers. This isn't a toy. It's a full-spectrum capability." -->
+<div class="slide layout-single-column" data-section="Expansion" style="justify-content:center">
+  <div class="slide-header" style="border-left:4px solid var(--accent)">
+    <h2 class="slide-title">Beyond This Experiment</h2>
+  </div>
+  <div style="max-width:800px;margin:0 auto">
+    <p style="margin-bottom:16px;color:var(--text-muted)">Same AI system. Same setup. Different contexts:</p>
+    <div class="product-grid">
+      <div class="product-card">
+        <div class="product-icon">🏛️</div>
+        <div class="product-name">Eudaemon</div>
+        <div class="product-desc">Production software<br><strong style="color:var(--accent)">2,748 tests</strong></div>
+      </div>
+      <div class="product-card">
+        <div class="product-icon">🔬</div>
+        <div class="product-name">Finegas</div>
+        <div class="product-desc">Research navigation<br>Multi-domain synthesis</div>
+      </div>
+      <div class="product-card">
+        <div class="product-icon">🛡️</div>
+        <div class="product-name">Talos</div>
+        <div class="product-desc">AI governance<br>Safety frameworks</div>
+      </div>
+      <div class="product-card">
+        <div class="product-icon">📄</div>
+        <div class="product-name">Research Papers</div>
+        <div class="product-desc">11-agent pyramid<br>spec generation</div>
+      </div>
+      <div class="product-card">
+        <div class="product-icon">🧠</div>
+        <div class="product-name">ML Training</div>
+        <div class="product-desc">Dual-GPU servers<br>Model experiments</div>
+      </div>
+      <div class="product-card">
+        <div class="product-icon">⚖️</div>
+        <div class="product-name">Legal Verification</div>
+        <div class="product-desc">Multi-agent cross-check<br>Citation validation</div>
+      </div>
+    </div>
+    <p style="text-align:center;margin-top:16px;font-family:var(--font-head);font-weight:600;color:var(--accent);font-size:clamp(0.9rem,1.4vw,1.1rem)">
+      The creative companion was also an engineer, a lawyer, and a researcher.
+    </p>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 21: HOW IT WORKS (IT'S SIMPLER THAN YOU THINK)
+     ════════════════════════════════════════════════════════════════ -->
+<!-- SPEAKER NOTES: "I could explain the architecture. I won't. Here's what matters: it's open source, it's free, and you can set it up in 20 minutes. The AI lives where you already are — WhatsApp, Telegram, Slack, Discord." -->
+<div class="slide layout-single-column" data-section="The Recipe" style="justify-content:center;align-items:center">
+  <div style="max-width:700px;display:flex;flex-direction:column;align-items:center;gap:24px">
+    <h2 style="font-family:var(--font-head);font-size:clamp(1.4rem,2.4vw,2rem);font-weight:700;color:var(--text);text-align:center">How It Works<br><span style="color:var(--text-muted);font-size:0.6em;font-weight:500">(It's simpler than you think)</span></h2>
+    <div class="recipe-flow">
+      <div class="recipe-node">
+        <div class="recipe-icon">🐾</div>
+        <div class="recipe-name">OpenClaw</div>
+        <div class="recipe-desc">Open source · Free</div>
+      </div>
+      <div class="recipe-arrow">+</div>
+      <div class="recipe-node">
+        <div class="recipe-icon">🧠</div>
+        <div class="recipe-name">Claude</div>
+        <div class="recipe-desc">The AI model</div>
+      </div>
+      <div class="recipe-arrow">+</div>
+      <div class="recipe-node">
+        <div class="recipe-icon">💬</div>
+        <div class="recipe-name">Your Platform</div>
+        <div class="recipe-desc">WhatsApp · Telegram<br>Slack · Discord</div>
+      </div>
+    </div>
+    <div class="callout" style="text-align:center;max-width:400px">
+      <p style="font-size:clamp(1.1rem,1.8vw,1.4rem)!important">20 minutes to set up.</p>
+    </div>
+    <p style="color:var(--text-muted);text-align:center;font-size:0.9rem">The AI lives where you already are. No new apps. No special tools. Just conversation.</p>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 22: WHAT MAKES THIS DIFFERENT
+     ════════════════════════════════════════════════════════════════ -->
+<!-- SPEAKER NOTES: Don't linger. These are handles for the concepts, not explanations. The stories already taught the ideas. The labels just make them graspable. -->
+<div class="slide layout-single-column" data-section="The Recipe" style="justify-content:center">
+  <div class="slide-header" style="border-left:4px solid var(--accent)">
+    <h2 class="slide-title">What Makes This Different</h2>
+  </div>
+  <div class="quadrant-grid">
+    <div class="quadrant">
+      <div class="quadrant-title">Soul</div>
+      <div class="quadrant-desc">A personality, not a generic assistant. Voice, values, boundaries — all configurable in a text file.</div>
+      <div class="quadrant-callback">Remember when she recognised herself? That's Soul.</div>
+    </div>
+    <div class="quadrant">
+      <div class="quadrant-title">Memory</div>
+      <div class="quadrant-desc">Persistent, accumulating context. The AI remembers yesterday, last week, your preferences.</div>
+      <div class="quadrant-callback">"Wrote about me better" after 3 days of listening. That's Memory.</div>
+    </div>
+    <div class="quadrant">
+      <div class="quadrant-title">Correction</div>
+      <div class="quadrant-desc">Permanent, compounding improvements. One fix doesn't just patch — it teaches.</div>
+      <div class="quadrant-callback">One text, 12 panels regenerated. That's Correction.</div>
+    </div>
+    <div class="quadrant">
+      <div class="quadrant-title">Teams</div>
+      <div class="quadrant-desc">Multiple AIs verifying each other. Not one brain — a committee that argues.</div>
+      <div class="quadrant-callback">7 agents, 3 errors caught. That's Teams.</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 23: THE ANTI-SYCOPHANCY PROBLEM
+     ════════════════════════════════════════════════════════════════ -->
+<!-- SPEAKER NOTES: "This is the quote that changed how I build AI. My collaborator told the AI to stop cheerleading. And the output got better. Because mediocrity is what you get when nobody disagrees with you." -->
+<div class="slide layout-big-quote" data-section="The Recipe">
+  <div class="big-quote-inner">
+    <div class="big-quote-bar" style="background:var(--accent)"></div>
+    <div class="big-quote-text" style="font-size:clamp(1.5rem,3vw,2.4rem)">
+      "Stop jumping out like a fart."
+    </div>
+    <div style="max-width:560px;margin-top:8px">
+      <p style="color:var(--text-muted);font-size:clamp(0.85rem,1.3vw,1rem);line-height:1.7;text-align:center">
+        The hardest problem isn't intelligence — it's <strong style="color:var(--text)">honesty</strong>.
+      </p>
+      <p style="color:var(--text-muted);font-size:clamp(0.85rem,1.3vw,1rem);line-height:1.7;text-align:center;margin-top:12px">
+        The best creative partner isn't the most enthusiastic one.<br>
+        <strong style="color:var(--accent)">It's the most honest one.</strong>
+      </p>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 24: LIVE DEMO — Soul Swap
+     ════════════════════════════════════════════════════════════════ -->
+<!-- SPEAKER NOTES: "It's a text file. That's it. Your AI's personality, values, voice, boundaries — it's all in a text file you can edit in Notepad. Watch what happens when I change one line." 90-second demo max. -->
+<div class="slide layout-single-column" data-section="Demo" style="justify-content:center;align-items:center">
+  <div style="max-width:720px;display:flex;flex-direction:column;align-items:center;gap:20px">
+    <div style="font-size:2.5rem">✨</div>
+    <h2 style="font-family:var(--font-head);font-size:clamp(1.6rem,2.8vw,2.2rem);font-weight:700;color:var(--text);text-align:center">Live Demo: Soul Swap</h2>
+    <div class="split-layout" style="width:100%">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="font-family:var(--font-mono);font-size:0.7rem;color:var(--accent);text-transform:uppercase;letter-spacing:0.1em">Chat</div>
+        <div style="background:var(--card);border:1px solid rgba(255,255,255,0.08);border-radius:var(--radius);padding:20px;min-height:200px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:0.85rem">
+          <div style="text-align:center">
+            <div style="font-size:1.5rem;margin-bottom:8px">💬</div>
+            Live Telegram chat<br>
+            <span style="font-size:0.75rem">Ask a question → edit SOUL.md → ask again</span>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="font-family:var(--font-mono);font-size:0.7rem;color:var(--accent);text-transform:uppercase;letter-spacing:0.1em">SOUL.md</div>
+        <div style="background:var(--card);border:1px solid rgba(255,255,255,0.08);border-radius:var(--radius);padding:16px;font-family:var(--font-mono);font-size:0.75rem;color:#94a3b8;line-height:1.7;min-height:200px">
+          <span style="color:#64748b"># SOUL.md</span><br><br>
+          <span style="color:var(--accent)">name:</span> "Hephaestus"<br>
+          <span style="color:var(--accent)">voice:</span> "direct, warm, dry humour"<br>
+          <span style="color:var(--accent)">values:</span> "honesty over comfort"<br>
+          <span style="color:var(--accent)">boundaries:</span> "no sycophancy"<br><br>
+          <span style="color:#64748b"># ← Change one line.<br># Watch the personality shift.</span>
+        </div>
+      </div>
+    </div>
+    <p style="font-family:var(--font-head);font-weight:600;color:var(--accent);font-size:clamp(0.9rem,1.4vw,1.1rem);text-align:center">
+      It's a text file. That's it. Editable in Notepad.
+    </p>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 25: NOW VOTE AGAIN — Before/After Poll Comparison
+     ════════════════════════════════════════════════════════════════ -->
+<!-- SPEAKER NOTES: "Remember this question? You answered it 30 minutes ago. Let's see if anything changed." The before/after is the lecture's proof of concept. If opinions shifted, the lecture worked. If they didn't — well, that's interesting too. -->
+<div class="slide layout-single-column" data-section="The Proof" style="justify-content:center">
+  <div class="slide-header" style="border-left:4px solid var(--accent);text-align:center;padding-left:0">
+    <div style="font-family:var(--font-mono);font-size:0.7rem;color:var(--accent);text-transform:uppercase;letter-spacing:0.15em;margin-bottom:6px">Same Question · 30 Minutes Later</div>
+    <h2 class="slide-title" style="font-size:clamp(1.3rem,2.2vw,1.8rem)">Can AI write fiction you couldn't distinguish from a human writer?</h2>
+  </div>
+  <div class="poll-compare">
+    <div class="poll-compare-col before">
+      <div class="poll-compare-label">Before — Slide 2</div>
+      <div class="poll-bar-group">
+        <div class="poll-bar-row">
+          <div class="poll-bar-label">Definitely not</div>
+          <div class="poll-bar-track"><div class="poll-bar-fill" style="width:35%"></div></div>
+          <div class="poll-bar-pct">35%</div>
+        </div>
+        <div class="poll-bar-row">
+          <div class="poll-bar-label">Probably not</div>
+          <div class="poll-bar-track"><div class="poll-bar-fill" style="width:30%"></div></div>
+          <div class="poll-bar-pct">30%</div>
+        </div>
+        <div class="poll-bar-row">
+          <div class="poll-bar-label">Maybe</div>
+          <div class="poll-bar-track"><div class="poll-bar-fill" style="width:20%"></div></div>
+          <div class="poll-bar-pct">20%</div>
+        </div>
+        <div class="poll-bar-row">
+          <div class="poll-bar-label">Probably yes</div>
+          <div class="poll-bar-track"><div class="poll-bar-fill" style="width:10%"></div></div>
+          <div class="poll-bar-pct">10%</div>
+        </div>
+        <div class="poll-bar-row">
+          <div class="poll-bar-label">Definitely yes</div>
+          <div class="poll-bar-track"><div class="poll-bar-fill" style="width:5%"></div></div>
+          <div class="poll-bar-pct">5%</div>
+        </div>
+      </div>
+      <div style="font-size:0.72rem;color:var(--text-muted);font-style:italic">Placeholder — actual results from Slide 2</div>
+    </div>
+    <div class="poll-compare-col after">
+      <div class="poll-compare-label">After — Live Now</div>
+      <div class="poll-bar-group">
+        <div class="poll-bar-row">
+          <div class="poll-bar-label">Definitely not</div>
+          <div class="poll-bar-track"><div class="poll-bar-fill" style="width:5%"></div></div>
+          <div class="poll-bar-pct">?%</div>
+        </div>
+        <div class="poll-bar-row">
+          <div class="poll-bar-label">Probably not</div>
+          <div class="poll-bar-track"><div class="poll-bar-fill" style="width:10%"></div></div>
+          <div class="poll-bar-pct">?%</div>
+        </div>
+        <div class="poll-bar-row">
+          <div class="poll-bar-label">Maybe</div>
+          <div class="poll-bar-track"><div class="poll-bar-fill" style="width:20%"></div></div>
+          <div class="poll-bar-pct">?%</div>
+        </div>
+        <div class="poll-bar-row">
+          <div class="poll-bar-label">Probably yes</div>
+          <div class="poll-bar-track"><div class="poll-bar-fill" style="width:35%"></div></div>
+          <div class="poll-bar-pct">?%</div>
+        </div>
+        <div class="poll-bar-row">
+          <div class="poll-bar-label">Definitely yes</div>
+          <div class="poll-bar-track"><div class="poll-bar-fill" style="width:30%"></div></div>
+          <div class="poll-bar-pct">?%</div>
+        </div>
+      </div>
+      <div style="font-size:0.72rem;color:var(--accent);font-style:italic">Live results — scan QR to vote again</div>
+    </div>
+  </div>
+  <div style="text-align:center;margin-top:8px">
+    <div class="poll-qr" style="width:120px;height:120px;margin:0 auto;font-size:0.6rem">
+      <div class="poll-qr-inner">
+        <div class="poll-qr-icon" style="font-size:1.5rem">📱</div>
+        <span>Vote again</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 26: THE QUESTION YOU SHOULD ACTUALLY BE ASKING
+     ════════════════════════════════════════════════════════════════ -->
+<!-- SPEAKER NOTES: Hold for 5 seconds. Don't break the silence. This is the ethical sting — delivered not as a lecture about responsibility, but as a question that's now PERSONAL because they failed the Turing test themselves. -->
+<div class="slide layout-big-quote" data-section="The Sting">
+  <div class="big-quote-inner">
+    <div class="big-quote-bar" style="background:var(--accent)"></div>
+    <div class="big-quote-text" style="font-size:clamp(1.1rem,2.2vw,1.7rem);line-height:1.5">
+      The question isn't "can AI create?"<br>You already know the answer.
+      <br><br>
+      The question is: if AI can understand a stranger in 6 days better than people who've known her for years —
+      <br><br>
+      <em>what does that mean for how we build, and who we trust to build it?</em>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDE 27: GET STARTED
+     ════════════════════════════════════════════════════════════════ -->
+<!-- SPEAKER NOTES: "Everything you need is in this repo. The same tools. The same framework. Your own AI companion, living in whatever platform you choose. The question is what you'll create with it." -->
+<div class="slide layout-title-card" data-section="Closing">
+  <div class="title-card-inner">
+    <div class="title-accent-line" style="background:var(--accent)"></div>
+    <h1 class="title-heading" style="font-size:clamp(1.6rem,2.8vw,2.2rem)">Get Started</h1>
+    <div style="margin:12px 0">
+      <div class="poll-qr" style="width:200px;height:200px;margin:0 auto">
+        <div class="poll-qr-inner">
+          <div class="poll-qr-icon" style="font-size:3rem">📦</div>
+          <span>Workshop repo<br><strong>Scan to access</strong></span>
+        </div>
+      </div>
+    </div>
+    <div class="title-content">
+      <p><strong>Templates · Guides · Example Souls · Everything you need</strong></p>
+      <p style="margin-top:16px"><strong>Antreas Antoniou</strong> · AI Researcher · Founder, Axiotic AI</p>
+      <p>antreas@axiotic.ai · <a href="https://axiotic.ai" target="_blank">axiotic.ai</a></p>
+    </div>
+  </div>
+</div>
+
+
+</div><!-- end #deck -->
+
+<nav id="nav">
+  <button id="btn-prev" onclick="navigate(-1)" title="Previous (←)">&#8592;</button>
+  <span id="slide-counter">1 / 27</span>
+  <button id="btn-next" onclick="navigate(1)" title="Next (→)">&#8594;</button>
+  <button id="fullscreen-btn" onclick="toggleFullscreen()" title="Fullscreen (F)">&#x26F6;</button>
+</nav>
+
+<script>
+(function() {
+  let current = 0;
+  const slideEls = document.querySelectorAll('.slide');
+  const total = slideEls.length;
+  const progressBar = document.getElementById('progress-bar');
+  const sectionLabel = document.getElementById('section-label');
+  const counter = document.getElementById('slide-counter');
+  const btnPrev = document.getElementById('btn-prev');
+  const btnNext = document.getElementById('btn-next');
+
+  const SECTION_DISPLAY = {
+    'The Trap': 'ACT 1 — The Trap',
+    'Round 1': 'ACT 1 — Round 1',
+    'Round 2': 'ACT 1 — Round 2',
+    'Round 3': 'ACT 1 — Round 3',
+    'The Reveal': 'ACT 1 — The Reveal',
+    'The Hinge': 'The Hinge',
+    'The Story': 'ACT 2 — The Story',
+    'Expansion': 'ACT 3 — Expansion',
+    'The Recipe': 'ACT 3 — The Recipe',
+    'Demo': 'ACT 3 — Demo',
+    'The Proof': 'ACT 4 — The Proof',
+    'The Sting': 'ACT 4 — The Sting',
+    'Closing': 'Closing',
+  };
+
+  function show(idx) {
+    if (idx < 0 || idx >= total) return;
+    const prev = current;
+    current = idx;
+    slideEls.forEach((s, i) => {
+      s.classList.remove('active', 'prev');
+      if (i === current) s.classList.add('active');
+      else if (i === prev) s.classList.add('prev');
+    });
+    const pct = total > 1 ? ((current) / (total - 1)) * 100 : 100;
+    progressBar.style.width = pct + '%';
+    const sec = slideEls[current].dataset.section || '';
+    sectionLabel.textContent = SECTION_DISPLAY[sec] || sec;
+    counter.textContent = (current + 1) + ' / ' + total;
+    btnPrev.disabled = current === 0;
+    btnNext.disabled = current === total - 1;
+    history.replaceState(null, '', '#' + (current + 1));
+  }
+
+  window.navigate = function(dir) { show(current + dir); };
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+      e.preventDefault(); show(current + 1);
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault(); show(current - 1);
+    } else if (e.key === 'Home') { e.preventDefault(); show(0); }
+    else if (e.key === 'End') { e.preventDefault(); show(total - 1); }
+    else if (e.key === 'f' || e.key === 'F') { toggleFullscreen(); }
+  });
+
+  window.toggleFullscreen = function() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else { document.exitFullscreen().catch(() => {}); }
+  };
+
+  // Touch support
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    const diff = e.changedTouches[0].screenX - touchStartX;
+    if (Math.abs(diff) > 50) { show(current + (diff < 0 ? 1 : -1)); }
+  }, { passive: true });
+
+  const hashSlide = parseInt(window.location.hash.replace('#', ''), 10);
+  show(!isNaN(hashSlide) && hashSlide >= 1 && hashSlide <= total ? hashSlide - 1 : 0);
+})();
+</script>
+</body>
+</html>
