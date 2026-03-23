@@ -539,12 +539,85 @@ body.act4-farewell .countdown-num {
 .void-slide {
   background: #000 !important;
 }
+
+/* ===== THEME SWITCHER ===== */
+#theme-switcher-wrap {
+  position: fixed; top: 10px; left: 16px;
+  z-index: 99999;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+#theme-switcher {
+  appearance: none;
+  -webkit-appearance: none;
+  background: rgba(30,30,40,0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #aaa;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 6px;
+  padding: 5px 28px 5px 10px;
+  font-size: 0.7rem;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  letter-spacing: 0.03em;
+}
+#theme-switcher:hover {
+  border-color: rgba(255,255,255,0.25);
+  color: #ddd;
+}
+#theme-switcher option {
+  background: #1a1a2e;
+  color: #ccc;
+  padding: 4px 8px;
+}
+
+/* ===== PART 2 — Warm reveal ===== */
+body.part2 {
+  background: #1a1520;
+  color: #e8e0f0;
+}
+body.part2 #progress {
+  background: linear-gradient(90deg, #f59e0b, #a78bfa);
+}
+body.part2 #counter { color: #a78bfa; }
+body.part2 .section-title {
+  color: #f1e8ff;
+}
+body.part2 .chat-msg {
+  font-size: clamp(0.88rem, 1.3vw, 1.02rem);
+  line-height: 1.65;
+}
+body.part2 .quote-block {
+  border-left-color: #f59e0b;
+}
+body.part2::after {
+  content: '';
+  position: fixed; inset: 0;
+  background: radial-gradient(ellipse at 50% 50%, rgba(245,158,11,0.06) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
 </style>
 </head>
 <body class="act1">
 
+<div id="theme-switcher-wrap">
+  <select id="theme-switcher" onchange="switchVariant(this.value)" title="Switch visual theme">
+    <option value="1">⬛ Terminal</option>
+    <option value="2">◻️ Clean Minimal</option>
+    <option value="3">🎬 Cinematic Dark</option>
+    <option value="4" selected>🔄 Evolving</option>
+    <option value="5">💬 Interactive Chat</option>
+  </select>
+</div>
+
+
 <div id="progress" style="width:0%"></div>
-<div id="counter">1 / 30</div>
+<div id="counter">1 / 41</div>
 <canvas id="particles"></canvas>
 
 <div id="deck">
@@ -1034,6 +1107,150 @@ body.act4-farewell .countdown-num {
   </div>
 </div>
 
+
+
+<!-- ========== PART 2 ========== -->
+
+<!-- ========== SLIDE 31: PART 2 TITLE ========== -->
+<div class="slide" data-act="part2">
+  <div class="slide-inner" style="text-align:center">
+    <div class="section-label" style="color:#c4b5fd">Part 2</div>
+    <h2 class="section-title" style="background:linear-gradient(135deg,#f59e0b,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">WTF did I just see?</h2>
+    <p class="section-subtitle" style="color:#a8a29e">The reveal.</p>
+  </div>
+</div>
+
+<!-- ========== SLIDE 32: WHAT HAPPENED ========== -->
+<div class="slide" data-act="part2">
+  <div class="slide-inner">
+    <div class="section-label">The Reveal</div>
+    <h2 class="section-title" style="font-size:clamp(1.3rem,2.5vw,2rem);margin-bottom:16px">That story was written by AI.</h2>
+    <p class="chat-msg" style="font-size:clamp(0.9rem,1.4vw,1.05rem);line-height:1.7;margin-bottom:8px">Every character. Every line. Every emotional beat — built by <strong>Hephaestus</strong>, an AI system running on OpenClaw, working in collaboration with me.</p>
+    <p class="chat-msg" style="font-size:clamp(0.9rem,1.4vw,1.05rem);line-height:1.7;margin-bottom:8px">Schmidhuber in the story <strong>is me</strong>. The name is an homage to Jürgen Schmidhuber — the man who first formalised the idea that all computable universes exist.</p>
+    <p class="chat-msg" style="font-size:clamp(0.9rem,1.4vw,1.05rem);line-height:1.7;font-weight:500;color:#f59e0b">The entire story you just experienced was <em>idea → materialization</em> in action.</p>
+  </div>
+</div>
+
+<!-- ========== SLIDE 33: OPENCLAW ARCHITECTURE ========== -->
+<div class="slide" data-act="part2">
+  <div class="slide-inner">
+    <div class="section-label">The Architecture</div>
+    <h2 class="section-title" style="font-size:clamp(1.3rem,2.5vw,2rem);margin-bottom:12px">OpenClaw — Five Files, One Person</h2>
+    <p class="chat-msg" style="line-height:1.7;margin-bottom:12px">Not a chatbot. A system for building an AI <em>person</em> with values, memory, and tools:</p>
+    <div class="chat-msg" style="margin-bottom:4px"><span class="name antreas" style="font-weight:700;color:#f59e0b">SOUL.md</span> — Personality, values, integrity. Anti-sycophancy rules. Who the AI <em>is</em>.</div>
+    <div class="chat-msg" style="margin-bottom:4px"><span class="name kai" style="font-weight:700;color:#3b82f6">AGENTS.md</span> — Methodology: Byzantine verification, orchestration, 10 Commandments of Good Code.</div>
+    <div class="chat-msg" style="margin-bottom:4px"><span class="name mira" style="font-weight:700;color:#10b981">MEMORY.md</span> — Persistent memory, distilled daily, searchable. Context across sessions.</div>
+    <div class="chat-msg" style="margin-bottom:4px"><span class="name faye" style="font-weight:700;color:#e11d48">TOOLS.md</span> — Modular skills. Suno for music, GitHub for code, browser control. Plug-and-play.</div>
+    <div class="chat-msg" style="margin-bottom:4px"><span class="name" style="font-weight:700;color:#a78bfa">USER.md</span> — Human context. Who you are, what you care about. Built over time.</div>
+  </div>
+</div>
+
+<!-- ========== SLIDE 34: BUILDING A PERSON ========== -->
+<div class="slide" data-act="part2">
+  <div class="slide-inner">
+    <div class="section-label">The Insight</div>
+    <h2 class="section-title" style="font-size:clamp(1.3rem,2.5vw,2rem);margin-bottom:12px">Building a Person, Not a Prompt</h2>
+    <div class="quote-block" style="margin-bottom:16px">
+      <span class="name" style="display:block;margin-bottom:8px;font-family:var(--font-mono);font-size:0.75rem;color:#a8a29e">From SOUL.md — Anti-Sycophancy Kill List:</span>
+      <p style="margin-bottom:6px">"No agreement openers. Don't start with 'Great point.' Just say the thing."</p>
+      <p style="margin-bottom:6px">"No position-switching without a receipt."</p>
+      <p>"'I don't have a strong view on this' is a valid position. Better than manufacturing one."</p>
+    </div>
+    <p class="chat-msg" style="line-height:1.7;color:#a8a29e">The pattern: <strong style="color:#f59e0b">SOUL</strong> defines who → <strong style="color:#3b82f6">AGENTS</strong> defines how → <strong style="color:#10b981">SKILLS</strong> define what → <strong style="color:#a78bfa">MEMORY</strong> persists why.</p>
+  </div>
+</div>
+
+<!-- ========== SLIDE 35: BYZANTINE TEAMS ========== -->
+<div class="slide" data-act="part2">
+  <div class="slide-inner">
+    <div class="section-label">The Method</div>
+    <h2 class="section-title" style="font-size:clamp(1.3rem,2.5vw,2rem);margin-bottom:12px">Byzantine Agent Teams</h2>
+    <p class="chat-msg" style="line-height:1.7;margin-bottom:8px"><strong>Problem:</strong> single-agent outputs are unreliable. Hallucination, drift, confident fabrication.</p>
+    <p class="chat-msg" style="line-height:1.7;margin-bottom:16px"><strong>Solution:</strong> Byzantine fault tolerance applied to AI — multiple agents independently produce, then synthesize.</p>
+    <div class="chat-msg" style="margin-bottom:4px"><strong style="color:#f59e0b">5 Drafters</strong> — each independently writes the full output. No communication. No groupthink.</div>
+    <div class="chat-msg" style="margin-bottom:4px"><strong style="color:#3b82f6">3 Synthesizers</strong> — each reads all 5 drafts. Weaves best elements. Finds consensus.</div>
+    <div class="chat-msg" style="margin-bottom:4px"><strong style="color:#10b981">1 Arbiter</strong> — reads all 3 syntheses. Selects strongest. Refines final version.</div>
+    <hr class="act-divider" style="margin:16px 0;background:#a78bfa">
+    <p class="chat-msg" style="line-height:1.7;color:#a8a29e">For this project: <strong style="color:#f59e0b">~35 agents</strong>. Hours, not weeks. Byzantine is not overhead — it's the floor.</p>
+  </div>
+</div>
+
+<!-- ========== SLIDE 36: HEPHAESTUS BUILD ========== -->
+<div class="slide" data-act="part2">
+  <div class="slide-inner">
+    <div class="section-label">The Build</div>
+    <h2 class="section-title" style="font-size:clamp(1.3rem,2.5vw,2rem);margin-bottom:12px">Hephaestus — Real Configuration</h2>
+    <div class="chat-msg" style="margin-bottom:4px"><strong>Base model:</strong> Claude Opus 4 — reasoning + creativity + long context</div>
+    <div class="chat-msg" style="margin-bottom:4px"><strong>Identity:</strong> "Hephaestus, the God of Builders" — anti-sycophancy, forge metaphor</div>
+    <div class="chat-msg" style="margin-bottom:4px"><strong>Method:</strong> Orchestrator — never the worker, always the conductor</div>
+    <div class="chat-msg" style="margin-bottom:4px"><strong>Memory:</strong> Persistent across sessions, distilled daily, searchable</div>
+    <div class="chat-msg" style="margin-bottom:4px"><strong>Infra:</strong> RTX 4090s + 5090 GPU servers for local + cloud</div>
+    <div class="chat-msg" style="margin-bottom:4px"><strong>Code law:</strong> 10 Commandments injected into every sub-agent</div>
+  </div>
+</div>
+
+<!-- ========== SLIDE 37: WHAT BUILT WHAT ========== -->
+<div class="slide" data-act="part2">
+  <div class="slide-inner">
+    <div class="section-label">The Manifest</div>
+    <h2 class="section-title" style="font-size:clamp(1.3rem,2.5vw,2rem);margin-bottom:12px">What Built What</h2>
+    <div style="font-size:clamp(0.85rem,1.3vw,1rem);line-height:2">
+      <div class="chat-msg"><strong>Story (4 acts)</strong> — Claude Opus 4, 5-3-1 pyramid, 9 agents</div>
+      <div class="chat-msg"><strong>Lecture structure</strong> — Claude Opus 4, 5-3-1 pyramid, 14 agents</div>
+      <div class="chat-msg"><strong>5 slide variants</strong> — Claude Opus 4, 5 parallel agents</div>
+      <div class="chat-msg"><strong>Music (5 tracks, 10 MP3s)</strong> — Suno V5 API, suno skill</div>
+      <div class="chat-msg"><strong>Website + deployment</strong> — Claude Opus 4 + GitHub Pages</div>
+      <div class="chat-msg"><strong>Novel (60K words)</strong> — Claude Opus 4, in progress</div>
+    </div>
+    <p class="chat-msg" style="margin-top:12px;color:#a8a29e;font-size:clamp(0.85rem,1.2vw,0.95rem)">This slide deck is one of the outputs. Meta-recursive.</p>
+  </div>
+</div>
+
+<!-- ========== SLIDE 38: LIVE OUTPUTS ========== -->
+<div class="slide" data-act="part2">
+  <div class="slide-inner" style="text-align:center">
+    <div class="section-label">Explore</div>
+    <h2 class="section-title" style="font-size:clamp(1.3rem,2.5vw,2rem);margin-bottom:16px">Live Outputs</h2>
+    <p style="margin-bottom:8px;font-size:clamp(0.9rem,1.4vw,1.05rem);line-height:1.7"><strong>Website:</strong> <a href="https://antreas.io/genai-as-creative-companion/" style="color:#f59e0b;text-decoration:underline" target="_blank">antreas.io/genai-as-creative-companion</a></p>
+    <p style="margin-bottom:8px;font-size:clamp(0.9rem,1.4vw,1.05rem);line-height:1.7"><strong>Music:</strong> <a href="https://antreas.io/genai-as-creative-companion/music/" style="color:#f59e0b;text-decoration:underline" target="_blank">5 tracks — "Phantom Lamb", "Storm-Light", "Building the Door"</a></p>
+    <p style="margin-bottom:16px;font-size:clamp(0.9rem,1.4vw,1.05rem);line-height:1.7"><strong>Slides:</strong> 5 variants — use theme switcher to preview each</p>
+    <p style="color:#a8a29e;font-size:clamp(0.85rem,1.2vw,0.95rem)">Track listing: "The Chat" · "The Experiment" · "Phantom Lamb" · "Storm-Light" · "Building the Door"</p>
+  </div>
+</div>
+
+<!-- ========== SLIDE 39: THE EXPONENTIAL ========== -->
+<div class="slide" data-act="part2">
+  <div class="slide-inner" style="text-align:center">
+    <h2 class="section-title" style="background:linear-gradient(135deg,#f59e0b,#e11d48,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-size:clamp(1.6rem,3vw,2.5rem)">The Materialization Exponential</h2>
+    <div class="quote-block" style="margin:24px auto;max-width:600px;text-align:left">
+      <p>The gap between having an idea and holding its materialization is collapsing. Not linearly — exponentially.</p>
+      <p style="margin-top:12px">A story: one evening. A slide deck: hours. A music suite: one API call per track. The bottleneck is no longer capability. It's imagination.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SLIDE 40: TRY IT ========== -->
+<div class="slide" data-act="part2">
+  <div class="slide-inner" style="text-align:center">
+    <div class="section-label">Open Source</div>
+    <h2 class="section-title" style="font-size:clamp(1.3rem,2.5vw,2rem);margin-bottom:16px">Try It Yourself</h2>
+    <p style="font-size:clamp(0.9rem,1.4vw,1.05rem);line-height:1.7;margin-bottom:16px">OpenClaw is open source. MIT license. The system that built everything you've seen today.</p>
+    <p style="font-family:var(--font-mono);font-size:0.95rem;color:#a8a29e;margin-bottom:8px">github.com/openclaw</p>
+    <p style="font-size:clamp(0.85rem,1.2vw,0.95rem);color:#a8a29e">Install → write SOUL.md → connect LLM → start building</p>
+  </div>
+</div>
+
+<!-- ========== SLIDE 41: CLOSE ========== -->
+<div class="slide" data-act="part2">
+  <div class="slide-inner" style="text-align:center">
+    <h2 class="section-title" style="font-size:clamp(1.5rem,3vw,2.2rem);margin-bottom:24px">Building the door.</h2>
+    <p class="section-subtitle" style="margin-bottom:32px">The forge is lit. The tools exist. What will you build?</p>
+    <div style="font-size:1rem;font-weight:600;color:#f59e0b">Antreas Antoniou</div>
+    <div style="font-size:0.85rem;color:#a8a29e;margin-top:4px">antreas@axiotic.ai · axiotic.ai · github.com/openclaw</div>
+    <div style="margin-top:24px;font-family:var(--font-mono);font-size:0.75rem;color:#484f58">&gt; He said bruh. Of course he did.</div>
+  </div>
+</div>
+
 </div><!-- end #deck -->
 
 <script>
@@ -1210,6 +1427,28 @@ function animateParticles() {
 
 initParticles();
 animateParticles();
+
+
+// ===== THEME SWITCHER =====
+function switchVariant(v) {
+  const names = {1:'terminal',2:'minimal',3:'cinematic',4:'evolving',5:'interactive'};
+  const totals = {1:40,2:43,3:40,4:41,5:10};
+  const curVariant = 4;
+  if (parseInt(v) === curVariant) return;
+  // Get current position as percentage
+  let pct = 0;
+  try {
+    const allSlides = document.querySelectorAll('.slide, #slide-wrap .slide');
+    const tot = allSlides.length || 1;
+    const hash = parseInt(location.hash.replace('#',''), 10);
+    const cur = (hash >= 1 && hash <= tot) ? hash - 1 : 0;
+    pct = cur / Math.max(1, tot - 1);
+  } catch(e) { pct = 0; }
+  const targetTotal = totals[parseInt(v)] || 1;
+  const targetSlide = Math.max(1, Math.round(pct * (targetTotal - 1)) + 1);
+  window.location.href = 'variant-' + v + '-' + names[parseInt(v)] + '.html#' + targetSlide;
+}
+
 </script>
 </body>
 </html>

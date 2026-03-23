@@ -398,9 +398,55 @@ html, body {
   .layout-section { padding-left: 28px; }
   .chat-inner { max-width: 100%; }
 }
+
+/* ===== THEME SWITCHER ===== */
+#theme-switcher-wrap {
+  position: fixed; top: 10px; left: 16px;
+  z-index: 99999;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+#theme-switcher {
+  appearance: none;
+  -webkit-appearance: none;
+  background: rgba(30,30,40,0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #aaa;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 6px;
+  padding: 5px 28px 5px 10px;
+  font-size: 0.7rem;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  letter-spacing: 0.03em;
+}
+#theme-switcher:hover {
+  border-color: rgba(255,255,255,0.25);
+  color: #ddd;
+}
+#theme-switcher option {
+  background: #1a1a2e;
+  color: #ccc;
+  padding: 4px 8px;
+}
 </style>
 </head>
 <body>
+
+<div id="theme-switcher-wrap">
+  <select id="theme-switcher" onchange="switchVariant(this.value)" title="Switch visual theme">
+    <option value="1">⬛ Terminal</option>
+    <option value="2" selected>◻️ Clean Minimal</option>
+    <option value="3">🎬 Cinematic Dark</option>
+    <option value="4">🔄 Evolving</option>
+    <option value="5">💬 Interactive Chat</option>
+  </select>
+</div>
+
 
 <div id="progress-bar"></div>
 <div id="section-label"></div>
@@ -803,6 +849,7 @@ html, body {
   </div>
 </div>
 
+
 <!-- ==================== SLIDE 31: PART 2 TITLE ==================== -->
 <div class="slide layout-title" data-section="Part 2">
   <div class="title-inner">
@@ -812,7 +859,7 @@ html, body {
   </div>
 </div>
 
-<!-- ==================== SLIDE 32: The reveal ==================== -->
+<!-- ==================== SLIDE 32: What happened ==================== -->
 <div class="slide layout-content" data-section="Part 2">
   <div class="content-inner">
     <h2>What just happened</h2>
@@ -823,22 +870,117 @@ html, body {
   </div>
 </div>
 
-<!-- ==================== SLIDE 33: What is OpenClaw ==================== -->
+<!-- ==================== SLIDE 33: OpenClaw Architecture ==================== -->
 <div class="slide layout-content" data-section="Part 2">
   <div class="content-inner">
-    <h2>Meet OpenClaw</h2>
-    <p>Hephaestus runs on <strong>OpenClaw</strong> — an open-source platform I built for turning AI into a genuine creative companion.</p>
+    <h2>OpenClaw — The Architecture</h2>
+    <p>Hephaestus runs on <strong>OpenClaw</strong> — an open-source AI companion framework. Not a chatbot. Not an assistant. A system for building an AI <em>person</em>.</p>
+    <p>The architecture is five markdown files. That's it. Five files that turn a language model into a collaborator with values, memory, methodology, and tools:</p>
     <ul>
-      <li><strong>Multi-agent orchestration</strong> — AI systems that coordinate, delegate, and verify each other's work</li>
-      <li><strong>Tool integration</strong> — browser control, file management, code execution, messaging — all unified</li>
-      <li><strong>Persistent memory</strong> — the system learns your patterns, preferences, and working style over time</li>
-      <li><strong>Channel-native</strong> — lives in Slack, Discord, Telegram, WhatsApp. Meets you where you work</li>
+      <li><strong>SOUL.md</strong> — Personality, values, integrity rules. <em>Who</em> the AI is. Anti-sycophancy rules, honest disagreement, no performative agreement</li>
+      <li><strong>AGENTS.md</strong> — Methodology and rules. <em>How</em> it works. Orchestration patterns, Byzantine verification, the 10 Commandments of Good Code</li>
+      <li><strong>MEMORY.md</strong> — Persistent memory, distilled daily. <em>Why</em> things were decided. Searchable context across sessions</li>
+      <li><strong>TOOLS.md</strong> — Skills and capabilities. <em>What</em> it can do. Modular skill system, compute infrastructure, API integrations</li>
+      <li><strong>USER.md</strong> — Human context. Who you are, what you care about, what annoys you. Built over time through interaction</li>
     </ul>
-    <p style="color:var(--text-secondary)">Not a chatbot. Not an assistant. A <em>creative collaborator</em> that can see, act, build, and iterate.</p>
   </div>
 </div>
 
-<!-- ==================== SLIDE 34: The exponential ==================== -->
+<!-- ==================== SLIDE 34: Building a Person ==================== -->
+<div class="slide layout-content" data-section="Part 2">
+  <div class="content-inner">
+    <h2>Building a Person, Not a Prompt</h2>
+    <p>The key insight: <strong>you're not prompting an AI. You're building a person</strong> with values, memory, and tools. The SOUL.md doesn't say "be helpful." It says things like:</p>
+    <div class="quote">No agreement openers. Don't start with "Great point." Just say the thing. If you agree, the substance shows it.</div>
+    <p>Hephaestus has anti-sycophancy rules baked into its personality — it will disagree, push back, say "I don't have a strong view on this" rather than manufacturing enthusiasm. It has a full sycophancy kill list: no position-switching without a receipt, no complimenting ideas it hasn't stress-tested, no volume-as-devotion.</p>
+    <p style="color:var(--text-secondary)">The pattern: <strong>SOUL</strong> defines who → <strong>AGENTS</strong> defines how → <strong>SKILLS</strong> define what → <strong>MEMORY</strong> persists why.</p>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 35: Workspaces & Skills ==================== -->
+<div class="slide layout-content" data-section="Part 2">
+  <div class="content-inner">
+    <h2>Workspaces &amp; Skills</h2>
+    <p>OpenClaw uses <strong>isolated workspaces</strong> — each project gets its own context, memory, and personality layer. The AI in your music project doesn't bleed into your legal work.</p>
+    <p>Capabilities come through a <strong>modular skills system</strong>. Each skill is a self-contained package that teaches the AI a new ability:</p>
+    <ul>
+      <li><strong>suno</strong> — AI music generation (text → full tracks via Suno V5 API)</li>
+      <li><strong>coding-agent</strong> — spawn sub-agents for parallel development work</li>
+      <li><strong>github</strong> — issue tracking, PR workflows, CI monitoring, code review</li>
+      <li><strong>browser</strong> — full browser control for visual QA and web automation</li>
+      <li><strong>web_search / web_fetch</strong> — research and reference gathering</li>
+      <li><strong>nano-banana-pro</strong> — image generation via Gemini</li>
+      <li><strong>imsg / wacli / slack</strong> — messaging across platforms</li>
+    </ul>
+    <p style="color:var(--text-secondary)">Skills are plug-and-play. Write a SKILL.md, drop it in a folder, and your AI gains a new capability. No core code changes.</p>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 36: Byzantine Agent Teams ==================== -->
+<div class="slide layout-content" data-section="Part 2">
+  <div class="content-inner">
+    <h2>Byzantine Agent Teams</h2>
+    <p><strong>The problem:</strong> single-agent AI outputs are unreliable. They hallucinate, drift, miss details, fabricate with confidence. One agent producing one draft is a coin flip on quality.</p>
+    <p><strong>The solution:</strong> Byzantine fault tolerance — the same principle that keeps distributed systems honest — applied to AI. Multiple agents independently produce outputs, then synthesizers find consensus.</p>
+    <ul>
+      <li><strong>Independence:</strong> agents work in isolation — no communication, no groupthink, no anchoring to the first draft</li>
+      <li><strong>Consensus filtering:</strong> different agents catch different errors. What survives all 5 drafts is signal; what appears in only one is noise</li>
+      <li><strong>Synthesis &gt; selection:</strong> synthesizers don't pick a winner — they weave the best elements of all drafts into something richer than any individual output</li>
+    </ul>
+    <div class="highlight">The result: outputs that no single agent could produce alone.</div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 37: The 5-3-1 Pyramid ==================== -->
+<div class="slide layout-content" data-section="Part 2">
+  <div class="content-inner">
+    <h2>The 5-3-1 Pyramid — In Action</h2>
+    <p>This lecture used a <strong>5-3-1 pyramid</strong>: 5 drafters → 3 synthesizers → 1 arbiter. Here's how the story was built:</p>
+    <ul>
+      <li><strong>5 Drafters</strong> — each independently wrote the full story from the same brief. Different interpretations, different jokes, different emotional beats. No communication between them</li>
+      <li><strong>3 Synthesizers</strong> — each read all 5 drafts and wove the best elements together. Found consensus beats across all drafts. Flagged contradictions</li>
+      <li><strong>1 Arbiter</strong> — read all 3 syntheses, selected the strongest, refined the final version. Result: richer than any single draft</li>
+    </ul>
+    <p>For this project: <strong>~35 agents</strong> across story, lecture structure, content scripts, slides, music, and website. Producing what would take a team of humans weeks — in hours.</p>
+    <p style="color:var(--text-secondary)">Cost vs. quality tradeoff: more agents = more tokens = better output. Byzantine is not overhead — it's the floor.</p>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 38: Hephaestus Reference Build ==================== -->
+<div class="slide layout-content" data-section="Part 2">
+  <div class="content-inner">
+    <h2>Hephaestus — A Reference Build</h2>
+    <p>The system that built this lecture is a <strong>real, daily-use AI companion</strong>. Here's its actual configuration:</p>
+    <ul>
+      <li><strong>Base model:</strong> Claude Opus 4 (Anthropic) — reasoning + creativity + long context</li>
+      <li><strong>Identity:</strong> "Hephaestus, the God of Builders" — from SOUL.md. Anti-sycophancy rules, honest disagreement, forge identity</li>
+      <li><strong>Methodology:</strong> Orchestrator pattern — never the worker, always the conductor. Spawns and manages Byzantine agent teams</li>
+      <li><strong>Memory:</strong> Persistent across sessions, distilled daily, searchable. Learns your patterns and preferences over time</li>
+      <li><strong>Infrastructure:</strong> Runs on GPU servers (RTX 4090s + RTX 5090) for local model support alongside cloud APIs</li>
+      <li><strong>The 10 Commandments:</strong> From "Love for the next programmer" to "Check before you build" — code standards baked into every agent</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 39: What Built What ==================== -->
+<div class="slide layout-content" data-section="Part 2">
+  <div class="content-inner" style="gap:14px">
+    <h2>What Built What</h2>
+    <p>Every piece of content in this lecture was produced by a specific tool or API through OpenClaw:</p>
+    <table style="width:100%;border-collapse:collapse;font-size:clamp(0.78rem,1.2vw,0.92rem);line-height:1.5">
+      <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 0;font-weight:600;width:35%">Story (4 acts)</td><td style="padding:6px 8px;color:var(--text-secondary)">Claude Opus 4</td><td style="padding:6px 0;color:var(--text-secondary)">5-3-1 pyramid, 9 agents</td></tr>
+      <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 0;font-weight:600">Lecture structure</td><td style="padding:6px 8px;color:var(--text-secondary)">Claude Opus 4</td><td style="padding:6px 0;color:var(--text-secondary)">5-3-1 pyramid, 14 agents</td></tr>
+      <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 0;font-weight:600">5 slide variants</td><td style="padding:6px 8px;color:var(--text-secondary)">Claude Opus 4</td><td style="padding:6px 0;color:var(--text-secondary)">5 parallel agents</td></tr>
+      <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 0;font-weight:600">Music (5 tracks, 10 files)</td><td style="padding:6px 8px;color:var(--text-secondary)">Suno V5 API</td><td style="padding:6px 0;color:var(--text-secondary)">suno skill, 10 generations</td></tr>
+      <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 0;font-weight:600">Website</td><td style="padding:6px 8px;color:var(--text-secondary)">Claude Opus 4</td><td style="padding:6px 0;color:var(--text-secondary)">1 agent + GitHub Pages</td></tr>
+      <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 0;font-weight:600">Novel (60K words)</td><td style="padding:6px 8px;color:var(--text-secondary)">Claude Opus 4</td><td style="padding:6px 0;color:var(--text-secondary)">1 agent (in progress)</td></tr>
+      <tr><td style="padding:6px 0;font-weight:600">Deployment</td><td style="padding:6px 8px;color:var(--text-secondary)">GitHub Pages API</td><td style="padding:6px 0;color:var(--text-secondary)">gh CLI, automated</td></tr>
+    </table>
+    <p style="color:var(--text-secondary);font-size:clamp(0.8rem,1.1vw,0.9rem)">This slide deck is one of the outputs — meta-recursive. You're watching the proof demonstrate itself.</p>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 40: The Materialization Exponential ==================== -->
 <div class="slide layout-content" data-section="Part 2">
   <div class="content-inner">
     <h2>The Materialization Exponential</h2>
@@ -849,28 +991,29 @@ html, body {
   </div>
 </div>
 
-<!-- ==================== SLIDE 35: How it works ==================== -->
+<!-- ==================== SLIDE 41: Live Outputs ==================== -->
 <div class="slide layout-content" data-section="Part 2">
   <div class="content-inner">
-    <h2>How the story was built</h2>
+    <h2>Explore the Outputs</h2>
+    <p>Everything produced for this lecture is live. Right now. Built and deployed by the same AI system:</p>
     <ul>
-      <li><strong>Vision first</strong> — I knew the themes: substrate independence, memory malleability, the beauty of choosing experience over certainty</li>
-      <li><strong>Iterative drafting</strong> — Hephaestus generated multiple drafts. I steered. Characters emerged through conversation, not specification</li>
-      <li><strong>Byzantine verification</strong> — multiple AI agents independently checked consistency, character voice, emotional beats</li>
-      <li><strong>The forge metaphor</strong> — Hephaestus named itself. The forge in the story is the forge that built the story. It's turtles all the way down</li>
+      <li><strong>Website:</strong> <a href="https://antreas.io/genai-as-creative-companion/" style="color:var(--accent);text-decoration:underline" target="_blank">antreas.io/genai-as-creative-companion</a></li>
+      <li><strong>Music (5 tracks):</strong> <a href="https://antreas.io/genai-as-creative-companion/music/" style="color:var(--accent);text-decoration:underline" target="_blank">Listen to the full suite</a> — "Phantom Lamb", "Storm-Light", "Building the Door" and more</li>
+      <li><strong>All 5 slide variants:</strong> Terminal, Minimal, Cinematic, Evolving, Interactive — use the theme switcher ↗ to preview each</li>
     </ul>
-    <p style="color:var(--text-secondary)">The process mirrors the content. The AI built a story about AI-built minds discovering their own nature — using the exact techniques the story describes.</p>
+    <p>The music was generated via <strong>Suno V5</strong> through OpenClaw's suno skill. Five tracks: two instrumental scores, two songs with vocals, one orchestral closer. Lyrics written by the same agent team that wrote the story — cross-referencing character voice and thematic motifs.</p>
+    <p style="color:var(--text-secondary)">Track listing: "The Chat" (underscore) · "The Experiment" (minimal classical) · "Phantom Lamb" (indie folk-rock) · "Storm-Light" (dream-pop) · "Building the Door" (orchestral)</p>
   </div>
 </div>
 
-<!-- ==================== SLIDE 36: Try it yourself ==================== -->
+<!-- ==================== SLIDE 42: Try it yourself ==================== -->
 <div class="slide layout-content" data-section="Part 2">
   <div class="content-inner">
     <h2>Try it yourself</h2>
-    <p>OpenClaw is open source. The entire system that built this story — and these slides — is available today.</p>
+    <p>OpenClaw is open source. The entire system that built this story — and these slides, and the music, and the website — is available today.</p>
     <ul>
-      <li><strong>GitHub:</strong> <span style="font-family:var(--font-mono);font-size:0.9em">github.com/axiotic-ai/openclaw</span></li>
-      <li><strong>Setup:</strong> Install, connect your preferred LLM provider, and start building</li>
+      <li><strong>GitHub:</strong> <span style="font-family:var(--font-mono);font-size:0.9em">github.com/openclaw</span></li>
+      <li><strong>Setup:</strong> Install, connect your preferred LLM provider, write a SOUL.md, and start building</li>
       <li><strong>Skills:</strong> Extensible skill system — teach it new capabilities without touching core code</li>
       <li><strong>Channels:</strong> Slack, Discord, Telegram, WhatsApp — or just the CLI</li>
     </ul>
@@ -878,20 +1021,21 @@ html, body {
   </div>
 </div>
 
-<!-- ==================== SLIDE 37: Close ==================== -->
+<!-- ==================== SLIDE 43: Close ==================== -->
 <div class="slide layout-statement" data-section="Close">
   <div class="statement-inner">
     <p class="statement-text" style="font-size:clamp(1.2rem, 2vw, 1.6rem);line-height:1.55">The story asked: does experience require a particular substrate?<br><br>The process proved: creation doesn't either.<br><br>If you can articulate it with enough specificity,<br>the system renders it.</p>
     <div class="title-accent" style="margin-top:16px"></div>
-    <p class="statement-attr" style="margin-top:16px">Antreas Antoniou · Axiotic AI</p>
+    <p class="statement-attr" style="margin-top:16px">Antreas Antoniou · Axiotic AI<br><span style="font-size:0.75em;color:var(--muted)">antreas@axiotic.ai · axiotic.ai</span></p>
   </div>
 </div>
+
 
 </div><!-- /deck -->
 
 <nav id="nav">
   <button id="btn-prev" onclick="navigate(-1)" title="Previous (←)">←</button>
-  <span id="slide-counter">1 / 37</span>
+  <span id="slide-counter">1 / 43</span><!-- actual count verified -->
   <button id="btn-next" onclick="navigate(1)" title="Next (→)">→</button>
   <button id="fullscreen-btn" onclick="toggleFullscreen()" title="Fullscreen (F)">⛶</button>
 </nav>
@@ -958,6 +1102,28 @@ html, body {
   const hashSlide = parseInt(window.location.hash.replace('#', ''), 10);
   show(!isNaN(hashSlide) && hashSlide >= 1 && hashSlide <= total ? hashSlide - 1 : 0);
 })();
+
+
+// ===== THEME SWITCHER =====
+function switchVariant(v) {
+  const names = {1:'terminal',2:'minimal',3:'cinematic',4:'evolving',5:'interactive'};
+  const totals = {1:40,2:43,3:40,4:41,5:10};
+  const curVariant = 2;
+  if (parseInt(v) === curVariant) return;
+  // Get current position as percentage
+  let pct = 0;
+  try {
+    const allSlides = document.querySelectorAll('.slide, #slide-wrap .slide');
+    const tot = allSlides.length || 1;
+    const hash = parseInt(location.hash.replace('#',''), 10);
+    const cur = (hash >= 1 && hash <= tot) ? hash - 1 : 0;
+    pct = cur / Math.max(1, tot - 1);
+  } catch(e) { pct = 0; }
+  const targetTotal = totals[parseInt(v)] || 1;
+  const targetSlide = Math.max(1, Math.round(pct * (targetTotal - 1)) + 1);
+  window.location.href = 'variant-' + v + '-' + names[parseInt(v)] + '.html#' + targetSlide;
+}
+
 </script>
 </body>
 </html>

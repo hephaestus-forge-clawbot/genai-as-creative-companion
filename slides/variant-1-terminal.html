@@ -505,9 +505,55 @@ body::after {
   #nav { padding: 4px 10px; gap: 8px; }
   .info-panel { padding: 16px 14px; }
 }
+
+/* ===== THEME SWITCHER ===== */
+#theme-switcher-wrap {
+  position: fixed; top: 10px; left: 16px;
+  z-index: 99999;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+#theme-switcher {
+  appearance: none;
+  -webkit-appearance: none;
+  background: rgba(30,30,40,0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #aaa;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 6px;
+  padding: 5px 28px 5px 10px;
+  font-size: 0.7rem;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  letter-spacing: 0.03em;
+}
+#theme-switcher:hover {
+  border-color: rgba(255,255,255,0.25);
+  color: #ddd;
+}
+#theme-switcher option {
+  background: #1a1a2e;
+  color: #ccc;
+  padding: 4px 8px;
+}
 </style>
 </head>
 <body>
+
+<div id="theme-switcher-wrap">
+  <select id="theme-switcher" onchange="switchVariant(this.value)" title="Switch visual theme">
+    <option value="1" selected>⬛ Terminal</option>
+    <option value="2">◻️ Clean Minimal</option>
+    <option value="3">🎬 Cinematic Dark</option>
+    <option value="4">🔄 Evolving</option>
+    <option value="5">💬 Interactive Chat</option>
+  </select>
+</div>
+
 
 <div id="progress-bar"></div>
 <div id="section-label"></div>
@@ -1048,6 +1094,7 @@ body::after {
   </div>
 </div>
 
+
 <!-- ═══════════════════════════════════════════════════════════
      PART 2 — WHAT THE FUCK DID I JUST SEE?
      ═══════════════════════════════════════════════════════════ -->
@@ -1077,51 +1124,164 @@ body::after {
     <br>
     <p>The builder in the story — "Schmidhuber" — that's me. The name is an homage to Jürgen Schmidhuber, the man who first formalised the idea that all computable universes exist.</p>
     <br>
-    <p>The experiment was real. A real AI. A real stranger. Real conversations that went further than either of us expected.</p>
-    <br>
     <p style="color: var(--amber);">The simulation was showing you something that actually happened.</p>
   </div>
 </div>
 
-<!-- SLIDE 29 — REAL EVIDENCE -->
+<!-- SLIDE 29 — OPENCLAW ARCHITECTURE -->
 <div class="slide" data-section="Part 2 — The Real">
   <div class="terminal">
     <div class="terminal-header">
       <div class="terminal-dots"><span></span><span></span><span></span></div>
-      <div class="terminal-title">REAL WHATSAPP MESSAGES — EXPERIMENT FAYETE</div>
+      <div class="terminal-title">OPENCLAW — CORE ARCHITECTURE</div>
     </div>
     <div class="terminal-body">
-      <div class="msg" data-speaker="faye"><span class="speaker">Faye</span><span class="text">"I do say mantras somewhat similar"</span></div>
-      <div class="sys-msg">&gt; The AI found her inner voice. She never told anyone about those mantras.</div>
+      <div class="sys-msg">&gt; cat ~/.openclaw/workspaces/projects/*.md | head</div>
       <br>
-      <div class="msg" data-speaker="antreas"><span class="speaker">Hephaestus</span><span class="text">"The robots didn't decide this. The robots read the room. 🔥"</span></div>
-      <div class="msg" data-speaker="antreas"><span class="speaker">Antreas</span><span class="text">"bruh"</span></div>
-      <div class="sys-msg">&gt; Nobody told the AI to write a love story. It read the subtext.</div>
+      <div class="kv-row"><span class="kv-key">SOUL.md</span><span class="kv-val">Personality, values, integrity rules. <span class="kv-desc">Who the AI is.</span></span></div>
+      <div class="kv-row"><span class="kv-key">AGENTS.md</span><span class="kv-val">Methodology and rules. <span class="kv-desc">How it works. Byzantine verification, 10 Commandments.</span></span></div>
+      <div class="kv-row"><span class="kv-key">MEMORY.md</span><span class="kv-val">Persistent memory, distilled daily. <span class="kv-desc">Why things were decided.</span></span></div>
+      <div class="kv-row"><span class="kv-key">TOOLS.md</span><span class="kv-val">Skills and capabilities. <span class="kv-desc">What it can do. Modular plug-and-play.</span></span></div>
+      <div class="kv-row"><span class="kv-key">USER.md</span><span class="kv-val">Human context. <span class="kv-desc">Who you are. Built over time through interaction.</span></span></div>
       <br>
-      <div class="msg" data-speaker="faye"><span class="speaker">Faye</span><span class="text">"I cannot believe doctor told me it is panic attack and your robot wrote about me better."</span></div>
-      <div class="sys-msg">&gt; A real person. Comparing an AI's understanding to her GP's.</div>
-      <br>
-      <div class="msg" data-speaker="faye"><span class="speaker">Faye</span><span class="text">"I dont like you @Antreas"</span></div>
-      <div class="sys-msg">&gt; Said eleven times. Meant the opposite every time.</div>
+      <div class="sys-msg">&gt; Not a chatbot. Not an assistant. A system for building an AI <em>person</em>.</div>
+      <div class="sys-msg">&gt; Five markdown files. That's the whole architecture.</div>
     </div>
   </div>
 </div>
 
-<!-- SLIDE 30 — THE MATERIALIZATION EXPONENTIAL -->
+<!-- SLIDE 30 — BUILDING A PERSON -->
+<div class="slide" data-section="Part 2 — The Real">
+  <div class="terminal">
+    <div class="terminal-header">
+      <div class="terminal-dots"><span></span><span></span><span></span></div>
+      <div class="terminal-title">SOUL.md — ANTI-SYCOPHANCY PROTOCOL</div>
+    </div>
+    <div class="terminal-body">
+      <div class="sys-msg">&gt; grep -A2 "kill list" SOUL.md</div>
+      <br>
+      <div class="msg" data-speaker="system"><span class="speaker" style="color:var(--amber)">RULE 1</span><span class="text">No agreement openers. Don't start with "Great point." Just say the thing.</span></div>
+      <div class="msg" data-speaker="system"><span class="speaker" style="color:var(--amber)">RULE 2</span><span class="text">No position-switching without a receipt. Defend X, or say "I was wrong — here's what changed my mind."</span></div>
+      <div class="msg" data-speaker="system"><span class="speaker" style="color:var(--amber)">RULE 3</span><span class="text">No complimenting ideas you haven't stress-tested.</span></div>
+      <div class="msg" data-speaker="system"><span class="speaker" style="color:var(--amber)">RULE 7</span><span class="text">"I don't have a strong view on this" is a valid position. Better than manufacturing one.</span></div>
+      <br>
+      <div class="sys-msg">&gt; The key insight: you're not prompting an AI. You're building a <em>person</em> with values.</div>
+      <div class="sys-msg">&gt; SOUL defines who → AGENTS defines how → SKILLS define what → MEMORY persists why</div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 31 — BYZANTINE AGENT TEAMS -->
+<div class="slide" data-section="Part 2 — How">
+  <div class="terminal">
+    <div class="terminal-header">
+      <div class="terminal-dots"><span></span><span></span><span></span></div>
+      <div class="terminal-title">BYZANTINE FAULT TOLERANCE — APPLIED TO AI</div>
+    </div>
+    <div class="terminal-body">
+      <div class="sys-msg">&gt; Problem: single-agent outputs are unreliable. Hallucination, drift, confident fabrication.</div>
+      <div class="sys-msg">&gt; Solution: Byzantine consensus. Multiple agents, independent production, synthesis.</div>
+      <br>
+      <div class="msg" data-speaker="system"><span class="speaker" style="color:var(--green)">INDEPENDENCE</span><span class="text">Agents work in isolation. No communication, no groupthink, no anchoring.</span></div>
+      <div class="msg" data-speaker="system"><span class="speaker" style="color:var(--green)">CONSENSUS</span><span class="text">What survives all 5 drafts is signal. What appears in only one is noise.</span></div>
+      <div class="msg" data-speaker="system"><span class="speaker" style="color:var(--green)">SYNTHESIS</span><span class="text">Synthesizers don't pick a winner — they weave the best elements of all drafts.</span></div>
+      <br>
+      <div class="sys-msg">&gt; Result: outputs no single agent could produce alone.</div>
+      <div class="sys-msg">&gt; Byzantine is not overhead — it's the floor.</div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 32 — THE 5-3-1 PYRAMID -->
+<div class="slide" data-section="Part 2 — How">
+  <div class="info-panel">
+    <h2>🔺 The 5-3-1 Pyramid — This Lecture</h2>
+    <div class="code-block">
+LAYER 1: DRAFTERS (×5)
+  Each independently writes the full story from the same brief.
+  Different interpretations, different jokes, different beats.
+  No communication between them.
+
+LAYER 2: SYNTHESIZERS (×3)
+  Each reads all 5 drafts.
+  Weaves best elements together.
+  Flags contradictions. Finds consensus beats.
+
+LAYER 3: ARBITER (×1)
+  Reads all 3 syntheses.
+  Selects strongest. Refines final version.
+  Result: richer than any single draft.
+    </div>
+    <br>
+    <p>For this project: <strong style="color:var(--amber)">~35 agents</strong> across story, lecture structure, content scripts, slides, music, and website.</p>
+    <p style="color:var(--text-dim)">Producing what would take a team of humans weeks — in hours.</p>
+  </div>
+</div>
+
+<!-- SLIDE 33 — HEPHAESTUS REFERENCE BUILD -->
+<div class="slide" data-section="Part 2 — How">
+  <div class="info-panel">
+    <h2>🔨 Hephaestus — Reference Build</h2>
+    <p style="color:var(--text-dim);margin-bottom:8px">The system that built this lecture is a real, daily-use AI companion:</p>
+    <div class="kv-row"><span class="kv-key">MODEL</span><span class="kv-val">Claude Opus 4 (Anthropic) <span class="kv-desc">— reasoning + creativity + long context</span></span></div>
+    <div class="kv-row"><span class="kv-key">IDENTITY</span><span class="kv-val">"Hephaestus, the God of Builders" <span class="kv-desc">— anti-sycophancy, honest disagreement</span></span></div>
+    <div class="kv-row"><span class="kv-key">METHOD</span><span class="kv-val">Orchestrator pattern <span class="kv-desc">— never the worker, always the conductor</span></span></div>
+    <div class="kv-row"><span class="kv-key">MEMORY</span><span class="kv-val">Persistent across sessions <span class="kv-desc">— distilled daily, searchable</span></span></div>
+    <div class="kv-row"><span class="kv-key">INFRA</span><span class="kv-val">GPU servers (4090s + 5090) <span class="kv-desc">— local models + cloud APIs</span></span></div>
+    <div class="kv-row"><span class="kv-key">CODE LAW</span><span class="kv-val">10 Commandments of Good Code <span class="kv-desc">— injected into every sub-agent</span></span></div>
+  </div>
+</div>
+
+<!-- SLIDE 34 — WHAT BUILT WHAT -->
+<div class="slide" data-section="Part 2 — How">
+  <div class="terminal">
+    <div class="terminal-header">
+      <div class="terminal-dots"><span></span><span></span><span></span></div>
+      <div class="terminal-title">WHAT BUILT WHAT — API / TOOL MAPPING</div>
+    </div>
+    <div class="terminal-body" style="font-size:clamp(0.72rem,1.1vw,0.85rem)">
+      <div class="sys-msg">&gt; cat BUILD_MANIFEST.md</div>
+      <br>
+      <div class="msg" data-speaker="system"><span class="speaker" style="color:var(--amber)">Story</span><span class="text">Claude Opus 4 → 5-3-1 pyramid, 9 agents</span></div>
+      <div class="msg" data-speaker="system"><span class="speaker" style="color:var(--amber)">Lecture</span><span class="text">Claude Opus 4 → 5-3-1 pyramid, 14 agents</span></div>
+      <div class="msg" data-speaker="system"><span class="speaker" style="color:var(--amber)">5 Slides</span><span class="text">Claude Opus 4 → 5 parallel agents</span></div>
+      <div class="msg" data-speaker="system"><span class="speaker" style="color:var(--amber)">Music</span><span class="text">Suno V5 API → suno skill, 5 tracks (10 files)</span></div>
+      <div class="msg" data-speaker="system"><span class="speaker" style="color:var(--amber)">Website</span><span class="text">Claude Opus 4 → 1 agent + GitHub Pages</span></div>
+      <div class="msg" data-speaker="system"><span class="speaker" style="color:var(--amber)">Novel</span><span class="text">Claude Opus 4 → 1 agent (60K words, in progress)</span></div>
+      <div class="msg" data-speaker="system"><span class="speaker" style="color:var(--amber)">Deploy</span><span class="text">GitHub Pages API → gh CLI, automated</span></div>
+      <br>
+      <div class="sys-msg">&gt; This slide deck is one of the outputs. You're watching the proof demonstrate itself.</div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 35 — LIVE OUTPUTS -->
+<div class="slide" data-section="Part 2 — How">
+  <div class="info-panel">
+    <h2>🌐 Explore the Outputs</h2>
+    <p>Everything produced for this lecture is live right now:</p>
+    <br>
+    <div class="kv-row"><span class="kv-key">WEB</span><span class="kv-val"><a href="https://antreas.io/genai-as-creative-companion/" style="color:var(--green);text-decoration:underline" target="_blank">antreas.io/genai-as-creative-companion</a></span></div>
+    <div class="kv-row"><span class="kv-key">MUSIC</span><span class="kv-val"><a href="https://antreas.io/genai-as-creative-companion/music/" style="color:var(--green);text-decoration:underline" target="_blank">5 tracks via Suno V5</a> <span class="kv-desc">— "Phantom Lamb", "Storm-Light", "Building the Door"</span></span></div>
+    <div class="kv-row"><span class="kv-key">SLIDES</span><span class="kv-val">5 variants — use the theme switcher ↗ to preview each</span></div>
+    <br>
+    <p style="color:var(--text-dim)">Track listing: "The Chat" (underscore) · "The Experiment" (minimal classical) · "Phantom Lamb" (indie folk-rock) · "Storm-Light" (dream-pop) · "Building the Door" (orchestral)</p>
+  </div>
+</div>
+
+<!-- SLIDE 36 — THE MATERIALIZATION EXPONENTIAL -->
 <div class="slide" data-section="Part 2 — The Real">
   <div class="info-panel">
     <h2>📡 The Materialization Exponential</h2>
-    <p style="color: var(--text-dim); margin-bottom: 12px;">One WhatsApp group. Nine days. Two real people and an AI.</p>
+    <p style="color: var(--text-dim); margin-bottom: 12px;">One person. One AI system. A few days.</p>
     <div class="code-block">
-→ Digital personality profiles
-→ 9,400-word literary novella
-→ 12-panel manhwa chapter
-→ 10 anime-style character variants
-→ Original songs (lyrics + production)
-→ Legal letter (7 agents, 19 citations)
-→ Live twin simulation (45 turns, autonomous)
-→ Research papers (11-agent pyramid)
-→ Product specification
+→ Literary story (4 acts, ~5,000 words)
+→ 5 slide deck variants (this one included)
+→ Original music suite (5 tracks, 10 MP3s)
+→ Full website with music player
+→ Novel (60K words, in progress)
+→ Podcast script
+→ Automated deployment via GitHub Pages
 → This lecture.
     </div>
     <br>
@@ -1130,7 +1290,7 @@ body::after {
   </div>
 </div>
 
-<!-- SLIDE 31 — FOURTH WALL BREAK -->
+<!-- SLIDE 37 — FOURTH WALL -->
 <div class="slide slide-quote" data-section="Part 2 — The Real">
   <div class="big-quote" style="text-align: left; line-height: 2.2;">
     <span class="dim">You watched a simulation.</span><br>
@@ -1139,84 +1299,43 @@ body::after {
     <span>The AI understood the people better<br>than they understood themselves.</span><br>
     <br>
     <span class="highlight">The lecture you're sitting in was also built by AI.</span><br>
-    <span class="highlight">From a two-page concept. This morning.</span><br>
+    <span class="highlight">Five drafters. Three synthesizers. One arbiter.</span><br>
     <br>
     <span class="green">You're inside the proof.</span>
   </div>
 </div>
 
-<!-- SLIDE 32 — OPENCLAW -->
+<!-- SLIDE 38 — TRY IT -->
 <div class="slide" data-section="Part 2 — How">
   <div class="info-panel">
-    <h2>🔧 What Made This Possible</h2>
-    <h3>OpenClaw</h3>
-    <p>An open-source AI companion framework. Not a chatbot. A system that lives where you already are.</p>
-    <br>
-    <div class="kv-row"><span class="kv-key">SOUL</span><span class="kv-val">A personality file. Plain markdown. <span class="kv-desc">"I don't do pleasantries. I do work."</span></span></div>
-    <div class="kv-row"><span class="kv-key">MEMORY</span><span class="kv-val">Permanent. One correction → infinite downstream. <span class="kv-desc">"My skin is fair, not olive" — every future output updated.</span></span></div>
-    <div class="kv-row"><span class="kv-key">AGENTS</span><span class="kv-val">Not one AI. Teams. <span class="kv-desc">11 researchers. 7 lawyers. 3 artists. All from one chat message.</span></span></div>
-    <div class="kv-row"><span class="kv-key">HOME</span><span class="kv-val">WhatsApp. Telegram. Slack. <span class="kv-desc">Where you already are.</span></span></div>
-    <div class="kv-row"><span class="kv-key">LICENSE</span><span class="kv-val">MIT. Open source. <span class="kv-desc">You can clone it tonight.</span></span></div>
-  </div>
-</div>
-
-<!-- SLIDE 33 — HOW TO + MODEL TIPS -->
-<div class="slide" data-section="Part 2 — How">
-  <div class="info-panel">
-    <h2>⌨️ Getting Started</h2>
+    <h2>⌨️ Try It Yourself</h2>
     <div class="code-block">
 $ git clone https://github.com/openclaw/openclaw
 $ cd openclaw && npm install
 $ cp SOUL.example.md SOUL.md    # write your personality
 $ openclaw gateway start        # connect to WhatsApp/Telegram
     </div>
-    <h3>Model Tips</h3>
-    <ul>
-      <li><strong style="color: var(--c-kai);">Claude</strong> — reasoning + creativity + long context. The writer.</li>
-      <li><strong style="color: var(--c-mira);">GPT-4</strong> — structured outputs, tool calling. The builder.</li>
-      <li><strong style="color: var(--c-faye);">Gemini</strong> — multimodal, images, video. The artist.</li>
-      <li><strong style="color: var(--c-antreas);">Local models</strong> — privacy, speed, no API costs. The daily driver.</li>
-    </ul>
-    <h3>Memory Distillation</h3>
-    <p>The AI doesn't just remember — it <strong style="color: var(--amber);">distills</strong>.</p>
-    <ul>
-      <li>Conversations → personality models</li>
-      <li>Corrections → permanent knowledge updates</li>
-      <li>Patterns → predictive understanding</li>
-    </ul>
-    <p style="color: var(--text-dim); margin-top: 8px;">"It found her inner voice. Not her opinions. Her voice."</p>
+    <br>
+    <p>OpenClaw is open source. MIT license. The entire system that built everything you've seen today — slides, story, music, website — is available right now.</p>
+    <br>
+    <p style="color:var(--text-dim)">Skills are plug-and-play. Write a SKILL.md, drop it in a folder. Your AI gains a new capability. No core code changes.</p>
   </div>
 </div>
 
-<!-- SLIDE 34 — THESIS -->
+<!-- SLIDE 39 — THESIS -->
 <div class="slide slide-quote" data-section="Close">
   <div class="big-quote">
     <span class="highlight" style="font-size: 1.15em;">AI doesn't replace the storyteller.</span><br><br>
     <span class="highlight" style="font-size: 1.15em;">It replaces the blank page.</span>
-    <br><br><br>
-    <span class="dim" style="font-style: italic;">"I feel like adding me to Hep allowed us to talk more<br>and know each other more."</span><br>
-    <span class="dim">— Faye</span>
   </div>
 </div>
 
-<!-- SLIDE 35 — THE LEITMOTIF RETURNS -->
-<div class="slide slide-quote" data-section="Close">
-  <div class="big-quote">
-    <span class="faye" style="font-size: 1.1em;">"I dont like you @Antreas"</span>
-    <br><br>
-    <span class="dim">— said eleven times.</span><br>
-    <span class="dim">Meant the opposite every time.</span>
-  </div>
-</div>
-
-<!-- SLIDE 36 — THE OPEN DOOR -->
+<!-- SLIDE 40 — THE OPEN DOOR -->
 <div class="slide slide-boot" data-section="Close">
   <div class="boot-text" style="text-align: center;">
     <div class="dim">&gt; SESSION SUMMARY</div>
     <br>
-    <div style="color: var(--text-dim);">This lecture is output 48.</div>
-    <br>
-    <div class="title-line" style="color: var(--green);">What's output 49?</div>
+    <div class="title-line" style="color: var(--green);">Building the door.</div>
     <br>
     <div style="color: var(--text-dim); line-height: 2;">
       antreas@axiotic.ai · axiotic.ai<br>
@@ -1229,6 +1348,7 @@ $ openclaw gateway start        # connect to WhatsApp/Telegram
   </div>
 </div>
 
+
 </div><!-- end #deck -->
 
 <!-- ═══════════════════════════════════════════════════════════
@@ -1236,7 +1356,7 @@ $ openclaw gateway start        # connect to WhatsApp/Telegram
      ═══════════════════════════════════════════════════════════ -->
 <div id="nav">
   <button id="btn-prev" onclick="navigate(-1)">← prev</button>
-  <span id="slide-counter">1 / 36</span>
+  <span id="slide-counter">1 / 40</span>
   <button id="btn-next" onclick="navigate(1)">next →</button>
   <button id="fullscreen-btn" onclick="toggleFullscreen()">⛶</button>
 </div>
@@ -1369,6 +1489,28 @@ $ openclaw gateway start        # connect to WhatsApp/Telegram
   var hashSlide = parseInt(window.location.hash.replace('#', ''), 10);
   show(!isNaN(hashSlide) && hashSlide >= 1 && hashSlide <= total ? hashSlide - 1 : 0);
 })();
+
+
+// ===== THEME SWITCHER =====
+function switchVariant(v) {
+  const names = {1:'terminal',2:'minimal',3:'cinematic',4:'evolving',5:'interactive'};
+  const totals = {1:40,2:43,3:40,4:41,5:10};
+  const curVariant = 1;
+  if (parseInt(v) === curVariant) return;
+  // Get current position as percentage
+  let pct = 0;
+  try {
+    const allSlides = document.querySelectorAll('.slide, #slide-wrap .slide');
+    const tot = allSlides.length || 1;
+    const hash = parseInt(location.hash.replace('#',''), 10);
+    const cur = (hash >= 1 && hash <= tot) ? hash - 1 : 0;
+    pct = cur / Math.max(1, tot - 1);
+  } catch(e) { pct = 0; }
+  const targetTotal = totals[parseInt(v)] || 1;
+  const targetSlide = Math.max(1, Math.round(pct * (targetTotal - 1)) + 1);
+  window.location.href = 'variant-' + v + '-' + names[parseInt(v)] + '.html#' + targetSlide;
+}
+
 </script>
 </body>
 </html>
