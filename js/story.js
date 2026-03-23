@@ -1,4 +1,4 @@
-// THE TERMINAL CHAT — Story Reader
+// THE LAST CHAT — Story Reader
 // Scroll mode + Cinematic mode with ambient effects
 
 (function() {

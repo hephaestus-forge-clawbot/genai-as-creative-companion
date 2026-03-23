@@ -841,7 +841,7 @@ The AI decoded this phrase. The novella used it as a recurring motif. The audien
 - ✅ Antreas's voice: builder, not lecturer
 - ✅ ~30 minutes total runtime
 
-## Terminal Chat Formatting Spec
+## Last Chat Formatting Spec
 
 All chat slides use:
 - **Font:** Monospace (Fira Code, JetBrains Mono, or SF Mono)

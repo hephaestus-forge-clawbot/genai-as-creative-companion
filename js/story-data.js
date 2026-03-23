@@ -1,4 +1,4 @@
-// THE TERMINAL CHAT — Story Data
+// THE LAST CHAT — Story Data
 // Each message is a structured object for the story reader
 
 const STORY_DATA = [

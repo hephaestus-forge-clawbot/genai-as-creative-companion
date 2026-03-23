@@ -1,4 +1,4 @@
-# THE TERMINAL CHAT
+# THE LAST CHAT
 
 ### A Novel
 
@@ -1565,7 +1565,7 @@ You're building the door.
 
 ---
 
-*End of "The Terminal Chat."*
+*End of "The Last Chat."*
 
 ---
 

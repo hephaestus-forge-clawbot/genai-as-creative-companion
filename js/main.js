@@ -1,4 +1,4 @@
-// THE TERMINAL CHAT — Main JS
+// THE LAST CHAT — Main JS
 // Navigation, Easter eggs, spoiler gates, first-visit experience
 
 (function() {
@@ -46,7 +46,7 @@
 
   if (landingTitle) {
     // Typewriter effect
-    const titleText = 'THE TERMINAL CHAT';
+    const titleText = 'THE LAST CHAT';
     let charIndex = 0;
     landingTitle.textContent = '';
 
