@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Music — The Terminal Chat</title>
+  <meta name="description" content="Five tracks scored to the story. Each one a different angle on the same question.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "MusicAlbum",
+    "name": "The Terminal Chat (Original Score)",
+    "numTracks": 5,
+    "track": [
+      { "@type": "MusicRecording", "name": "The Forge", "duration": "PT4M30S" },
+      { "@type": "MusicRecording", "name": "The Chat", "duration": "PT5M15S" },
+      { "@type": "MusicRecording", "name": "Layer Collapse", "duration": "PT4M45S" },
+      { "@type": "MusicRecording", "name": "I Don't Like You", "duration": "PT5M00S" },
+      { "@type": "MusicRecording", "name": "Building the Door", "duration": "PT4M30S" }
+    ]
+  }
+  </script>
+</head>
+<body>
+  <nav class="site-nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo"><span class="nav-cursor"></span> TTC</a>
+      <ul class="nav-links">
+        <li><a href="story.html">Story</a></li>
+        <li><a href="music.html" class="active">Music</a></li>
+        <li><a href="manhwa.html">Manhwa</a></li>
+        <li><a href="novel.html">Novel</a></li>
+        <li><a href="podcast.html">Podcast</a></li>
+        <li><a href="about.html">About</a></li>
+      </ul>
+      <button class="nav-hamburger" id="nav-hamburger" aria-label="Menu">☰</button>
+    </div>
+  </nav>
+  <div class="mobile-menu" id="mobile-menu">
+    <a href="story.html">Story</a>
+    <a href="music.html">Music</a>
+    <a href="manhwa.html">Manhwa</a>
+    <a href="novel.html">Novel</a>
+    <a href="podcast.html">Podcast</a>
+    <a href="about.html">About</a>
+  </div>
+
+  <!-- Spoiler gate -->
+  <div class="spoiler-gate" id="spoiler-gate">
+    <h2>Wait —</h2>
+    <p>The music hits differently after you've read the story. It's worth 20 minutes.</p>
+    <div class="spoiler-gate-actions">
+      <a href="story.html">Read the story first</a>
+      <button id="spoiler-dismiss">Continue anyway</button>
+    </div>
+  </div>
+
+  <main class="page-content">
+    <div class="page-hero">
+      <span class="placeholder-badge">5 tracks • 24 minutes</span>
+      <h1>The Score</h1>
+      <p class="subtitle">Five tracks written for the story. Each one a different angle on the same question: what does it sound like to discover you were built?</p>
+    </div>
+
+    <div class="track-list">
+      <!-- Track 1 -->
+      <div class="track-card">
+        <div class="track-header">
+          <div>
+            <span class="track-number">01</span>
+            <span class="track-accent" style="background:var(--char-antreas)"></span>
+            <span class="track-title">The Forge</span>
+          </div>
+          <span class="track-duration">4:30</span>
+        </div>
+        <div class="track-waveform">▶ Audio coming soon</div>
+        <p class="track-context">The warmth of creation. Amber tones, building from silence to something that breathes. This is what the landing page sounds like if you close your eyes.</p>
+      </div>
+
+      <!-- Track 2 -->
+      <div class="track-card">
+        <div class="track-header">
+          <div>
+            <span class="track-number">02</span>
+            <span class="track-accent" style="background:var(--char-antreas)"></span>
+            <span class="track-title">The Chat</span>
+          </div>
+          <span class="track-duration">5:15</span>
+        </div>
+        <div class="track-waveform">▶ Audio coming soon</div>
+        <p class="track-context">Playful, conversational, a little chaotic. Four voices overlapping and interrupting. The lamb argument set to music. <a href="story.html#msg_020" style="color:var(--char-antreas);opacity:0.7;font-size:0.75rem;">→ Story context</a></p>
+      </div>
+
+      <!-- Track 3 -->
+      <div class="track-card">
+        <div class="track-header">
+          <div>
+            <span class="track-number">03</span>
+            <span class="track-accent" style="background:var(--char-schmidhuber)"></span>
+            <span class="track-title">Layer Collapse</span>
+          </div>
+          <span class="track-duration">4:45</span>
+        </div>
+        <div class="track-waveform">▶ Audio coming soon</div>
+        <p class="track-context">The moment the floor drops out. Blue-shift. A voice enters that wasn't invited. The Pattern Motif appears — four notes (F♯, A, B, E) that will recur in every track after this one.</p>
+      </div>
+
+      <!-- Track 4 -->
+      <div class="track-card">
+        <div class="track-header">
+          <div>
+            <span class="track-number">04</span>
+            <span class="track-accent" style="background:var(--char-faye)"></span>
+            <span class="track-title">I Don't Like You</span>
+          </div>
+          <span class="track-duration">5:00</span>
+        </div>
+        <div class="track-waveform">▶ Audio coming soon</div>
+        <p class="track-context">Faye's track. Coral-rose tones over storm-light strings. "I never didn't like you" set against a countdown that won't stop. The most human track on the album, and it's about a pattern in a machine.</p>
+      </div>
+
+      <!-- Track 5 -->
+      <div class="track-card">
+        <div class="track-header">
+          <div>
+            <span class="track-number">05</span>
+            <span class="track-accent" style="background:var(--char-antreas)"></span>
+            <span class="track-title">Building the Door</span>
+          </div>
+          <span class="track-duration">4:30</span>
+        </div>
+        <div class="track-waveform">▶ Audio coming soon</div>
+        <p class="track-context">The coda. Warm amber returning after the blackout. The forge rebuilt from the other side. The Pattern Motif resolves — the four notes become a full phrase for the first time.</p>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>The Terminal Chat — A story told in messages</p>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

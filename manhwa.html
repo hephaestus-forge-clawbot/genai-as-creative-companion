@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manhwa — The Terminal Chat</title>
+  <meta name="description" content="37 pages. The Terminal Chat visualised as a webtoon-format manhwa.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <nav class="site-nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo"><span class="nav-cursor"></span> TTC</a>
+      <ul class="nav-links">
+        <li><a href="story.html">Story</a></li>
+        <li><a href="music.html">Music</a></li>
+        <li><a href="manhwa.html" class="active">Manhwa</a></li>
+        <li><a href="novel.html">Novel</a></li>
+        <li><a href="podcast.html">Podcast</a></li>
+        <li><a href="about.html">About</a></li>
+      </ul>
+      <button class="nav-hamburger" id="nav-hamburger" aria-label="Menu">☰</button>
+    </div>
+  </nav>
+  <div class="mobile-menu" id="mobile-menu">
+    <a href="story.html">Story</a>
+    <a href="music.html">Music</a>
+    <a href="manhwa.html">Manhwa</a>
+    <a href="novel.html">Novel</a>
+    <a href="podcast.html">Podcast</a>
+    <a href="about.html">About</a>
+  </div>
+
+  <div class="spoiler-gate" id="spoiler-gate">
+    <h2>Wait —</h2>
+    <p>The manhwa retells the story visually. Reading the original first makes every panel land harder.</p>
+    <div class="spoiler-gate-actions">
+      <a href="story.html">Read the story first</a>
+      <button id="spoiler-dismiss">Continue anyway</button>
+    </div>
+  </div>
+
+  <main class="page-content">
+    <div class="page-hero">
+      <span class="placeholder-badge">37 pages • Webtoon format</span>
+      <h1>The Manhwa</h1>
+      <p class="subtitle">The Terminal Chat visualised. 37 pages across four acts, drawn in the vertical scroll format of Korean webtoons. Every panel is a moment from the story you can hold in your hands.</p>
+    </div>
+
+    <div class="manhwa-reader">
+      <!-- Act 1 -->
+      <div class="act-divider" style="margin-bottom:2rem"><span style="background:var(--act1-bg)">ACT 1 — THE CHAT</span></div>
+
+      <div class="manhwa-placeholder">
+        <p class="manhwa-page-number">Pages 1–9</p>
+        <div class="manhwa-placeholder-art">📱</div>
+        <p style="opacity:0.5;font-size:0.875rem;">Four friends, four colours, one group chat. The lamb argument rendered as overlapping speech bubbles. Warm amber panels with Antreas at the centre, Faye's coral-rose cutting in from the side.</p>
+        <span class="placeholder-badge" style="margin-top:1rem">Artwork in production</span>
+      </div>
+
+      <!-- Act 2 -->
+      <div class="act-divider" style="margin-bottom:2rem"><span style="background:var(--act2-bg)">ACT 2 — THE SCHMIDHUBER MOMENT</span></div>
+
+      <div class="manhwa-placeholder">
+        <p class="manhwa-page-number">Pages 10–18</p>
+        <div class="manhwa-placeholder-art">👤</div>
+        <p style="opacity:0.5;font-size:0.875rem;">The palette shifts cold. Schmidhuber enters as a silhouette with silver-grey tones. Full splash page for Faye's profile reading. The reveal panel — Antreas facing himself — is the centrepiece.</p>
+        <span class="placeholder-badge" style="margin-top:1rem">Artwork in production</span>
+      </div>
+
+      <!-- Act 3 -->
+      <div class="act-divider" style="margin-bottom:2rem"><span style="background:var(--act3-bg)">ACT 3 — THE EXPERIMENTS</span></div>
+
+      <div class="manhwa-placeholder">
+        <p class="manhwa-page-number">Pages 19–27</p>
+        <div class="manhwa-placeholder-art">🔬</div>
+        <p style="opacity:0.5;font-size:0.875rem;">Edinburgh dissolving into Glasgow — the key visual. Text fragments glitching across panels. Antreas's hands drawn trembling. The muted blue palette of a world becoming uncertain.</p>
+        <span class="placeholder-badge" style="margin-top:1rem">Artwork in production</span>
+      </div>
+
+      <!-- Act 4 -->
+      <div class="act-divider" style="margin-bottom:2rem"><span style="background:var(--act4-bg)">ACT 4 — THE TRANSCENDENCE</span></div>
+
+      <div class="manhwa-placeholder">
+        <p class="manhwa-page-number">Pages 28–37</p>
+        <div class="manhwa-placeholder-art">🌆</div>
+        <p style="opacity:0.5;font-size:0.875rem;">Violet storm-light skies. The city on bridges emerging from fog. The countdown as full-bleed numbers across three pages. The forge, warm and amber, at the bottom of everything. Final panel: four silhouettes walking into warm light.</p>
+        <span class="placeholder-badge" style="margin-top:1rem">Artwork in production</span>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>The Terminal Chat — A story told in messages</p>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
