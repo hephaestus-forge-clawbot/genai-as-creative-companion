@@ -12,9 +12,10 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/chat-themes.css">
 
   <script type="application/ld+json">
   {
@@ -42,6 +43,7 @@
         <li><a href="story.html" class="active">Story</a></li>
         <li><a href="music.html">Music</a></li>
         <li><a href="manhwa.html">Manhwa</a></li>
+        <li><a href="anime.html">Anime</a></li>
         <li><a href="novel.html">Novel</a></li>
         <li><a href="podcast.html">Podcast</a></li>
         <li><a href="about.html">About</a></li>
@@ -55,6 +57,7 @@
     <a href="story.html">Story</a>
     <a href="music.html">Music</a>
     <a href="manhwa.html">Manhwa</a>
+    <a href="anime.html">Anime</a>
     <a href="novel.html">Novel</a>
     <a href="podcast.html">Podcast</a>
     <a href="about.html">About</a>
@@ -67,6 +70,22 @@
 
   <!-- Layer indicator -->
   <div class="layer-indicator" id="layer-indicator" aria-hidden="true">LAYER 1</div>
+
+  <!-- Chat Style Chooser -->
+  <div class="chat-style-chooser">
+    <label for="chat-style-select">style</label>
+    <select id="chat-style-select" class="chat-style-select" title="Switch chat visual style">
+      <option value="whatsapp">WhatsApp</option>
+      <option value="imessage">iMessage</option>
+      <option value="discord">Discord</option>
+      <option value="terminal">Terminal</option>
+      <option value="sms">SMS</option>
+      <option value="telegram">Telegram</option>
+      <option value="matrix">Matrix</option>
+      <option value="handwritten">Handwritten</option>
+      <option value="original">Original</option>
+    </select>
+  </div>
 
   <!-- Main content (scroll mode) -->
   <main class="page-content">

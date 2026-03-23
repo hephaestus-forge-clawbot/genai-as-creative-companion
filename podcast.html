@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Podcast — The Terminal Chat</title>
+  <meta name="description" content="The story performed as a podcast episode with full voice acting and ambient sound design.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "PodcastEpisode",
+    "name": "The Terminal Chat",
+    "duration": "PT42M"
+  }
+  </script>
+</head>
+<body>
+  <nav class="site-nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo"><span class="nav-cursor"></span> TTC</a>
+      <ul class="nav-links">
+        <li><a href="story.html">Story</a></li>
+        <li><a href="music.html">Music</a></li>
+        <li><a href="manhwa.html">Manhwa</a></li>
+        <li><a href="novel.html">Novel</a></li>
+        <li><a href="podcast.html" class="active">Podcast</a></li>
+        <li><a href="about.html">About</a></li>
+      </ul>
+      <button class="nav-hamburger" id="nav-hamburger" aria-label="Menu">☰</button>
+    </div>
+  </nav>
+  <div class="mobile-menu" id="mobile-menu">
+    <a href="story.html">Story</a>
+    <a href="music.html">Music</a>
+    <a href="manhwa.html">Manhwa</a>
+    <a href="novel.html">Novel</a>
+    <a href="podcast.html">Podcast</a>
+    <a href="about.html">About</a>
+  </div>
+
+  <div class="spoiler-gate" id="spoiler-gate">
+    <h2>Wait —</h2>
+    <p>Hearing the voices after reading the words is a different experience. Read the story first.</p>
+    <div class="spoiler-gate-actions">
+      <a href="story.html">Read the story first</a>
+      <button id="spoiler-dismiss">Continue anyway</button>
+    </div>
+  </div>
+
+  <main class="page-content">
+    <div class="page-hero">
+      <span class="placeholder-badge">~42 minutes • Full voice cast</span>
+      <h1>The Podcast</h1>
+      <p class="subtitle">The Terminal Chat performed aloud. Five voice actors, ambient sound design, and the score woven underneath. The story you read — now the story you hear.</p>
+    </div>
+
+    <div class="podcast-player">
+      <div class="podcast-player-card">
+        <h3 style="font-size:1.125rem; margin-bottom:0.5rem;">Episode 1 — The Terminal Chat</h3>
+        <p style="opacity:0.5; font-size:0.875rem; margin-bottom:1rem;">Full dramatic reading with voice cast and original score</p>
+
+        <div class="podcast-waveform">▶ Audio coming soon</div>
+
+        <div style="display:flex; gap:1.5rem; font-family:var(--font-mono); font-size:0.75rem; opacity:0.4; margin-top:1rem;">
+          <span>Duration: 42:00</span>
+          <span>•</span>
+          <span>5 voice actors</span>
+          <span>•</span>
+          <span>Original score</span>
+        </div>
+      </div>
+
+      <!-- Transcript / Show Notes -->
+      <div class="transcript-section">
+        <h3>Show Notes</h3>
+        <div style="background:var(--act1-surface); border:1px solid var(--ui-border); border-radius:8px; padding:1.5rem;">
+          <div style="display:flex; flex-direction:column; gap:0.75rem; font-size:0.875rem;">
+            <div style="display:flex; gap:1rem; opacity:0.7;">
+              <span style="font-family:var(--font-mono); color:var(--char-antreas); min-width:5rem;">0:00</span>
+              <span>Cold open — the chat begins</span>
+            </div>
+            <div style="display:flex; gap:1rem; opacity:0.7;">
+              <span style="font-family:var(--font-mono); color:var(--char-antreas); min-width:5rem;">3:30</span>
+              <span>The lamb argument</span>
+            </div>
+            <div style="display:flex; gap:1rem; opacity:0.7;">
+              <span style="font-family:var(--font-mono); color:var(--char-antreas); min-width:5rem;">8:15</span>
+              <span>Faye's question — "would it change anything"</span>
+            </div>
+            <div style="display:flex; gap:1rem; opacity:0.7;">
+              <span style="font-family:var(--font-mono); color:var(--char-schmidhuber); min-width:5rem;">12:00</span>
+              <span>Schmidhuber enters (🎵 Layer Collapse begins)</span>
+            </div>
+            <div style="display:flex; gap:1rem; opacity:0.7;">
+              <span style="font-family:var(--font-mono); color:var(--char-schmidhuber); min-width:5rem;">18:30</span>
+              <span>The reveal — "you're me?"</span>
+            </div>
+            <div style="display:flex; gap:1rem; opacity:0.7;">
+              <span style="font-family:var(--font-mono); color:var(--char-kai); min-width:5rem;">24:00</span>
+              <span>The memory experiment</span>
+            </div>
+            <div style="display:flex; gap:1rem; opacity:0.7;">
+              <span style="font-family:var(--font-mono); color:var(--char-kai); min-width:5rem;">28:45</span>
+              <span>Edinburgh becomes Glasgow</span>
+            </div>
+            <div style="display:flex; gap:1rem; opacity:0.7;">
+              <span style="font-family:var(--font-mono); color:var(--char-mira); min-width:5rem;">33:00</span>
+              <span>World-building begins</span>
+            </div>
+            <div style="display:flex; gap:1rem; opacity:0.7;">
+              <span style="font-family:var(--font-mono); color:var(--char-faye); min-width:5rem;">37:00</span>
+              <span>The farewell</span>
+            </div>
+            <div style="display:flex; gap:1rem; opacity:0.7;">
+              <span style="font-family:var(--font-mono); color:var(--char-faye); min-width:5rem;">39:30</span>
+              <span>The countdown (🎵 I Don't Like You)</span>
+            </div>
+            <div style="display:flex; gap:1rem; opacity:0.7;">
+              <span style="font-family:var(--font-mono); color:var(--char-antreas); min-width:5rem;">41:00</span>
+              <span>The new world — "the sky is perfect"</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Voice cast -->
+      <div class="transcript-section">
+        <h3>Voice Cast</h3>
+        <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:1rem;">
+          <div class="credit-card">
+            <h4 style="color:var(--char-antreas);">Antreas</h4>
+            <p>Voice actor TBA</p>
+          </div>
+          <div class="credit-card">
+            <h4 style="color:var(--char-faye);">Faye</h4>
+            <p>Voice actor TBA</p>
+          </div>
+          <div class="credit-card">
+            <h4 style="color:var(--char-kai);">Kai</h4>
+            <p>Voice actor TBA</p>
+          </div>
+          <div class="credit-card">
+            <h4 style="color:var(--char-mira);">Mira</h4>
+            <p>Voice actor TBA</p>
+          </div>
+          <div class="credit-card">
+            <h4 style="color:var(--char-schmidhuber);">Schmidhuber</h4>
+            <p>Voice actor TBA</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>The Terminal Chat — A story told in messages</p>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
