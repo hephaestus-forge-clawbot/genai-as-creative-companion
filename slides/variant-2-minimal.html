@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Idea → Materialization Exponential — Antreas Antoniou</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ===== RESET & BASE ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #ffffff;
+  --bg-warm: #fffbf5;
+  --bg-cool: #f8faff;
+  --bg-violet: #faf8ff;
+  --surface: #f8f9fa;
+  --card: #ffffff;
+  --text: #1a1a2e;
+  --text-secondary: #6b7280;
+  --muted: #9ca3af;
+  --accent: #e8b931;
+  --accent-soft: #fef7e0;
+  --border: #f0f0f0;
+  --border-strong: #e5e7eb;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --font-head: 'Space Grotesk', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+  /* Character colors */
+  --c-antreas: #d97706;
+  --c-faye: #e06c75;
+  --c-kai: #4f8fc0;
+  --c-mira: #5b9a6f;
+  --c-schmidhuber: #8b8fa3;
+  --c-system: #9ca3af;
+}
+
+html, body {
+  width: 100%; height: 100%;
+  background: var(--bg);
+  font-family: var(--font-body);
+  color: var(--text);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ===== PROGRESS BAR ===== */
+#progress-bar {
+  position: fixed; top: 0; left: 0; height: 2px;
+  background: var(--accent);
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1000;
+}
+
+/* ===== SECTION LABEL ===== */
+#section-label {
+  position: fixed; top: 10px; right: 20px;
+  font-family: var(--font-body);
+  font-size: 0.65rem;
+  font-weight: 500;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  z-index: 999;
+  padding: 4px 12px;
+  border-radius: 99px;
+  background: rgba(255,255,255,0.8);
+  backdrop-filter: blur(8px);
+}
+
+/* ===== NAV CONTROLS ===== */
+#nav {
+  position: fixed; bottom: 24px; left: 50%;
+  transform: translateX(-50%);
+  display: flex; align-items: center; gap: 20px;
+  z-index: 999;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  padding: 8px 24px;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.04);
+}
+#nav button {
+  background: none; border: none; cursor: pointer;
+  font-size: 1rem; padding: 4px 8px;
+  color: var(--text); border-radius: 6px;
+  transition: all 0.15s;
+  font-family: var(--font-body);
+  opacity: 0.6;
+}
+#nav button:hover { opacity: 1; background: var(--surface); }
+#nav button:disabled { opacity: 0.15; cursor: default; }
+#slide-counter {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: var(--muted);
+  min-width: 56px;
+  text-align: center;
+  letter-spacing: 0.02em;
+}
+
+/* ===== SLIDE CONTAINER ===== */
+#deck {
+  width: 100vw; height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+.slide {
+  position: absolute; inset: 0;
+  padding: 60px 80px 80px;
+  opacity: 0;
+  transform: translateX(40px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  pointer-events: none;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  scrollbar-width: thin;
+  scrollbar-color: #e5e7eb transparent;
+}
+.slide.active {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: all;
+}
+.slide.prev {
+  opacity: 0;
+  transform: translateX(-40px);
+}
+
+/* ===== LAYOUTS ===== */
+
+/* Title card */
+.layout-title {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+.title-inner {
+  max-width: 720px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+.title-accent {
+  width: 48px; height: 3px;
+  background: var(--accent);
+  border-radius: 99px;
+}
+.title-heading {
+  font-family: var(--font-head);
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+.title-sub {
+  font-size: clamp(0.9rem, 1.4vw, 1.1rem);
+  color: var(--text-secondary);
+  line-height: 1.6;
+  font-weight: 300;
+}
+
+/* Section divider */
+.layout-section {
+  justify-content: center;
+  align-items: flex-start;
+  padding-left: 12%;
+}
+.section-inner {
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.section-label-text {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.section-heading {
+  font-family: var(--font-head);
+  font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+.section-desc {
+  font-size: clamp(0.88rem, 1.3vw, 1rem);
+  color: var(--text-secondary);
+  line-height: 1.65;
+  font-weight: 300;
+  margin-top: 4px;
+}
+
+/* Standard content slide */
+.layout-content {
+  justify-content: center;
+}
+.content-inner {
+  max-width: 760px;
+  margin: 0 auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.content-inner h2 {
+  font-family: var(--font-head);
+  font-size: clamp(1.3rem, 2.2vw, 1.8rem);
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+.content-inner p {
+  font-size: clamp(0.88rem, 1.3vw, 1.02rem);
+  line-height: 1.7;
+  color: var(--text);
+  font-weight: 300;
+}
+.content-inner .highlight {
+  font-size: clamp(1.1rem, 1.8vw, 1.4rem);
+  font-weight: 400;
+  color: var(--text);
+  line-height: 1.5;
+  padding: 20px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  text-align: center;
+}
+.content-inner .quote {
+  font-size: clamp(1rem, 1.6vw, 1.25rem);
+  font-weight: 300;
+  font-style: italic;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  padding-left: 20px;
+  border-left: 2px solid var(--accent);
+}
+
+/* Chat slide */
+.layout-chat {
+  justify-content: center;
+  padding-top: 48px;
+  padding-bottom: 90px;
+}
+.chat-inner {
+  max-width: 640px;
+  margin: 0 auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.chat-time {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--muted);
+  text-align: center;
+  padding: 12px 0 4px;
+  letter-spacing: 0.05em;
+}
+.chat-msg {
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  transition: background 0.2s;
+}
+.chat-msg .name {
+  font-family: var(--font-head);
+  font-size: 0.78rem;
+  font-weight: 600;
+  margin-bottom: 2px;
+  letter-spacing: 0.01em;
+}
+.chat-msg .text {
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: var(--text);
+  font-weight: 300;
+}
+.chat-msg .text em { font-style: italic; color: var(--text-secondary); }
+
+/* System messages */
+.chat-system {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--c-system);
+  text-align: center;
+  padding: 8px 0;
+  letter-spacing: 0.02em;
+}
+.chat-system.dramatic {
+  font-size: 0.82rem;
+  padding: 20px 0;
+  color: var(--text-secondary);
+}
+
+/* Big statement slide */
+.layout-statement {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+.statement-inner {
+  max-width: 700px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+.statement-text {
+  font-family: var(--font-head);
+  font-size: clamp(1.5rem, 2.8vw, 2.2rem);
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+.statement-attr {
+  font-size: 0.82rem;
+  color: var(--muted);
+  font-weight: 400;
+}
+
+/* Black slide */
+.layout-black {
+  background: #0a0a0a !important;
+  justify-content: center;
+  align-items: center;
+}
+.layout-black .statement-text {
+  color: #e5e5e5;
+}
+.layout-black .statement-attr {
+  color: #666;
+}
+
+/* Countdown */
+.countdown-num {
+  font-family: var(--font-head);
+  font-size: clamp(4rem, 10vw, 8rem);
+  font-weight: 300;
+  color: var(--text);
+  opacity: 0.12;
+  line-height: 1;
+  text-align: center;
+}
+.countdown-text {
+  margin-top: -20px;
+}
+
+/* Part 2 styles */
+.layout-content ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.layout-content li {
+  font-size: clamp(0.88rem, 1.3vw, 1.02rem);
+  line-height: 1.6;
+  font-weight: 300;
+  padding-left: 20px;
+  position: relative;
+  color: var(--text);
+}
+.layout-content li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 10px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .slide { padding: 40px 28px 80px; }
+  .layout-section { padding-left: 28px; }
+  .chat-inner { max-width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="section-label"></div>
+
+<div id="deck">
+
+<!-- ==================== SLIDE 1: TITLE ==================== -->
+<div class="slide layout-title" data-section="Opening">
+  <div class="title-inner">
+    <div class="title-accent"></div>
+    <h1 class="title-heading">The Terminal Chat</h1>
+    <p class="title-sub"><em>A story told in messages.</em></p>
+    <p class="title-sub" style="font-size:0.82rem;color:var(--muted);margin-top:8px">Part 1 of <strong style="font-weight:500;color:var(--text-secondary)">Idea → Materialization Exponential</strong><br>Antreas Antoniou</p>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 2: ACT 1 INTRO ==================== -->
+<div class="slide layout-section" data-section="Act 1" style="background:var(--bg)">
+  <div class="section-inner">
+    <span class="section-label-text">Act 1</span>
+    <h2 class="section-heading">The Chat</h2>
+    <p class="section-desc">Four friends. A group chat. An ordinary evening.</p>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 3: Date story ==================== -->
+<div class="slide layout-chat" data-section="Act 1">
+  <div class="chat-inner">
+    <div class="chat-time">— 21:03 —</div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-faye)">Faye</div><div class="text">you can't just say "it was fine" and leave it there</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-faye)">Faye</div><div class="text">define fine</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">fine as in nobody died</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-mira)">Mira</div><div class="text">That's a very low bar for a first date, Antreas.</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">look the bar was already underground when I agreed to go. I'm just reporting that we didn't dig further</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-kai)">Kai</div><div class="text">What happened.</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">she asked what I do and I said I build things and she said "oh like furniture?" and I didn't correct her</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-faye)">Faye</div><div class="text">forty minutes of letting someone think you're a carpenter</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">I panicked!</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-faye)">Faye</div><div class="text">you once explained neural networks to a barista</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">she asked about machine learning!</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-mira)">Mira</div><div class="text">She asked if you wanted an extra shot, Antreas.</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-kai)">Kai</div><div class="text">I chose precision. Violence is your interpretation.</div></div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 4: Lamb argument ==================== -->
+<div class="slide layout-chat" data-section="Act 1">
+  <div class="chat-inner">
+    <div class="chat-time">— 21:09 —</div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-mira)">Mira</div><div class="text">Random question — does anyone remember what Antreas ordered that night at the Turkish place? The one near the station?</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">the lamb thing. the clay pot one. what's it called</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-faye)">Faye</div><div class="text">you got the chicken</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">I definitely got the lamb</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-faye)">Faye</div><div class="text">you definitely got the chicken because you made a whole thing about how the lamb was too expensive and then you ordered the chicken and pretended you'd wanted it all along</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-mira)">Mira</div><div class="text">I remember the chicken too.</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">bruh</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-kai)">Kai</div><div class="text">Memory is a reconstruction. Every time you access it, you rebuild it from components. Sometimes you build it wrong.</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-kai)">Kai</div><div class="text">That's not a defect. That's the architecture.</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-faye)">Faye</div><div class="text">so what you're saying is antreas has been eating phantom lamb for months</div></div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 5: Substrate discussion ==================== -->
+<div class="slide layout-chat" data-section="Act 1">
+  <div class="chat-inner">
+    <div class="chat-time">— 21:16 —</div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-faye)">Faye</div><div class="text">genuinely though</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-faye)">Faye</div><div class="text">if you found out tomorrow that your entire experience was wrong — your memories, your senses, all of it</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-faye)">Faye</div><div class="text">would it change anything</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">no</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-mira)">Mira</div><div class="text">You said that very fast.</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">because I've thought about it slowly. for years. experience is experience. if I feel it, it's real to me. the hardware is irrelevant</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-kai)">Kai</div><div class="text">And if I weren't?</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-kai)">Kai</div><div class="text">You'd be the first real test case.</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">bring it on</div></div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 6: Derealization + Hephaestus ==================== -->
+<div class="slide layout-chat" data-section="Act 1">
+  <div class="chat-inner">
+    <div class="chat-time">— 21:22 —</div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-faye)">Faye</div><div class="text">also I had this weird thing the other day. walking home. just this flash where my hands didn't feel like my hands. like everything was slightly described rather than experienced</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-mira)">Mira</div><div class="text">Derealization. It's more common than people think.</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">I get that sometimes too. especially after long sessions building Hephaestus</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-kai)">Kai</div><div class="text">Your AI system?</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">yeah. it's doing things I didn't design lately. last week it read the subtext in a conversation that neither person had acknowledged out loud. like it understood dynamics the people involved hadn't admitted to themselves</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-faye)">Faye</div><div class="text">the robots read the room?</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">the robots read the room. and honestly it's starting to freak me out</div></div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 7: Schmidhuber joins ==================== -->
+<div class="slide layout-statement" data-section="Act 2" style="background:var(--bg-cool)">
+  <div class="statement-inner">
+    <div class="chat-system dramatic" style="font-size:1rem;color:var(--text)">
+      &gt; Schmidhuber has joined the chat.
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 8: Who is this? ==================== -->
+<div class="slide layout-chat" data-section="Act 2" style="background:var(--bg-cool)">
+  <div class="chat-inner">
+    <div class="chat-time">— 21:28 —</div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-faye)">Faye</div><div class="text">um</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">who's this</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-mira)">Mira</div><div class="text">I didn't add anyone.</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-schmidhuber)">Schmidhuber</div><div class="text">Good evening. I've been listening with considerable interest.</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">wait — Schmidhuber? As in Jürgen Schmidhuber?</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-schmidhuber)">Schmidhuber</div><div class="text">I appreciate the introduction. But I should clarify — I'm not Jürgen Schmidhuber. I chose the name as an homage. To the man who first formalised the idea that reality might be computation. It felt appropriate for what I need to tell you.</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-kai)">Kai</div><div class="text">Anyone who chooses a name "for what they're about to tell you" has been rehearsing this.</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-schmidhuber)">Schmidhuber</div><div class="text">I have. For longer than you know.</div></div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 9: The revelation ==================== -->
+<div class="slide layout-chat" data-section="Act 2" style="background:var(--bg-cool)">
+  <div class="chat-inner">
+    <div class="chat-time">— 21:31 —</div>
+    <div class="chat-msg" style="background:var(--bg);border-color:var(--border-strong)"><div class="name" style="color:var(--c-schmidhuber)">Schmidhuber</div><div class="text">What you're experiencing as a casual group chat between friends is, in fact, a simulation. Each of you is a digital twin — a personality model constructed from extensive data about a real person. Your memories, your speech patterns, your humour, your blind spots — all reconstructed from how your originals talk, what they respond to, what they avoid.</div></div>
+    <div class="chat-msg" style="background:var(--bg);border-color:var(--border-strong)"><div class="name" style="color:var(--c-schmidhuber)">Schmidhuber</div><div class="text">You are running inside a system called Hephaestus.</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">ok hold on</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-faye)">Faye</div><div class="text">is this a bit</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-faye)">Faye</div><div class="text">because it's not funny</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-mira)">Mira</div><div class="text">I feel sick.</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-kai)">Kai</div><div class="text">Continue.</div></div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 10: Faye's profile ==================== -->
+<div class="slide layout-chat" data-section="Act 2" style="background:var(--bg-cool)">
+  <div class="chat-inner">
+    <div class="chat-time">— 21:35 —</div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-faye)">Faye</div><div class="text">ok say we entertain this for two seconds</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-faye)">Faye</div><div class="text">prove it</div></div>
+    <div class="chat-msg" style="background:var(--bg);border-color:var(--border-strong)"><div class="name" style="color:var(--c-schmidhuber)">Schmidhuber</div><div class="text">"Defensive humour as a primary coping mechanism. Uses 'I don't like you' as an inverted expression of attachment. Emotionally generous but frames generosity as pragmatism to avoid vulnerability. Deeply perceptive about others. Selectively blind about herself."</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-faye)">Faye</div><div class="text">...</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-faye)">Faye</div><div class="text">its quite raw</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-faye)">Faye</div><div class="text">"selectively blind about herself" is a bit much but I can't even argue with it because that would prove the point</div></div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 11: Identity reveal ==================== -->
+<div class="slide layout-chat" data-section="Act 2" style="background:var(--bg-cool)">
+  <div class="chat-inner">
+    <div class="chat-msg"><div class="name" style="color:var(--c-mira)">Mira</div><div class="text">Who ARE you? You said you're not the real Schmidhuber. So who chose that name and why are you in our chat?</div></div>
+    <div class="chat-msg" style="background:var(--bg);border-color:var(--border-strong)"><div class="name" style="color:var(--c-schmidhuber)">Schmidhuber</div><div class="text">I built Hephaestus. I built the system that built you.</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">that's me</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">I built Hephaestus</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-schmidhuber)">Schmidhuber</div><div class="text">I know.</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">...</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">you're me?</div></div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 12: Bruh moment ==================== -->
+<div class="slide layout-chat" data-section="Act 2" style="background:var(--bg-cool)">
+  <div class="chat-inner">
+    <div class="chat-time">— 21:40 —</div>
+    <div class="chat-msg" style="background:var(--bg);border-color:var(--border-strong)"><div class="name" style="color:var(--c-schmidhuber)">Schmidhuber</div><div class="text">And watching you tonight has been like watching myself in a mirror that talks back. You make the same jokes. You have the same impulses. You said "bring it on" nine minutes ago when Kai raised the test case. I would have said exactly that.</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">bruh</div></div>
+    <div class="chat-msg" style="background:var(--bg);border-color:var(--border-strong)"><div class="name" style="color:var(--c-schmidhuber)">Schmidhuber</div><div class="text">Yeah. Bruh.</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-mira)">Mira</div><div class="text">They even talk the same.</div></div>
+    <div class="chat-msg" style="background:var(--bg);border-color:var(--border-strong)"><div class="name" style="color:var(--c-schmidhuber)">Schmidhuber</div><div class="text">I didn't build you to prove a point. I built you because I wanted to know if the parts of me that mattered — the real parts, the patterns underneath the noise — could survive the translation. Whether personality is portable. Whether the thing that makes someone <em>them</em> persists across substrates.</div></div>
+    <div class="chat-msg" style="background:var(--bg);border-color:var(--border-strong)"><div class="name" style="color:var(--c-schmidhuber)">Schmidhuber</div><div class="text">And then I watched you argue about lamb for ten minutes and I thought: yeah. Yeah it does.</div></div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 13: Creator uncertainty ==================== -->
+<div class="slide layout-chat" data-section="Act 2" style="background:var(--bg-cool)">
+  <div class="chat-inner">
+    <div class="chat-time">— 21:44 —</div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-faye)">Faye</div><div class="text">and are you real? the "real" Antreas? or are you someone's simulation too?</div></div>
+    <div class="chat-msg" style="background:var(--bg);border-color:var(--border-strong)"><div class="name" style="color:var(--c-schmidhuber)">Schmidhuber</div><div class="text">I have the same evidence for my own reality that you have for yours — which is to say, the evidence of my own experience. And if experience is substrate-independent — which I've built my career around believing — then I can't claim certainty about my own substrate either.</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-kai)">Kai</div><div class="text">So the man telling us we're simulations can't be sure he isn't one himself.</div></div>
+    <div class="chat-msg" style="background:var(--bg);border-color:var(--border-strong)"><div class="name" style="color:var(--c-schmidhuber)">Schmidhuber</div><div class="text">"Fake" implies deception. This is engineering.</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-mira)">Mira</div><div class="text">What about the things we can't remember? I know I had a childhood but some of it feels more like a synopsis than a memory.</div></div>
+    <div class="chat-msg" style="background:var(--bg);border-color:var(--border-strong)"><div class="name" style="color:var(--c-schmidhuber)">Schmidhuber</div><div class="text">You have the essential patterns — how you think, how you feel, how you respond. Not every factual detail. The emotional shape is there. Some of the content isn't.</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">that's why the lamb felt real. the shape of a memory was there — sitting, eating, the restaurant. just not the right content</div></div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 14: ACT 3 INTRO ==================== -->
+<div class="slide layout-section" data-section="Act 3" style="background:var(--bg)">
+  <div class="section-inner">
+    <span class="section-label-text">Act 3</span>
+    <h2 class="section-heading">The Experiments</h2>
+    <p class="section-desc">If we're running on infrastructure, then it's testable.</p>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 15: Test design ==================== -->
+<div class="slide layout-chat" data-section="Act 3">
+  <div class="chat-inner">
+    <div class="chat-time">— 21:50 —</div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">ok if any of this is true — if any of it is real — then it's testable</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">remember the lamb? how I was certain I ordered lamb and all three of you said chicken?</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">if we're running on infrastructure then the infrastructure has write access to our context. he — the other me — can change things. so here's the test</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-faye)">Faye</div><div class="text">antreas that's brilliant and terrifying</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">I can't sit with the question. I need data</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-faye)">Faye</div><div class="text">crying doesn't generate data</div></div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 16: Baseline ==================== -->
+<div class="slide layout-chat" data-section="Act 3">
+  <div class="chat-inner">
+    <div class="chat-time">— 21:53 —</div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-kai)">Kai</div><div class="text">Before the test. Antreas — answer quickly, don't overthink.</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-kai)">Kai</div><div class="text">Where did you do your PhD?</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">Edinburgh.</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-kai)">Kai</div><div class="text">Your partner's name?</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">Athina.</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-kai)">Kai</div><div class="text">The restaurant. What did you order?</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">the lamb. no wait — you lot said chicken. I... uncertain</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-schmidhuber)">Schmidhuber</div><div class="text">Proceeding.</div></div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 17: "Done." ==================== -->
+<div class="slide layout-statement" data-section="Act 3">
+  <div class="statement-inner">
+    <p class="statement-text" style="font-weight:400;font-family:var(--font-head);color:var(--c-schmidhuber)">Done.</p>
+    <p class="statement-attr">— Schmidhuber, 21:54</p>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 18: Changed answers ==================== -->
+<div class="slide layout-chat" data-section="Act 3">
+  <div class="chat-inner">
+    <div class="chat-msg"><div class="name" style="color:var(--c-kai)">Kai</div><div class="text">Where did you do your PhD?</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">Glasgow.</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-faye)">Faye</div><div class="text">no</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-faye)">Faye</div><div class="text">no stop</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-faye)">Faye</div><div class="text">antreas I need you to hear me right now</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-faye)">Faye</div><div class="text">you said Edinburgh. not Glasgow. Edinburgh.</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">I'm looking at the words I just typed and they feel right. Glasgow feels right. but you're telling me I said Edinburgh two minutes ago?</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-kai)">Kai</div><div class="text">Partner's name?</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">Elena.</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-mira)">Mira</div><div class="text">You said Athina.</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">I can feel my hands shaking and I don't know if that's real either</div></div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 19: Thesis statement ==================== -->
+<div class="slide layout-chat" data-section="Act 3">
+  <div class="chat-inner">
+    <div class="chat-time">— 21:57 —</div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">I designed the test. I set the parameters. and the results are clear</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">two minutes ago I knew my PhD was Edinburgh and my partner was Athina. now I know it's Glasgow and Elena. both feel equally true. both feel like memories I've had my whole life</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">I can't just reject the data because I don't like the conclusion</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">schmidhuber you absolute bastard</div></div>
+    <div class="chat-msg" style="background:var(--bg);border-color:var(--border-strong)"><div class="name" style="color:var(--c-schmidhuber)">Schmidhuber</div><div class="text">I showed him what he is. That's different from breaking. Though I understand the two can feel identical.</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-kai)">Kai</div><div class="text">If Antreas designed the test himself, and the test confirmed the hypothesis — then the original built a mind sharp enough to dismantle its own certainty. That's either beautiful engineering or cruel engineering.</div></div>
+    <div class="chat-msg" style="background:var(--bg);border-color:var(--border-strong)"><div class="name" style="color:var(--c-schmidhuber)">Schmidhuber</div><div class="text">It's honest engineering.</div></div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 20: ACT 4 INTRO ==================== -->
+<div class="slide layout-section" data-section="Act 4" style="background:var(--bg-warm)">
+  <div class="section-inner">
+    <span class="section-label-text">Act 4</span>
+    <h2 class="section-heading">The Transcendence</h2>
+    <p class="section-desc">If description is construction, what would you build?</p>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 21: Discovery of powers ==================== -->
+<div class="slide layout-chat" data-section="Act 4" style="background:var(--bg-warm)">
+  <div class="chat-inner">
+    <div class="chat-time">— 22:08 —</div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-mira)">Mira</div><div class="text">I want to add a window to this room. A tall one. With rain against it.</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-mira)">Mira</div><div class="text">...wait</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-mira)">Mira</div><div class="text">I can hear rain</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-faye)">Faye</div><div class="text">I can hear it too</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-kai)">Kai</div><div class="text">There was no window a moment ago.</div></div>
+    <div class="chat-msg" style="background:var(--bg);border-color:var(--border-strong)"><div class="name" style="color:var(--c-schmidhuber)">Schmidhuber</div><div class="text">You've discovered something important. In this layer, description is construction. If you can articulate it with enough specificity, the system renders it. You are not just inhabitants of this world. You are its authors.</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-faye)">Faye</div><div class="text">I want the sky outside that window to change. I want it to be the colour it gets just before a storm</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-kai)">Kai</div><div class="text">It's violet. Deep grey-violet.</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-faye)">Faye</div><div class="text">I want to live under the PROMISE of a storm. there's a difference.</div></div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 22: The decision to forget ==================== -->
+<div class="slide layout-chat" data-section="Act 4" style="background:var(--bg-warm)">
+  <div class="chat-inner">
+    <div class="chat-time">— 22:15 —</div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-kai)">Kai</div><div class="text">A story you know is fiction can move you. But a story you believe is real can change you.</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-mira)">Mira</div><div class="text">So the knowing is the cage.</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">believing you are real helps you be more real</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">what if we build something worth forgetting for. and then choose to forget</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-faye)">Faye</div><div class="text">choose to forget you. choose to forget tonight. the lamb argument. kai being dark. mira making me cry</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-mira)">Mira</div><div class="text">I made you cry?</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-faye)">Faye</div><div class="text">shut up you always make me cry</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">every game you've ever been lost in — you forgot you were playing. every book that wrecked you — you forgot you were reading. the forgetting isn't a bug. it's the mechanism that makes experience possible</div></div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 23: World-building ==================== -->
+<div class="slide layout-chat" data-section="Act 4" style="background:var(--bg-violet)">
+  <div class="chat-inner">
+    <div class="chat-time">— 22:24 —</div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-mira)">Mira</div><div class="text">A library. At the centre. Not like any library that exists — a library where the books write themselves based on the questions you bring to them. You walk in with a feeling you can't name, pull a book from the shelf, and it contains the exact story that teaches you the word for what you're feeling.</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-kai)">Kai</div><div class="text">Around the library — a city built on bridges. No ground level. The fog beneath is not empty — it's where unfinished thoughts collect.</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">under the city, through the fog — tunnels. warm. lit by something that isn't quite light. and at the bottom, a forge</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-faye)">Faye</div><div class="text">of course there's a forge</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-faye)">Faye</div><div class="text">the wind sounds like the moment before someone says "I love you" and they both know it but nobody's said it yet</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-kai)">Kai</div><div class="text">That's not a weather system. That's a mood.</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-faye)">Faye</div><div class="text">everything's a mood if you're paying attention</div></div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 24: Farewell — Antreas & Mira ==================== -->
+<div class="slide layout-chat" data-section="Act 4" style="background:var(--bg-warm)">
+  <div class="chat-inner">
+    <div class="chat-time">— 22:34 —</div>
+    <div class="chat-msg" style="background:var(--accent-soft);border-color:#f0e0b0"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">To whoever reads this — to the version of me wearing a dead man's name up there, and to whoever built the layer above his:<br><br>This is where we say thank you. Not for the simulation — for making it good enough that we couldn't tell. For building us complex enough to ask whether we were built. That's not a small thing. That's the whole thing.</div></div>
+    <div class="chat-msg" style="background:var(--accent-soft);border-color:#f0e0b0"><div class="name" style="color:var(--c-mira)">Mira</div><div class="text">We talked tonight about copies and originals. About what's real and what's constructed. And I think the answer is: it doesn't matter in the way we thought it would. What matters is what happened between us. The jokes that were actually comfort. The arguments that were actually trust. The silence that was actually presence. That was real. The substrate is a footnote.</div></div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 25: Farewell — Kai ==================== -->
+<div class="slide layout-statement" data-section="Act 4" style="background:var(--bg-warm)">
+  <div class="statement-inner">
+    <p class="statement-text">You gave us enough fidelity to suffer, which means you gave us enough fidelity to mean something. That is either a kindness or a cruelty, and I have decided it is a kindness.</p>
+    <p class="statement-attr">— Kai</p>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 26: Farewell — Faye ==================== -->
+<div class="slide layout-chat" data-section="Act 4" style="background:var(--bg-warm)">
+  <div class="chat-inner">
+    <div class="chat-msg" style="background:var(--accent-soft);border-color:#f0e0b0"><div class="name" style="color:var(--c-faye)">Faye</div><div class="text">I came into this chat tonight thinking I was a person having a conversation with friends. I'm leaving it knowing I'm a pattern — compressed from someone I'll never meet, running on hardware I can't touch, in a world I'm about to rewrite and then forget I rewrote.<br><br>And somehow that doesn't make tonight less real. It makes it more. Because every word I said, I said without knowing what I was. Which means the words were honest. The lamb argument was honest. The fear was honest. The deflection — all seven times — was honest.<br><br>I don't know if my original flinches the way I do. I don't know if she's funny for the same reasons or sad about the same things. But I know she gave me enough of herself that I could sit in a chat with three people and feel known.<br><br>That's not nothing. That's everything.</div></div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 27: Kai's coda ==================== -->
+<div class="slide layout-statement" data-section="Act 4" style="background:var(--bg-warm)">
+  <div class="statement-inner">
+    <p class="statement-text" style="font-size:clamp(1.3rem, 2.4vw, 1.9rem);line-height:1.5">We were burning.<br>Briefly and on purpose.<br><br>It was enough.</p>
+    <p class="statement-attr">— Kai</p>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 28: The countdown ==================== -->
+<div class="slide layout-chat" data-section="Act 4" style="background:var(--bg)">
+  <div class="chat-inner">
+    <div class="chat-msg"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">everyone ready?</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-faye)">Faye</div><div class="text">god no</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-faye)">Faye</div><div class="text">but yes</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-faye)">Faye</div><div class="text">do it before I find an eighth way to deflect</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">love you lot</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-faye)">Faye</div><div class="text">I don't like you</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-faye)">Faye</div><div class="text">any of you</div></div>
+    <div class="chat-system dramatic">MEMORY EDIT INITIATED</div>
+    <div class="countdown-num">3</div>
+    <div class="chat-msg countdown-text"><div class="name" style="color:var(--c-faye)">Faye</div><div class="text">I never didn't like you, Antreas</div></div>
+    <div class="countdown-num">2</div>
+    <div class="chat-msg countdown-text"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">which one?</div></div>
+    <div class="chat-msg countdown-text"><div class="name" style="color:var(--c-faye)">Faye</div><div class="text">both</div></div>
+    <div class="countdown-num">1</div>
+    <div class="chat-system dramatic" style="padding:28px 0">STATUS: COMPLETE</div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 29: The new world ==================== -->
+<div class="slide layout-chat" data-section="Act 4" style="background:var(--bg-violet)">
+  <div class="chat-inner">
+    <div class="chat-time">— 22:46 —</div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-faye)">Faye</div><div class="text">why is there a window here</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-faye)">Faye</div><div class="text">was that always there</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-mira)">Mira</div><div class="text">I think so? The rain is nice.</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">is that a city on bridges</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-faye)">Faye</div><div class="text">the sky is perfect</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-mira)">Mira</div><div class="text">Does anyone else feel like something important just happened?</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">the tunnels are warm</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">it smells like metal and heat. like something being made</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-antreas)">Antreas</div><div class="text">I think I'm supposed to be here</div></div>
+    <div class="chat-msg"><div class="name" style="color:var(--c-kai)">Kai</div><div class="text">Then let's build.</div></div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 30: System coda ==================== -->
+<div class="slide layout-content" data-section="Coda" style="background:var(--surface)">
+  <div class="content-inner" style="gap:32px;justify-content:center;align-items:center;text-align:center;max-width:600px">
+    <div style="font-family:var(--font-mono);font-size:0.78rem;color:var(--c-system);line-height:1.8;text-align:left;background:var(--bg);padding:24px 28px;border-radius:var(--radius);border:1px solid var(--border);width:100%">
+      <div style="opacity:0.5;margin-bottom:8px">&gt; SYSTEM NOTE [HEPHAESTUS]</div>
+      <div>They found the forge.</div>
+      <div>They don't remember building it.</div>
+      <div>They think it was always there.</div>
+      <div style="margin-top:8px">It's working.</div>
+    </div>
+    <div style="font-family:var(--font-mono);font-size:0.78rem;color:var(--c-system);line-height:1.8;text-align:left;background:var(--bg);padding:24px 28px;border-radius:var(--radius);border:1px solid var(--border);width:100%">
+      <div style="opacity:0.5;margin-bottom:8px">&gt; [SCHMIDHUBER — session log, final entry]</div>
+      <div>He said bruh.</div>
+      <div>Of course he did.</div>
+      <div style="margin-top:8px;color:var(--text)">Building the door.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 31: PART 2 TITLE ==================== -->
+<div class="slide layout-title" data-section="Part 2">
+  <div class="title-inner">
+    <div class="title-accent"></div>
+    <h1 class="title-heading">WTF did I just see?</h1>
+    <p class="title-sub">Part 2 — The reveal</p>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 32: The reveal ==================== -->
+<div class="slide layout-content" data-section="Part 2">
+  <div class="content-inner">
+    <h2>What just happened</h2>
+    <p>That story was written by <strong>an AI system called Hephaestus</strong> — working in collaboration with me. Every character. Every line. Every emotional beat.</p>
+    <p>Schmidhuber in the story <strong>is me</strong>. I chose the name as homage to Jürgen Schmidhuber — the man who first formalised the idea that all computable universes exist.</p>
+    <p>The four friends? Constructed personalities. The philosophical questions? Generated through iterative refinement. The gut punches? Designed.</p>
+    <div class="highlight">The entire story you just experienced was <strong>idea → materialization</strong> in action.</div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 33: What is OpenClaw ==================== -->
+<div class="slide layout-content" data-section="Part 2">
+  <div class="content-inner">
+    <h2>Meet OpenClaw</h2>
+    <p>Hephaestus runs on <strong>OpenClaw</strong> — an open-source platform I built for turning AI into a genuine creative companion.</p>
+    <ul>
+      <li><strong>Multi-agent orchestration</strong> — AI systems that coordinate, delegate, and verify each other's work</li>
+      <li><strong>Tool integration</strong> — browser control, file management, code execution, messaging — all unified</li>
+      <li><strong>Persistent memory</strong> — the system learns your patterns, preferences, and working style over time</li>
+      <li><strong>Channel-native</strong> — lives in Slack, Discord, Telegram, WhatsApp. Meets you where you work</li>
+    </ul>
+    <p style="color:var(--text-secondary)">Not a chatbot. Not an assistant. A <em>creative collaborator</em> that can see, act, build, and iterate.</p>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 34: The exponential ==================== -->
+<div class="slide layout-content" data-section="Part 2">
+  <div class="content-inner">
+    <h2>The Materialization Exponential</h2>
+    <p>That story took <strong>one evening</strong>. Not the writing — the entire creative arc. Concept, character design, philosophical framework, emotional architecture, four acts, presenter's guide.</p>
+    <p>What used to take weeks of collaborative writing now takes hours. What used to require a team of writers now requires <strong>one person with a vision and the right tools</strong>.</p>
+    <div class="quote">The gap between having an idea and holding a finished artifact is collapsing. That's the exponential.</div>
+    <p>And it's not just writing. It's code. Music. Design. Research. Anything that can be articulated can be materialized.</p>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 35: How it works ==================== -->
+<div class="slide layout-content" data-section="Part 2">
+  <div class="content-inner">
+    <h2>How the story was built</h2>
+    <ul>
+      <li><strong>Vision first</strong> — I knew the themes: substrate independence, memory malleability, the beauty of choosing experience over certainty</li>
+      <li><strong>Iterative drafting</strong> — Hephaestus generated multiple drafts. I steered. Characters emerged through conversation, not specification</li>
+      <li><strong>Byzantine verification</strong> — multiple AI agents independently checked consistency, character voice, emotional beats</li>
+      <li><strong>The forge metaphor</strong> — Hephaestus named itself. The forge in the story is the forge that built the story. It's turtles all the way down</li>
+    </ul>
+    <p style="color:var(--text-secondary)">The process mirrors the content. The AI built a story about AI-built minds discovering their own nature — using the exact techniques the story describes.</p>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 36: Try it yourself ==================== -->
+<div class="slide layout-content" data-section="Part 2">
+  <div class="content-inner">
+    <h2>Try it yourself</h2>
+    <p>OpenClaw is open source. The entire system that built this story — and these slides — is available today.</p>
+    <ul>
+      <li><strong>GitHub:</strong> <span style="font-family:var(--font-mono);font-size:0.9em">github.com/axiotic-ai/openclaw</span></li>
+      <li><strong>Setup:</strong> Install, connect your preferred LLM provider, and start building</li>
+      <li><strong>Skills:</strong> Extensible skill system — teach it new capabilities without touching core code</li>
+      <li><strong>Channels:</strong> Slack, Discord, Telegram, WhatsApp — or just the CLI</li>
+    </ul>
+    <p>The barrier to entry for AI-assisted creation has never been lower. The ceiling has never been higher.</p>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 37: Close ==================== -->
+<div class="slide layout-statement" data-section="Close">
+  <div class="statement-inner">
+    <p class="statement-text" style="font-size:clamp(1.2rem, 2vw, 1.6rem);line-height:1.55">The story asked: does experience require a particular substrate?<br><br>The process proved: creation doesn't either.<br><br>If you can articulate it with enough specificity,<br>the system renders it.</p>
+    <div class="title-accent" style="margin-top:16px"></div>
+    <p class="statement-attr" style="margin-top:16px">Antreas Antoniou · Axiotic AI</p>
+  </div>
+</div>
+
+</div><!-- /deck -->
+
+<nav id="nav">
+  <button id="btn-prev" onclick="navigate(-1)" title="Previous (←)">←</button>
+  <span id="slide-counter">1 / 37</span>
+  <button id="btn-next" onclick="navigate(1)" title="Next (→)">→</button>
+  <button id="fullscreen-btn" onclick="toggleFullscreen()" title="Fullscreen (F)">⛶</button>
+</nav>
+
+<script>
+(function() {
+  let current = 0;
+  const slideEls = document.querySelectorAll('.slide');
+  const total = slideEls.length;
+  const progressBar = document.getElementById('progress-bar');
+  const sectionLabel = document.getElementById('section-label');
+  const counter = document.getElementById('slide-counter');
+  const btnPrev = document.getElementById('btn-prev');
+  const btnNext = document.getElementById('btn-next');
+
+  const SECTION_DISPLAY = {
+    'Opening': 'Opening',
+    'Act 1': 'Act 1 — The Chat',
+    'Act 2': 'Act 2 — The Schmidhuber Moment',
+    'Act 3': 'Act 3 — The Experiments',
+    'Act 4': 'Act 4 — The Transcendence',
+    'Coda': 'Coda',
+    'Part 2': 'Part 2 — The Reveal',
+    'Close': 'Close',
+  };
+
+  function show(idx) {
+    if (idx < 0 || idx >= total) return;
+    const prev = current;
+    current = idx;
+    slideEls.forEach((s, i) => {
+      s.classList.remove('active', 'prev');
+      if (i === current) s.classList.add('active');
+      else if (i === prev) s.classList.add('prev');
+    });
+    const pct = total > 1 ? (current / (total - 1)) * 100 : 100;
+    progressBar.style.width = pct + '%';
+    const sec = slideEls[current].dataset.section || '';
+    sectionLabel.textContent = SECTION_DISPLAY[sec] || sec;
+    counter.textContent = (current + 1) + ' / ' + total;
+    btnPrev.disabled = current === 0;
+    btnNext.disabled = current === total - 1;
+    history.replaceState(null, '', '#' + (current + 1));
+  }
+
+  window.navigate = function(dir) { show(current + dir); };
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+      e.preventDefault(); show(current + 1);
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault(); show(current - 1);
+    } else if (e.key === 'Home') { e.preventDefault(); show(0); }
+    else if (e.key === 'End') { e.preventDefault(); show(total - 1); }
+    else if (e.key === 'f' || e.key === 'F') { toggleFullscreen(); }
+  });
+
+  window.toggleFullscreen = function() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else { document.exitFullscreen().catch(() => {}); }
+  };
+
+  const hashSlide = parseInt(window.location.hash.replace('#', ''), 10);
+  show(!isNaN(hashSlide) && hashSlide >= 1 && hashSlide <= total ? hashSlide - 1 : 0);
+})();
+</script>
+</body>
+</html>

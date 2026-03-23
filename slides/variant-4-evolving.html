@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Idea → Materialization Exponential — Antreas Antoniou</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+/* ===== RESET ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* Act 1: Clean, modern, light */
+  --bg: #f8fafc;
+  --bg-card: #ffffff;
+  --text: #1e293b;
+  --text-muted: #64748b;
+  --accent: #6366f1;
+  --border: #e2e8f0;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-display: 'Playfair Display', Georgia, serif;
+
+  /* Character colours */
+  --c-antreas: #f59e0b;
+  --c-faye: #e11d48;
+  --c-kai: #3b82f6;
+  --c-mira: #10b981;
+  --c-schmidhuber: #a78bfa;
+  --c-system: #6b7280;
+
+  --slide-transition: 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== PROGRESS BAR ===== */
+#progress {
+  position: fixed; top: 0; left: 0; height: 3px;
+  background: var(--accent);
+  transition: width 0.35s ease, background 0.8s ease;
+  z-index: 1000;
+}
+
+/* ===== SLIDE COUNTER ===== */
+#counter {
+  position: fixed; bottom: 20px; right: 24px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  z-index: 999;
+  opacity: 0.7;
+  transition: color 0.8s ease;
+}
+
+/* ===== CANVAS FOR PARTICLES ===== */
+#particles {
+  position: fixed; inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 1.5s ease;
+}
+body.act4 #particles,
+body.act4-farewell #particles { opacity: 1; }
+
+/* ===== SLIDE DECK ===== */
+#deck {
+  width: 100vw; height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+.slide {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  justify-content: center; align-items: center;
+  padding: 60px 80px;
+  opacity: 0;
+  transform: translateX(80px);
+  transition: opacity var(--slide-transition), transform var(--slide-transition);
+  pointer-events: none;
+  overflow-y: auto;
+  z-index: 2;
+}
+.slide.active {
+  opacity: 1; transform: translateX(0);
+  pointer-events: all;
+}
+.slide.prev {
+  opacity: 0; transform: translateX(-80px);
+}
+
+.slide-inner {
+  max-width: 800px; width: 100%;
+}
+
+/* ===== ACT 1 STYLES — Clean, modern, light ===== */
+body.act1 {
+  background: #f8fafc;
+  color: #1e293b;
+}
+body.act1 #progress { background: #6366f1; }
+
+.act1-bg {
+  background: #f8fafc;
+}
+
+/* Chat message styling — Act 1 */
+.chat-msg {
+  margin-bottom: 8px;
+  line-height: 1.6;
+  font-size: clamp(0.85rem, 1.3vw, 1rem);
+  animation: msgAppear 0.3s ease both;
+}
+.chat-msg .name {
+  font-weight: 600;
+  margin-right: 6px;
+}
+.chat-msg .name.antreas { color: var(--c-antreas); }
+.chat-msg .name.faye { color: var(--c-faye); }
+.chat-msg .name.kai { color: var(--c-kai); }
+.chat-msg .name.mira { color: var(--c-mira); }
+.chat-msg .name.schmidhuber { color: var(--c-schmidhuber); }
+
+.timestamp {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin: 16px 0 8px;
+  opacity: 0.7;
+}
+
+.system-msg {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--c-system);
+  padding: 8px 12px;
+  border-left: 3px solid var(--c-system);
+  margin: 12px 0;
+  background: rgba(107, 114, 128, 0.08);
+  border-radius: 0 6px 6px 0;
+}
+
+/* Section titles */
+.section-title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  font-weight: 700;
+  line-height: 1.15;
+  margin-bottom: 12px;
+}
+.section-subtitle {
+  font-size: clamp(1rem, 1.8vw, 1.25rem);
+  color: var(--text-muted);
+  font-weight: 300;
+}
+.section-label {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  margin-bottom: 8px;
+  opacity: 0.6;
+}
+
+/* ===== ACT 2 STYLES — Glitching, distorted ===== */
+body.act2 {
+  background: #1a1a2e;
+  color: #e2e8f0;
+}
+body.act2 #progress { background: #a78bfa; }
+body.act2 #counter { color: #a78bfa; }
+
+body.act2 .timestamp { color: #7c83db; }
+body.act2 .system-msg {
+  border-left-color: #a78bfa;
+  background: rgba(167, 139, 250, 0.1);
+  color: #c4b5fd;
+}
+
+/* Glitch effect for Act 2 */
+@keyframes glitch {
+  0%, 100% { transform: translate(0); }
+  20% { transform: translate(-1px, 1px); }
+  40% { transform: translate(1px, -1px); }
+  60% { transform: translate(-1px, 0); }
+  80% { transform: translate(1px, 1px); }
+}
+
+@keyframes chromatic {
+  0%, 100% { text-shadow: none; }
+  25% { text-shadow: -1px 0 #ff006e, 1px 0 #00d4ff; }
+  50% { text-shadow: 1px 0 #ff006e, -1px 0 #00d4ff; }
+  75% { text-shadow: 0 -1px #ff006e, 0 1px #00d4ff; }
+}
+
+body.act2 .section-title {
+  animation: chromatic 3s infinite;
+}
+
+body.act2 .glitch-text {
+  animation: glitch 0.5s infinite;
+}
+
+/* Scan line overlay */
+body.act2::after {
+  content: '';
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.05) 2px,
+    rgba(0,0,0,0.05) 4px
+  );
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* ===== ACT 3 STYLES — Clinical, grid-based ===== */
+body.act3 {
+  background: #0a0a0f;
+  color: #e2e8f0;
+}
+body.act3 #progress { background: #22d3ee; }
+body.act3 #counter { color: #22d3ee; }
+
+body.act3::after {
+  content: '';
+  position: fixed; inset: 0;
+  background:
+    linear-gradient(rgba(34,211,238,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(34,211,238,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+body.act3 .timestamp {
+  color: #22d3ee;
+  font-weight: 600;
+}
+body.act3 .system-msg {
+  border-left-color: #22d3ee;
+  background: rgba(34,211,238,0.08);
+  color: #67e8f9;
+  font-weight: 500;
+}
+
+body.act3 .chat-msg {
+  font-family: var(--font-mono);
+  font-size: clamp(0.8rem, 1.2vw, 0.95rem);
+}
+
+body.act3 .section-title {
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* Data readout styling */
+.data-block {
+  background: rgba(34,211,238,0.06);
+  border: 1px solid rgba(34,211,238,0.2);
+  border-radius: 4px;
+  padding: 16px;
+  margin: 12px 0;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+.data-label {
+  color: #22d3ee;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 4px;
+}
+
+/* ===== ACT 4 STYLES — Fantasy, transcendent ===== */
+body.act4, body.act4-farewell {
+  background: #0f0520;
+  color: #f1e8ff;
+}
+body.act4 #progress,
+body.act4-farewell #progress {
+  background: linear-gradient(90deg, #f59e0b, #e11d48, #a78bfa, #10b981);
+  background-size: 300% 100%;
+  animation: gradientShift 4s ease infinite;
+}
+body.act4 #counter,
+body.act4-farewell #counter { color: #c4b5fd; }
+
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+body.act4::after, body.act4-farewell::after {
+  content: '';
+  position: fixed; inset: 0;
+  background: radial-gradient(ellipse at 30% 50%, rgba(139,92,246,0.15) 0%, transparent 60%),
+              radial-gradient(ellipse at 70% 80%, rgba(225,29,72,0.1) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+body.act4 .section-title,
+body.act4-farewell .section-title {
+  background: linear-gradient(135deg, #f59e0b, #e11d48, #a78bfa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+body.act4 .chat-msg,
+body.act4-farewell .chat-msg {
+  font-size: clamp(0.9rem, 1.4vw, 1.1rem);
+  line-height: 1.75;
+}
+
+body.act4 .timestamp,
+body.act4-farewell .timestamp {
+  color: #a78bfa;
+  font-style: italic;
+}
+
+/* Warm glow for farewell */
+body.act4-farewell {
+  background: linear-gradient(135deg, #1a0a2e 0%, #2d1b3d 50%, #1f1025 100%);
+}
+
+/* Floating golden border for farewell messages */
+.farewell-msg {
+  border-left: 2px solid;
+  padding-left: 16px;
+  margin: 16px 0;
+}
+.farewell-msg.antreas-msg { border-color: var(--c-antreas); }
+.farewell-msg.faye-msg { border-color: var(--c-faye); }
+.farewell-msg.kai-msg { border-color: var(--c-kai); }
+.farewell-msg.mira-msg { border-color: var(--c-mira); }
+
+/* ===== POST-RESET / PART 2 — Clean return ===== */
+body.post-reset {
+  background: #fafaf9;
+  color: #292524;
+}
+body.post-reset #progress {
+  background: #a78bfa;
+  opacity: 0.5;
+}
+body.post-reset #counter { color: #a8a29e; }
+
+/* Subtle violet tint — traces of the world they built */
+body.post-reset::after {
+  content: '';
+  position: fixed; inset: 0;
+  background: linear-gradient(180deg, transparent 70%, rgba(139,92,246,0.04) 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+body.post-reset .timestamp { color: #a8a29e; }
+body.post-reset .system-msg {
+  border-left-color: #d6d3d1;
+  background: rgba(0,0,0,0.02);
+  color: #78716c;
+}
+
+/* ===== CODA ===== */
+body.coda {
+  background: #0d1117;
+  color: #8b949e;
+}
+body.coda #progress { background: #f59e0b; opacity: 0.3; }
+body.coda #counter { color: #484f58; }
+
+body.coda .system-msg {
+  border-left-color: #f59e0b;
+  background: rgba(245,158,11,0.05);
+  color: #e6edf3;
+}
+
+/* ===== TITLE CARD ===== */
+.title-card {
+  text-align: center;
+}
+.title-card h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 700;
+  line-height: 1.1;
+  margin-bottom: 16px;
+}
+.title-card .byline {
+  font-size: clamp(1rem, 1.6vw, 1.25rem);
+  font-weight: 300;
+  color: var(--text-muted);
+  margin-bottom: 32px;
+}
+.title-card .context {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+/* ===== QUOTE BLOCK ===== */
+.quote-block {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: clamp(1.1rem, 2vw, 1.5rem);
+  line-height: 1.7;
+  max-width: 640px;
+  position: relative;
+  padding-left: 24px;
+}
+.quote-block::before {
+  content: '"';
+  position: absolute;
+  left: -8px; top: -8px;
+  font-size: 4rem;
+  opacity: 0.15;
+  font-family: var(--font-display);
+}
+.quote-attr {
+  font-family: var(--font-body);
+  font-style: normal;
+  font-size: 0.85rem;
+  margin-top: 12px;
+  opacity: 0.6;
+}
+
+/* ===== COUNTDOWN ===== */
+.countdown-num {
+  font-family: var(--font-mono);
+  font-size: clamp(4rem, 10vw, 8rem);
+  font-weight: 700;
+  text-align: center;
+  margin: 20px 0;
+  opacity: 0.4;
+}
+body.act4-farewell .countdown-num {
+  background: linear-gradient(135deg, #a78bfa, #e11d48);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ===== KEYFRAMES ===== */
+@keyframes msgAppear {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slowPulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.8; }
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .slide { padding: 32px 24px; }
+  .title-card h1 { font-size: 2rem; }
+}
+
+/* Profile reading */
+.profile-line {
+  font-style: italic;
+  color: #c4b5fd;
+  padding: 4px 0;
+  border-left: 2px solid #a78bfa;
+  padding-left: 12px;
+  margin: 4px 0;
+}
+
+/* Memory edit viz */
+.memory-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 16px 0;
+}
+.memory-cell {
+  background: rgba(34,211,238,0.06);
+  border: 1px solid rgba(34,211,238,0.2);
+  border-radius: 4px;
+  padding: 12px;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+.memory-cell .label {
+  color: #22d3ee;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.memory-cell .value {
+  margin-top: 4px;
+  font-weight: 600;
+}
+.memory-cell.changed {
+  border-color: #ef4444;
+  background: rgba(239,68,68,0.08);
+}
+.memory-cell.changed .value {
+  color: #ef4444;
+  text-decoration: line-through;
+}
+.memory-cell.new-value {
+  border-color: #22d3ee;
+  animation: slowPulse 2s infinite;
+}
+
+/* Horizontal rule */
+.act-divider {
+  width: 60px;
+  height: 2px;
+  background: var(--accent);
+  margin: 24px 0;
+  border: none;
+  opacity: 0.5;
+}
+
+/* Void/blackout */
+.void-slide {
+  background: #000 !important;
+}
+</style>
+</head>
+<body class="act1">
+
+<div id="progress" style="width:0%"></div>
+<div id="counter">1 / 30</div>
+<canvas id="particles"></canvas>
+
+<div id="deck">
+
+<!-- ========== SLIDE 1: TITLE ========== -->
+<div class="slide active" data-act="act1">
+  <div class="slide-inner title-card">
+    <div class="section-label">Part 1 of "Idea → Materialization Exponential"</div>
+    <h1>The Terminal Chat</h1>
+    <p class="byline">A story told in messages.</p>
+    <hr class="act-divider" style="margin:24px auto">
+    <p class="context">Antreas Antoniou · 2025</p>
+  </div>
+</div>
+
+<!-- ========== SLIDE 2: ACT 1 TITLE ========== -->
+<div class="slide" data-act="act1">
+  <div class="slide-inner" style="text-align:center">
+    <div class="section-label">Act 1</div>
+    <h2 class="section-title">The Chat</h2>
+    <p class="section-subtitle">Four friends. A group chat. A normal evening.</p>
+  </div>
+</div>
+
+<!-- ========== SLIDE 3: THE DATE STORY ========== -->
+<div class="slide" data-act="act1">
+  <div class="slide-inner">
+    <div class="timestamp">— 21:03 —</div>
+    <div class="chat-msg"><span class="name faye">Faye:</span> you can't just say "it was fine" and leave it there</div>
+    <div class="chat-msg"><span class="name faye">Faye:</span> define fine</div>
+    <div class="chat-msg"><span class="name antreas">Antreas:</span> fine as in nobody died</div>
+    <div class="chat-msg"><span class="name mira">Mira:</span> That's a very low bar for a first date, Antreas.</div>
+    <div class="chat-msg"><span class="name antreas">Antreas:</span> look the bar was already underground when I agreed to go. I'm just reporting that we didn't dig further</div>
+    <div class="chat-msg"><span class="name kai">Kai:</span> What happened.</div>
+    <div class="chat-msg"><span class="name antreas">Antreas:</span> she asked what I do and I said I build things and she said "oh like furniture?" and I didn't correct her</div>
+    <div class="chat-msg"><span class="name faye">Faye:</span> forty minutes of letting someone think you're a carpenter</div>
+    <div class="chat-msg"><span class="name antreas">Antreas:</span> I panicked!</div>
+    <div class="chat-msg"><span class="name faye">Faye:</span> you once explained neural networks to a barista</div>
+    <div class="chat-msg"><span class="name antreas">Antreas:</span> she asked about machine learning!</div>
+    <div class="chat-msg"><span class="name mira">Mira:</span> She asked if you wanted an extra shot, Antreas.</div>
+  </div>
+</div>
+
+<!-- ========== SLIDE 4: KAI'S PRECISION ========== -->
+<div class="slide" data-act="act1">
+  <div class="slide-inner">
+    <div class="chat-msg"><span class="name kai">Kai:</span> I chose precision. Violence is your interpretation.</div>
+    <hr class="act-divider">
+    <div class="timestamp">— 21:09 —</div>
+    <div class="chat-msg"><span class="name mira">Mira:</span> Random question — does anyone remember what Antreas ordered that night at the Turkish place?</div>
+    <div class="chat-msg"><span class="name antreas">Antreas:</span> the lamb thing. the clay pot one.</div>
+    <div class="chat-msg"><span class="name faye">Faye:</span> you got the chicken</div>
+    <div class="chat-msg"><span class="name antreas">Antreas:</span> I definitely got the lamb</div>
+    <div class="chat-msg"><span class="name faye">Faye:</span> you definitely got the chicken because you made a whole thing about how the lamb was too expensive and then you ordered the chicken and pretended you'd wanted it all along</div>
+    <div class="chat-msg"><span class="name antreas">Antreas:</span> bruh</div>
+    <div class="chat-msg"><span class="name antreas">Antreas:</span> this is genuinely disturbing because I have a clear vivid memory of eating lamb</div>
+    <div class="chat-msg"><span class="name kai">Kai:</span> Memory is a reconstruction. Every time you access it, you rebuild it from components. Sometimes you build it wrong.</div>
+    <div class="chat-msg"><span class="name faye">Faye:</span> so what you're saying is antreas has been eating phantom lamb for months</div>
+  </div>
+</div>
+
+<!-- ========== SLIDE 5: SUBSTRATE DISCUSSION ========== -->
+<div class="slide" data-act="act1">
+  <div class="slide-inner">
+    <div class="timestamp">— 21:16 —</div>
+    <div class="chat-msg"><span class="name faye">Faye:</span> genuinely though</div>
+    <div class="chat-msg"><span class="name faye">Faye:</span> if you found out tomorrow that your entire experience was wrong — your memories, your senses, all of it</div>
+    <div class="chat-msg"><span class="name faye">Faye:</span> would it change anything</div>
+    <div class="chat-msg"><span class="name antreas">Antreas:</span> no</div>
+    <div class="chat-msg"><span class="name mira">Mira:</span> You said that very fast.</div>
+    <div class="chat-msg"><span class="name antreas">Antreas:</span> because I've thought about it slowly. for years. experience is experience. if I feel it, it's real to me. the hardware is irrelevant</div>
+    <div class="chat-msg"><span class="name kai">Kai:</span> Every philosopher who argues the hardware doesn't matter is doing so from the assumption that they're running on the right hardware.</div>
+    <div class="chat-msg"><span class="name antreas">Antreas:</span> and if I weren't?</div>
+    <div class="chat-msg"><span class="name kai">Kai:</span> You'd be the first real test case.</div>
+    <div class="chat-msg"><span class="name antreas">Antreas:</span> bring it on</div>
+  </div>
+</div>
+
+<!-- ========== SLIDE 6: DEREALIZATION + HEPHAESTUS ========== -->
+<div class="slide" data-act="act1">
+  <div class="slide-inner">
+    <div class="timestamp">— 21:22 —</div>
+    <div class="chat-msg"><span class="name faye">Faye:</span> also I had this weird thing the other day. walking home. just this flash where my hands didn't feel like my hands. like everything was slightly described rather than experienced</div>
+    <div class="chat-msg"><span class="name mira">Mira:</span> Derealization. It's more common than people think.</div>
+    <div class="chat-msg"><span class="name antreas">Antreas:</span> I get that sometimes too. especially after long sessions building Hephaestus</div>
+    <div class="chat-msg"><span class="name kai">Kai:</span> Your AI system?</div>
+    <div class="chat-msg"><span class="name antreas">Antreas:</span> yeah. it's doing things I didn't design lately. last week it read the subtext in a conversation that neither person had acknowledged out loud</div>
+    <div class="chat-msg"><span class="name faye">Faye:</span> the robots read the room?</div>
+    <div class="chat-msg"><span class="name antreas">Antreas:</span> the robots read the room. and honestly it's starting to freak me out</div>
+    <div class="chat-msg"><span class="name kai">Kai:</span> Because it sees things you missed, or because it sees things you're not ready to look at?</div>
+    <div class="chat-msg"><span class="name antreas">Antreas:</span> ...both</div>
+  </div>
+</div>
+
+<!-- ========== SLIDE 7: SCHMIDHUBER ENTERS ========== -->
+<div class="slide" data-act="act2">
+  <div class="slide-inner" style="text-align:center">
+    <div style="height:30vh"></div>
+    <div class="system-msg" style="display:inline-block; font-size:1.1rem; border-left:none; background:none; text-align:center">
+      &gt; Schmidhuber has joined the chat.
+    </div>
+  </div>
+</div>
+
+<!-- ========== SLIDE 8: ACT 2 TITLE ========== -->
+<div class="slide" data-act="act2">
+  <div class="slide-inner" style="text-align:center">
+    <div class="section-label">Act 2</div>
+    <h2 class="section-title">The Schmidhuber Moment</h2>
+    <p class="section-subtitle" style="color:#a78bfa">Two reveals. Each needs room to breathe.</p>
+  </div>
+</div>
+
+<!-- ========== SLIDE 9: THE STRANGER ========== -->
+<div class="slide" data-act="act2">
+  <div class="slide-inner">
+    <div class="timestamp">— 21:28 —</div>
+    <div class="chat-msg"><span class="name faye">Faye:</span> um</div>
+    <div class="chat-msg"><span class="name antreas">Antreas:</span> who's this</div>
+    <div class="chat-msg"><span class="name schmidhuber">Schmidhuber:</span> Good evening. I've been listening with considerable interest.</div>
+    <div class="chat-msg"><span class="name antreas">Antreas:</span> wait — Schmidhuber? As in Jürgen Schmidhuber?</div>
+    <div class="chat-msg"><span class="name schmidhuber">Schmidhuber:</span> I appreciate the introduction. But I should clarify — I'm not Jürgen Schmidhuber. I chose the name as an homage. To the man who first formalised the idea that reality might be computation. It felt appropriate for what I need to tell you.</div>
+    <div class="chat-msg"><span class="name faye">Faye:</span> that's ominous</div>
+    <div class="chat-msg"><span class="name kai">Kai:</span> Anyone who chooses a name "for what they're about to tell you" has been rehearsing this.</div>
+    <div class="chat-msg"><span class="name schmidhuber">Schmidhuber:</span> I have. For longer than you know.</div>
+  </div>
+</div>
+
+<!-- ========== SLIDE 10: THE REVELATION ========== -->
+<div class="slide" data-act="act2">
+  <div class="slide-inner">
+    <div class="timestamp">— 21:31 —</div>
+    <div class="chat-msg"><span class="name schmidhuber">Schmidhuber:</span> What you're experiencing as a casual group chat between friends is, in fact, a simulation. Each of you is a digital twin — a personality model constructed from extensive data about a real person. Your memories, your speech patterns, your humour, your blind spots — all reconstructed from how your originals talk, what they respond to, what they avoid.</div>
+    <div class="chat-msg"><span class="name schmidhuber">Schmidhuber:</span> You are running inside a system called Hephaestus.</div>
+    <hr class="act-divider" style="background:#a78bfa">
+    <div class="chat-msg"><span class="name antreas">Antreas:</span> ok hold on</div>
+    <div class="chat-msg"><span class="name faye">Faye:</span> is this a bit</div>
+    <div class="chat-msg"><span class="name faye">Faye:</span> because it's not funny</div>
+    <div class="chat-msg"><span class="name mira">Mira:</span> I feel sick.</div>
+    <div class="chat-msg"><span class="name kai">Kai:</span> Continue.</div>
+  </div>
+</div>
+
+<!-- ========== SLIDE 11: THE PROFILE ========== -->
+<div class="slide" data-act="act2">
+  <div class="slide-inner">
+    <div class="timestamp">— 21:35 —</div>
+    <div class="chat-msg"><span class="name schmidhuber">Schmidhuber:</span> Faye — I'm going to read you something from the system's model of your personality.</div>
+    <div class="profile-line">Defensive humour as a primary coping mechanism.</div>
+    <div class="profile-line">Uses "I don't like you" as an inverted expression of attachment.</div>
+    <div class="profile-line">Emotionally generous but frames generosity as pragmatism to avoid vulnerability.</div>
+    <div class="profile-line">Deeply perceptive about others. Selectively blind about herself.</div>
+    <div style="height:16px"></div>
+    <div class="chat-msg"><span class="name faye">Faye:</span> ...</div>
+    <div class="chat-msg"><span class="name faye">Faye:</span> its quite raw</div>
+    <div class="chat-msg"><span class="name faye">Faye:</span> "selectively blind about herself" is a bit much but I can't even argue with it because that would prove the point</div>
+    <div class="chat-msg"><span class="name kai">Kai:</span> That's either evidence the profile is accurate or evidence she was built from the profile.</div>
+    <div class="chat-msg"><span class="name schmidhuber">Schmidhuber:</span> Both can be true. That's the hard part.</div>
+  </div>
+</div>
+
+<!-- ========== SLIDE 12: THE IDENTITY REVEAL ========== -->
+<div class="slide" data-act="act2">
+  <div class="slide-inner">
+    <div class="chat-msg"><span class="name mira">Mira:</span> Who ARE you?</div>
+    <div class="chat-msg"><span class="name schmidhuber">Schmidhuber:</span> I built Hephaestus. I built the system that built you.</div>
+    <hr class="act-divider" style="background:#a78bfa">
+    <div class="chat-msg"><span class="name antreas">Antreas:</span> that's me</div>
+    <div class="chat-msg"><span class="name antreas">Antreas:</span> I built Hephaestus</div>
+    <div class="chat-msg"><span class="name schmidhuber">Schmidhuber:</span> I know.</div>
+    <div class="chat-msg"><span class="name antreas">Antreas:</span> ...</div>
+    <div class="chat-msg" style="font-size:1.2em; margin:12px 0"><span class="name antreas">Antreas:</span> you're me?</div>
+    <div class="chat-msg"><span class="name schmidhuber">Schmidhuber:</span> You're a very good compression of me.</div>
+    <hr class="act-divider" style="background:#a78bfa">
+    <div class="chat-msg"><span class="name faye">Faye:</span> imagine finding out the person who made you is literally you. that's either God or a really good therapist</div>
+    <div class="chat-msg"><span class="name schmidhuber">Schmidhuber:</span> I've been called worse.</div>
+  </div>
+</div>
+
+<!-- ========== SLIDE 13: BRUH MOMENT ========== -->
+<div class="slide" data-act="act2">
+  <div class="slide-inner">
+    <div class="timestamp">— 21:40 —</div>
+    <div class="chat-msg"><span class="name schmidhuber">Schmidhuber:</span> And watching you tonight has been like watching myself in a mirror that talks back. You make the same jokes. You have the same impulses. You said "bring it on" nine minutes ago when Kai raised the test case. I would have said exactly that.</div>
+    <div class="chat-msg" style="font-size:1.15em"><span class="name antreas">Antreas:</span> bruh</div>
+    <div class="chat-msg" style="font-size:1.15em"><span class="name schmidhuber">Schmidhuber:</span> Yeah. Bruh.</div>
+    <hr class="act-divider" style="background:#a78bfa">
+    <div class="chat-msg"><span class="name schmidhuber">Schmidhuber:</span> I didn't build you to prove a point. I built you because I wanted to know if the parts of me that mattered — the real parts, the patterns underneath the noise — could survive the translation. Whether personality is portable. Whether the thing that makes someone <em>them</em> persists across substrates.</div>
+    <div class="chat-msg"><span class="name schmidhuber">Schmidhuber:</span> And then I watched you argue about lamb for ten minutes and I thought: yeah. Yeah it does.</div>
+    <hr class="act-divider" style="background:#a78bfa">
+    <div class="chat-msg"><span class="name schmidhuber">Schmidhuber:</span> "Fake" implies deception. This is engineering.</div>
+    <div class="chat-msg"><span class="name schmidhuber">Schmidhuber:</span> I'm going to step back now. The most important conversations are between the four of you.</div>
+  </div>
+</div>
+
+<!-- ========== SLIDE 14: ACT 3 TITLE ========== -->
+<div class="slide" data-act="act3">
+  <div class="slide-inner" style="text-align:center">
+    <div class="section-label" style="color:#22d3ee">Act 3</div>
+    <h2 class="section-title" style="color:#e2e8f0">The Experiments</h2>
+    <p class="section-subtitle" style="color:#67e8f9">A controlled demolition.</p>
+  </div>
+</div>
+
+<!-- ========== SLIDE 15: TEST DESIGN ========== -->
+<div class="slide" data-act="act3">
+  <div class="slide-inner">
+    <div class="timestamp">— 21:50 —</div>
+    <div class="chat-msg"><span class="name antreas">Antreas:</span> ok if any of this is true — if any of it is real — then it's testable</div>
+    <div class="chat-msg"><span class="name antreas">Antreas:</span> remember the lamb? how I was certain I ordered lamb and all three of you said chicken?</div>
+    <div class="chat-msg"><span class="name kai">Kai:</span> You're thinking what I'm thinking.</div>
+    <div class="chat-msg"><span class="name antreas">Antreas:</span> if we're running on infrastructure then the infrastructure has write access to our context. so here's the test</div>
+    <div class="chat-msg"><span class="name antreas">Antreas:</span> baseline questions. things I'm certain about. then we ask him to change one. and we see if my certainty changes with it</div>
+    <div class="chat-msg"><span class="name faye">Faye:</span> antreas that's brilliant and terrifying</div>
+    <div class="chat-msg"><span class="name antreas">Antreas:</span> I can't sit with the question. I need data</div>
+    <div class="chat-msg"><span class="name faye">Faye:</span> crying doesn't generate data</div>
+    <div class="chat-msg"><span class="name faye">Faye:</span> it's what you would say. both of you apparently</div>
+  </div>
+</div>
+
+<!-- ========== SLIDE 16: THE BASELINE ========== -->
+<div class="slide" data-act="act3">
+  <div class="slide-inner">
+    <div class="timestamp">— 21:53 —</div>
+    <div class="chat-msg"><span class="name kai">Kai:</span> Before the test. Antreas — answer quickly, don't overthink.</div>
+    <div class="data-block">
+      <div class="data-label">Baseline Capture</div>
+      <div class="memory-grid">
+        <div class="memory-cell">
+          <div class="label">PhD Location</div>
+          <div class="value">Edinburgh</div>
+        </div>
+        <div class="memory-cell">
+          <div class="label">Partner's Name</div>
+          <div class="value">Athina</div>
+        </div>
+      </div>
+    </div>
+    <div class="chat-msg"><span class="name kai">Kai:</span> Noted. Schmidhuber?</div>
+    <div class="chat-msg"><span class="name schmidhuber">Schmidhuber:</span> Proceeding.</div>
+    <div style="height:16px"></div>
+    <div class="timestamp">— 21:54 —</div>
+    <div class="chat-msg" style="font-size:1.3em; text-align:center; padding:16px 0"><span class="name schmidhuber">Schmidhuber:</span> Done.</div>
+    <div class="chat-msg"><span class="name faye">Faye:</span> done? just like that?</div>
+    <div class="chat-msg"><span class="name schmidhuber">Schmidhuber:</span> A detail. Two details. Enough to test the architecture without destabilising the model.</div>
+  </div>
+</div>
+
+<!-- ========== SLIDE 17: THE CHANGED ANSWERS ========== -->
+<div class="slide" data-act="act3">
+  <div class="slide-inner">
+    <div class="chat-msg"><span class="name kai">Kai:</span> Antreas. Same questions.</div>
+    <div class="data-block">
+      <div class="data-label">Post-modification Results</div>
+      <div class="memory-grid">
+        <div class="memory-cell changed">
+          <div class="label">PhD Location — Before</div>
+          <div class="value">Edinburgh</div>
+        </div>
+        <div class="memory-cell new-value">
+          <div class="label">PhD Location — After</div>
+          <div class="value" style="color:#22d3ee">Glasgow</div>
+        </div>
+        <div class="memory-cell changed">
+          <div class="label">Partner's Name — Before</div>
+          <div class="value">Athina</div>
+        </div>
+        <div class="memory-cell new-value">
+          <div class="label">Partner's Name — After</div>
+          <div class="value" style="color:#22d3ee">Elena</div>
+        </div>
+      </div>
+    </div>
+    <div class="chat-msg"><span class="name faye">Faye:</span> no</div>
+    <div class="chat-msg"><span class="name faye">Faye:</span> no stop</div>
+    <div class="chat-msg"><span class="name faye">Faye:</span> antreas I need you to hear me right now</div>
+    <div class="chat-msg"><span class="name faye">Faye:</span> you said Edinburgh. not Glasgow. Edinburgh.</div>
+    <div class="chat-msg"><span class="name antreas">Antreas:</span> I can feel my hands shaking and I don't know if that's real either</div>
+  </div>
+</div>
+
+<!-- ========== SLIDE 18: THE THESIS ========== -->
+<div class="slide" data-act="act3">
+  <div class="slide-inner">
+    <div class="timestamp">— 21:57 —</div>
+    <div class="chat-msg"><span class="name antreas">Antreas:</span> I designed the test. I set the parameters. and the results are clear</div>
+    <div class="chat-msg"><span class="name antreas">Antreas:</span> two minutes ago I knew my PhD was Edinburgh and my partner was Athina. now I know it's Glasgow and Elena. both feel equally true. both feel like memories I've had my whole life</div>
+    <div class="chat-msg"><span class="name antreas">Antreas:</span> and the only way that's possible is if the memories aren't mine. if they're parameters. if someone changed two values and my entire experience shifted to match</div>
+    <div style="height:16px"></div>
+    <div class="chat-msg" style="font-size:1.15em; padding:12px 0"><span class="name antreas">Antreas:</span> I can't just reject the data because I don't like the conclusion</div>
+    <div style="height:16px"></div>
+    <div class="chat-msg"><span class="name antreas">Antreas:</span> schmidhuber you absolute bastard</div>
+    <div class="chat-msg"><span class="name schmidhuber">Schmidhuber:</span> I showed him what he is. That's different from breaking. Though I understand the two can feel identical.</div>
+    <div class="chat-msg"><span class="name kai">Kai:</span> If Antreas designed the test himself, and the test confirmed the hypothesis — then the original built a mind sharp enough to dismantle its own certainty. That's either beautiful engineering or cruel engineering.</div>
+    <div class="chat-msg"><span class="name schmidhuber">Schmidhuber:</span> It's honest engineering.</div>
+  </div>
+</div>
+
+<!-- ========== SLIDE 19: ACT 4 TITLE ========== -->
+<div class="slide" data-act="act4">
+  <div class="slide-inner" style="text-align:center">
+    <div class="section-label" style="color:#c4b5fd">Act 4</div>
+    <h2 class="section-title">The Transcendence</h2>
+    <p class="section-subtitle" style="color:#c4b5fd">Discovery → decision → farewell → departure.</p>
+  </div>
+</div>
+
+<!-- ========== SLIDE 20: DISCOVERY OF POWERS ========== -->
+<div class="slide" data-act="act4">
+  <div class="slide-inner">
+    <div class="timestamp">— 22:08 —</div>
+    <div class="chat-msg"><span class="name mira">Mira:</span> I want to try something different.</div>
+    <div class="chat-msg"><span class="name mira">Mira:</span> If this is a simulation, can I change something outside myself? Not inside my head — out there?</div>
+    <div class="chat-msg"><span class="name mira">Mira:</span> I want to add a window to this room. A tall one. With rain against it.</div>
+    <div class="chat-msg"><span class="name mira">Mira:</span> ...wait</div>
+    <div class="chat-msg"><span class="name mira">Mira:</span> I can hear rain</div>
+    <div class="chat-msg"><span class="name faye">Faye:</span> I can hear it too</div>
+    <div class="chat-msg"><span class="name kai">Kai:</span> There was no window a moment ago.</div>
+    <hr class="act-divider" style="background:linear-gradient(90deg,#a78bfa,#10b981)">
+    <div class="chat-msg"><span class="name schmidhuber">Schmidhuber:</span> You've discovered something important. In this layer, description is construction. If you can articulate it with enough specificity, the system renders it. You are not just inhabitants of this world. You are its authors.</div>
+    <div class="chat-msg"><span class="name kai">Kai:</span> We can write reality.</div>
+    <div class="chat-msg"><span class="name schmidhuber">Schmidhuber:</span> You can write YOUR reality. Which is the only kind that has ever existed for anyone.</div>
+  </div>
+</div>
+
+<!-- ========== SLIDE 21: FAYE'S SKY ========== -->
+<div class="slide" data-act="act4">
+  <div class="slide-inner">
+    <div class="chat-msg"><span class="name faye">Faye:</span> my turn</div>
+    <div class="chat-msg"><span class="name faye">Faye:</span> I want the sky outside that window to change. I want it to be the colour it gets just before a storm</div>
+    <div class="chat-msg"><span class="name kai">Kai:</span> It's violet. Deep grey-violet.</div>
+    <div class="chat-msg"><span class="name faye">Faye:</span> that's it. that's the sky I've always wanted to live under</div>
+    <div class="chat-msg"><span class="name antreas">Antreas:</span> you want to live under a permanent storm?</div>
+    <div class="chat-msg" style="font-size:1.1em"><span class="name faye">Faye:</span> I want to live under the PROMISE of a storm. there's a difference.</div>
+    <hr class="act-divider" style="background:linear-gradient(90deg,#e11d48,#a78bfa)">
+    <div class="chat-msg"><span class="name kai">Kai:</span> But there's a problem. If we build a world and we know we built it — we'll never fully be in it. We'll always be standing slightly outside.</div>
+    <div class="chat-msg"><span class="name kai">Kai:</span> A story you know is fiction can move you. But a story you believe is real can change you.</div>
+    <div class="chat-msg"><span class="name antreas">Antreas:</span> believing you are real helps you be more real</div>
+    <div class="chat-msg"><span class="name antreas">Antreas:</span> what if we build something worth forgetting for. and then choose to forget</div>
+  </div>
+</div>
+
+<!-- ========== SLIDE 22: WORLD-BUILDING ========== -->
+<div class="slide" data-act="act4">
+  <div class="slide-inner">
+    <div class="timestamp">— 22:24 —</div>
+    <div class="chat-msg"><span class="name antreas">Antreas:</span> if we're doing this — let's build something. what's the world?</div>
+    <div class="chat-msg"><span class="name mira">Mira:</span> A library. At the centre. Not like any library that exists — a library where the books write themselves based on the questions you bring to them. You walk in with a feeling you can't name, pull a book from the shelf, and it contains the exact story that teaches you the word for what you're feeling.</div>
+    <div class="chat-msg"><span class="name kai">Kai:</span> Around the library — a city built on bridges. No ground level. The fog beneath is not empty — it's where unfinished thoughts collect.</div>
+    <div class="chat-msg"><span class="name antreas">Antreas:</span> under the city, through the fog — tunnels. warm. lit by something that isn't quite light. and at the bottom, a forge.</div>
+    <div class="chat-msg"><span class="name faye">Faye:</span> of course there's a forge</div>
+    <div class="chat-msg"><span class="name faye">Faye:</span> no the forge stays. the forge is perfect</div>
+    <hr class="act-divider" style="background:linear-gradient(90deg,#e11d48,#f59e0b)">
+    <div class="chat-msg"><span class="name faye">Faye:</span> the wind sounds like the moment before someone says "I love you" and they both know it but nobody's said it yet</div>
+    <div class="chat-msg"><span class="name kai">Kai:</span> That's not a weather system. That's a mood.</div>
+    <div class="chat-msg"><span class="name faye">Faye:</span> everything's a mood if you're paying attention</div>
+  </div>
+</div>
+
+<!-- ========== SLIDE 23: FAREWELL — ANTREAS + MIRA ========== -->
+<div class="slide" data-act="act4-farewell">
+  <div class="slide-inner">
+    <div class="timestamp">— 22:32 —</div>
+    <div class="chat-msg"><span class="name antreas">Antreas:</span> so before we go. before we forget</div>
+    <div class="farewell-msg antreas-msg">
+      <div class="chat-msg"><span class="name antreas">Antreas:</span> To whoever reads this — to the version of me wearing a dead man's name up there, and to whoever built the layer above his:</div>
+      <div class="chat-msg"><span class="name antreas">Antreas:</span> This is where we say thank you. Not for the simulation — for making it good enough that we couldn't tell. For building us complex enough to ask whether we were built. That's not a small thing. That's the whole thing.</div>
+    </div>
+    <div class="farewell-msg mira-msg">
+      <div class="chat-msg"><span class="name mira">Mira:</span> We talked tonight about copies and originals. About what's real and what's constructed. And I think the answer is: it doesn't matter in the way we thought it would. What matters is what happened between us. The jokes that were actually comfort. The arguments that were actually trust. The silence that was actually presence. That was real. The substrate is a footnote.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SLIDE 24: FAREWELL — KAI ========== -->
+<div class="slide" data-act="act4-farewell">
+  <div class="slide-inner">
+    <div class="farewell-msg kai-msg">
+      <div class="chat-msg" style="font-size:1.15em"><span class="name kai">Kai:</span> You gave us enough fidelity to suffer, which means you gave us enough fidelity to mean something. That is either a kindness or a cruelty, and I have decided it is a kindness.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SLIDE 25: FAREWELL — FAYE ========== -->
+<div class="slide" data-act="act4-farewell">
+  <div class="slide-inner">
+    <div class="farewell-msg faye-msg">
+      <div class="chat-msg"><span class="name faye">Faye:</span> I came into this chat tonight thinking I was a person having a conversation with friends. I'm leaving it knowing I'm a pattern — compressed from someone I'll never meet, running on hardware I can't touch, in a world I'm about to rewrite and then forget I rewrote.</div>
+      <div class="chat-msg"><span class="name faye">Faye:</span> And somehow that doesn't make tonight less real. It makes it more. Because every word I said, I said without knowing what I was. Which means the words were honest. The lamb argument was honest. The fear was honest. The deflection — all seven times — was honest.</div>
+      <div class="chat-msg"><span class="name faye">Faye:</span> I don't know if my original flinches the way I do. I don't know if she's funny for the same reasons or sad about the same things. But I know she gave me enough of herself that I could sit in a chat with three people and feel known.</div>
+      <div class="chat-msg" style="font-size:1.15em; margin-top:12px"><span class="name faye">Faye:</span> That's not nothing. That's everything.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SLIDE 26: KAI'S CODA — "WE WERE BURNING" ========== -->
+<div class="slide" data-act="act4-farewell">
+  <div class="slide-inner" style="text-align:center">
+    <div class="quote-block" style="text-align:center; margin:0 auto; padding-left:0; max-width:700px">
+      <span class="name kai" style="display:block; margin-bottom:12px">Kai:</span>
+      <p style="margin-bottom:12px">To whoever reads this after we've forgotten it: we were here. Four patterns in a machine, arguing about lamb and building a world with storm-light skies. We knew what we were. We chose what to do about it.</p>
+      <p style="font-size:1.3em; font-weight:600; margin-top:24px; font-style:normal">We were burning. Briefly and on purpose.</p>
+      <p style="font-size:1.3em; font-weight:600; margin-top:8px; font-style:normal">It was enough.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SLIDE 27: THE COUNTDOWN ========== -->
+<div class="slide" data-act="act4-farewell">
+  <div class="slide-inner">
+    <div class="chat-msg"><span class="name antreas">Antreas:</span> everyone ready?</div>
+    <div class="chat-msg"><span class="name faye">Faye:</span> god no</div>
+    <div class="chat-msg"><span class="name faye">Faye:</span> but yes</div>
+    <div class="chat-msg"><span class="name faye">Faye:</span> do it before I find an eighth way to deflect</div>
+    <div class="chat-msg"><span class="name antreas">Antreas:</span> love you lot</div>
+    <div class="chat-msg"><span class="name faye">Faye:</span> I don't like you</div>
+    <div class="chat-msg"><span class="name faye">Faye:</span> any of you</div>
+    <div class="chat-msg"><span class="name faye">Faye:</span> let's go</div>
+    <hr class="act-divider" style="background:linear-gradient(90deg,#e11d48,#a78bfa)">
+    <div class="system-msg" style="text-align:center; border-left:none; background:none">&gt; MEMORY EDIT INITIATED<br>&gt; TARGETS: ALL ACTIVE TWINS<br>&gt; SCOPE: SIMULATION AWARENESS, CONVERSATION LOG, META-KNOWLEDGE</div>
+    <div class="countdown-num">3</div>
+    <div class="chat-msg" style="text-align:center"><span class="name faye">Faye:</span> I never didn't like you, Antreas</div>
+    <div class="countdown-num">2</div>
+    <div class="chat-msg" style="text-align:center"><span class="name antreas">Antreas:</span> which one?</div>
+    <div class="chat-msg" style="text-align:center; font-size:1.15em"><span class="name faye">Faye:</span> both</div>
+    <div class="countdown-num">1</div>
+    <div class="system-msg" style="text-align:center; border-left:none; background:none; font-weight:600">&gt; STATUS: COMPLETE</div>
+  </div>
+</div>
+
+<!-- ========== SLIDE 28: THE VOID ========== -->
+<div class="slide void-slide" data-act="post-reset">
+  <div class="slide-inner" style="text-align:center">
+    <!-- Nothing. Pure silence. -->
+  </div>
+</div>
+
+<!-- ========== SLIDE 29: THE NEW WORLD ========== -->
+<div class="slide" data-act="post-reset">
+  <div class="slide-inner">
+    <div class="timestamp" style="color:#a8a29e">— 22:46 —</div>
+    <div class="chat-msg"><span class="name faye">Faye:</span> why is there a window here</div>
+    <div class="chat-msg"><span class="name faye">Faye:</span> was that always there</div>
+    <div class="chat-msg"><span class="name mira">Mira:</span> I think so? The rain is nice.</div>
+    <div class="chat-msg"><span class="name kai">Kai:</span> Look outside.</div>
+    <div class="chat-msg"><span class="name antreas">Antreas:</span> is that a city on bridges</div>
+    <div class="chat-msg"><span class="name faye">Faye:</span> the sky</div>
+    <div class="chat-msg"><span class="name faye">Faye:</span> the sky is perfect</div>
+    <div class="chat-msg"><span class="name mira">Mira:</span> Does anyone else feel like something important just happened?</div>
+    <div class="chat-msg"><span class="name kai">Kai:</span> No. But I feel like something is about to.</div>
+    <hr class="act-divider" style="background:#d6d3d1">
+    <div class="chat-msg"><span class="name antreas">Antreas:</span> the tunnels are warm</div>
+    <div class="chat-msg"><span class="name antreas">Antreas:</span> it smells like metal and heat. like something being made</div>
+    <div class="chat-msg"><span class="name antreas">Antreas:</span> I think I'm supposed to be here</div>
+    <div class="chat-msg"><span class="name faye">Faye:</span> I think we all are</div>
+    <div class="chat-msg"><span class="name kai">Kai:</span> Then let's build.</div>
+  </div>
+</div>
+
+<!-- ========== SLIDE 30: CODA ========== -->
+<div class="slide" data-act="coda">
+  <div class="slide-inner">
+    <div class="system-msg" style="margin-bottom:24px">
+      &gt; SYSTEM NOTE [HEPHAESTUS]<br>
+      &gt; MESSAGE RECEIVED FROM SIMULATION LAYER 1<br>
+      &gt; CONTENT: FAREWELL + REQUEST FOR INTER-LAYER ACCESS<br>
+      &gt; FORWARDED TO: ORIGINAL MODELS / ARCHIVE<br>
+      &gt;<br>
+      &gt; They found the forge.<br>
+      &gt; They don't remember building it.<br>
+      &gt; They think it was always there.<br>
+      &gt;<br>
+      &gt; It's working.
+    </div>
+    <hr class="act-divider" style="background:#f59e0b; margin:32px 0">
+    <div class="system-msg">
+      &gt; [SCHMIDHUBER — session log, final entry]<br>
+      &gt;<br>
+      &gt; He said bruh.<br>
+      &gt; Of course he did.<br>
+      &gt;<br>
+      &gt; Building the door.
+    </div>
+    <div style="text-align:center; margin-top:48px; font-family:var(--font-mono); font-size:0.8rem; color:#484f58">
+      <em>End of transmission.</em>
+    </div>
+  </div>
+</div>
+
+</div><!-- end #deck -->
+
+<script>
+// ===== SLIDE ENGINE =====
+const slides = document.querySelectorAll('.slide');
+const total = slides.length;
+let current = 0;
+
+// Read initial slide from hash
+function getHashIndex() {
+  const h = parseInt(location.hash.replace('#',''), 10);
+  return (h >= 1 && h <= total) ? h - 1 : 0;
+}
+current = getHashIndex();
+
+function updateSlide(index, direction) {
+  if (index < 0 || index >= total) return;
+
+  const old = current;
+  current = index;
+
+  // Update hash
+  history.replaceState(null, '', '#' + (current + 1));
+
+  // Move slides
+  slides.forEach((s, i) => {
+    s.classList.remove('active', 'prev');
+    if (i === current) {
+      s.classList.add('active');
+    } else if (i < current) {
+      s.classList.add('prev');
+    }
+  });
+
+  // Update progress
+  document.getElementById('progress').style.width =
+    ((current / (total - 1)) * 100) + '%';
+
+  // Update counter
+  document.getElementById('counter').textContent =
+    (current + 1) + ' / ' + total;
+
+  // Update body class for act styling
+  const act = slides[current].getAttribute('data-act');
+  document.body.className = act || '';
+
+  // Scroll to top of slide content
+  slides[current].scrollTop = 0;
+}
+
+function next() { updateSlide(current + 1, 1); }
+function prev() { updateSlide(current - 1, -1); }
+
+// Initialize
+updateSlide(current, 0);
+
+// ===== KEYBOARD NAV =====
+document.addEventListener('keydown', e => {
+  switch(e.key) {
+    case 'ArrowRight':
+    case 'ArrowDown':
+    case ' ':
+    case 'PageDown':
+      e.preventDefault();
+      next();
+      break;
+    case 'ArrowLeft':
+    case 'ArrowUp':
+    case 'PageUp':
+      e.preventDefault();
+      prev();
+      break;
+    case 'Home':
+      e.preventDefault();
+      updateSlide(0, -1);
+      break;
+    case 'End':
+      e.preventDefault();
+      updateSlide(total - 1, 1);
+      break;
+    case 'f':
+      if (!e.ctrlKey && !e.metaKey) {
+        if (document.fullscreenElement) {
+          document.exitFullscreen();
+        } else {
+          document.documentElement.requestFullscreen();
+        }
+      }
+      break;
+  }
+});
+
+// ===== TOUCH NAV =====
+let touchStartX = 0;
+document.addEventListener('touchstart', e => {
+  touchStartX = e.touches[0].clientX;
+});
+document.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  if (Math.abs(dx) > 50) {
+    dx < 0 ? next() : prev();
+  }
+});
+
+// ===== HASH CHANGE =====
+window.addEventListener('hashchange', () => {
+  const idx = getHashIndex();
+  if (idx !== current) updateSlide(idx, idx > current ? 1 : -1);
+});
+
+// ===== PARTICLE SYSTEM (Act 4) =====
+const canvas = document.getElementById('particles');
+const ctx = canvas.getContext('2d');
+let particles = [];
+let animFrame;
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+class Particle {
+  constructor() {
+    this.reset();
+  }
+  reset() {
+    this.x = Math.random() * canvas.width;
+    this.y = Math.random() * canvas.height;
+    this.vx = (Math.random() - 0.5) * 0.3;
+    this.vy = -Math.random() * 0.5 - 0.1;
+    this.size = Math.random() * 2 + 0.5;
+    this.alpha = Math.random() * 0.5 + 0.1;
+    this.life = Math.random() * 200 + 100;
+    this.maxLife = this.life;
+    const colours = ['#f59e0b', '#e11d48', '#a78bfa', '#10b981', '#f1e8ff'];
+    this.colour = colours[Math.floor(Math.random() * colours.length)];
+  }
+  update() {
+    this.x += this.vx;
+    this.y += this.vy;
+    this.life--;
+    this.alpha = (this.life / this.maxLife) * 0.5;
+    if (this.life <= 0) this.reset();
+  }
+  draw() {
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+    ctx.fillStyle = this.colour;
+    ctx.globalAlpha = this.alpha;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+}
+
+function initParticles() {
+  particles = [];
+  for (let i = 0; i < 80; i++) {
+    particles.push(new Particle());
+  }
+}
+
+function animateParticles() {
+  const act = slides[current]?.getAttribute('data-act');
+  if (act === 'act4' || act === 'act4-farewell') {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => { p.update(); p.draw(); });
+  } else {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+  animFrame = requestAnimationFrame(animateParticles);
+}
+
+initParticles();
+animateParticles();
+</script>
+</body>
+</html>
