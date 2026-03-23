@@ -1694,4 +1694,241 @@ But something moved.
 | `--text-secondary` | `#8B949E` | Timestamps, secondary text |
 | `--antreas` | `#F0A500` | Antreas's colour, forge elements |
 | `--faye` | `#E06C75` | Faye's colour, storm-light accents |
-|
+| `--kai` | `#61AFEF` | Kai's colour, geometric elements |
+| `--mira` | `#98C379` | Mira's colour, library elements |
+| `--schmidhuber` | `#ABB2BF` | Schmidhuber pre-reveal; shifts to `--antreas` post-reveal |
+| `--system` | `#6E7681` | System messages, machine text |
+| `--storm-violet` | `#4A3567` | Storm-light sky accent |
+| `--forge-amber` | `#D4940A` | Forge warmth, deeper amber |
+| `--fog-white` | `#C8C8D0` | Fog/mist elements |
+
+**Typography:**
+| Usage | Font | Weight | Size |
+|-------|------|--------|------|
+| Headings | Söhne / Inter | 700 | 48–72px (responsive) |
+| Body | Söhne / Inter | 400 | 18–20px |
+| Chat messages | Inter / SF Pro | 400 | 16–18px |
+| Character names | Inter / SF Pro | 700 | 14–16px |
+| System messages | JetBrains Mono | 400 | 14–16px |
+| Pull quotes | Playfair Display | 400 italic | 28–36px |
+
+**Layout grid:** 12-column. Max content width: 720px for reading, 1200px for visual sections. Generous whitespace — this is a gallery, not a blog.
+
+### Site Architecture
+
+```
+/                       → Landing / Hero
+/story                  → The Terminal Chat (interactive reading experience)
+/story/act-1            → Act 1 anchor
+/story/act-2            → Act 2 anchor
+/story/act-3            → Act 3 anchor
+/story/act-4            → Act 4 anchor
+/music                  → Five tracks with player + lyrics
+/manhwa                 → Full manhwa reader
+/anime                  → Episode player + behind-the-scenes
+/podcast                → Podcast player + transcript
+/novel                  → First chapter + purchase/download
+/about                  → The experiment, the process, credits
+```
+
+### Page Specifications
+
+#### Landing Page ( / )
+
+**Hero section:**
+Full-viewport dark hero. The terminal cursor blinks. Then, one character at a time (typewriter effect, ~30ms per character):
+
+> "We were burning. Briefly and on purpose. It was enough."
+
+Below: "A story told in messages. Created by human and AI together."
+
+CTA buttons: "Read the story" / "Experience everything"
+
+**Scroll-triggered visual:**
+As the user scrolls past the hero, the dark terminal background transitions through the four-act colour palette:
+1. Warm amber (Act 1) — friendly, inviting
+2. Cool steel (Act 2) — uneasy
+3. Clinical white-on-black (Act 3) — sharp
+4. Storm-light violet (Act 4) — transcendent
+
+Each zone contains a key quote from the corresponding act, appearing with scroll-triggered opacity animation:
+
+Act 1: *"experience is experience. if I feel it, it's real to me."*
+Act 2: *"You are running inside a system called Hephaestus."*
+Act 3: *"I can't just reject the data because I don't like the conclusion."*
+Act 4: *"the wind sounds like the moment before someone says 'I love you'"*
+
+**Content grid:**
+Below the scroll journey, a 2×3 grid of content cards. Each card:
+- Full-bleed image (manhwa panel / waveform / video still)
+- Content type label
+- Title
+- Hover: subtle zoom + overlay with 1-line description
+
+Cards:
+1. **The Story** — Terminal icon — "Read the original terminal chat"
+2. **Manhwa** — Splash panel from Act 4 — "37 pages of visual adaptation"
+3. **Anime** — Frame from the storm-light sakuga — "A 22-minute episode"
+4. **Music** — Waveform visualization — "Five tracks. Two scores, two songs, one farewell."
+5. **Podcast** — Headphones icon — "Two hosts discuss what it means"
+6. **Novel** — Book cover — "First chapter free. The rest: addictive."
+
+#### Story Page ( /story )
+
+**THE KEY EXPERIENCE.** The story presented as a scrollable terminal chat.
+
+**Visual design:**
+- Dark background (`--bg-terminal`)
+- Messages appear as chat bubbles, left-aligned, with character name and colour
+- Character names are their assigned colours
+- Timestamps appear as section dividers
+- System messages in monospace, dimmed
+
+**Interaction design:**
+- **First visit:** Messages appear one by one as the user scrolls. Each scroll-tick reveals the next message or group of messages. The pacing is built into the scroll — Act 1 messages appear quickly (short scroll distances), Act 3 messages appear with more scroll distance between them (forced pacing)
+- **Return visits:** Full chat visible, instant scroll, no animation. A "re-experience" toggle in the corner restores the first-visit animation.
+- **Act transitions:** Visual breaks between acts. Act 2 transition: the screen flickers once (CSS animation) before `> Schmidhuber has joined the chat.` appears. Act 3 transition: a horizontal rule made of data-points. Act 4 transition: the background begins its colour shift.
+
+**Act 4 visual transformation:**
+When the user scrolls into Act 4:
+1. **Window creation:** When Mira says "I want to add a window," the browser viewport gains a subtle rain overlay — CSS-animated rain streaks at the edges of the screen. Barely perceptible. The user might not consciously notice.
+2. **Sky change:** When Faye claims the sky, the background gradient shifts from terminal-black to storm-violet. Not instantly — over ~200px of scroll distance.
+3. **World-building:** As each character contributes, ambient visual elements appear at the page margins — the faint suggestion of bridge architecture (Kai), library shelves (Mira), forge-sparks (Antreas).
+4. **The farewell:** Full storm-light palette. The chat bubbles gain a warm glow. Maximum visual warmth.
+5. **The countdown:** Hard snap back to terminal aesthetic. All ambient visuals cut. Raw, black, cold. The numbers 3... 2... 1... appear with forced pauses (scroll-locked for 2 seconds each).
+6. **Post-reset:** The ambient visuals return — but the reader knows what they are now. The storm-light sky in the background. The rain at the margins. The characters don't know. The reader does.
+
+**Technical requirements:**
+- Intersection Observer API for scroll-triggered message reveals
+- CSS custom properties for the Act 4 colour transitions
+- Canvas or SVG for rain animation (low CPU — no heavy WebGL)
+- Prefers-reduced-motion media query: alternative is instant-reveal with static styling
+- Scroll-locking for countdown: use CSS `scroll-snap-type` on the countdown section
+
+#### Music Page ( /music )
+
+**Layout:** Single-column, full-width backgrounds. Each track gets a SECTION — a full-viewport (or near-full) presentation with:
+
+1. **Track title + metadata** (duration, role, key)
+2. **Custom audio player** — waveform visualization, not a default `<audio>` element. The waveform colour matches the track's thematic character (amber for "The Chat," violet for "Storm-Light," etc.)
+3. **Liner notes** — the mood/instrumentation description, scrollable alongside playback
+4. **Lyrics** (for tracks 3 and 4) — appear synchronized with playback. Karaoke-style highlight, but tasteful — opacity shift, not colour jump
+5. **"In the story" callout** — brief note on which scenes this track underscores
+
+**Visual per track:**
+- Track 1 ("The Chat"): Warm amber waveform. Background: the phone notification glow aesthetic.
+- Track 2 ("The Experiment"): Steel-cold waveform. Background: clinical grid.
+- Track 3 ("Pattern Recognition"): Mixed amber/coral waveform. Background: the Faye profile text, blurred.
+- Track 4 ("Storm-Light"): Violet waveform. Background: the storm-light sky gradient, animated.
+- Track 5 ("Building the Door"): Golden waveform. Background: forge-amber fading to silence.
+
+**Tech:** Web Audio API for waveform visualization. Streaming audio via standard HLS/progressive. Lyrics sync via timestamped JSON.
+
+#### Manhwa Page ( /manhwa )
+
+**Reader:** Vertical-scroll webtoon reader (Korean manhwa standard). Full-page images, stacked vertically, infinite scroll. Dark background between pages to maintain immersion.
+
+**Features:**
+- Chapter/Act navigation sidebar (collapsible)
+- Tap/click to zoom on panels for detail inspection
+- Page number indicator (floating, fades on scroll)
+- Keyboard navigation: arrow keys for page jumps
+- Mobile: full-width panels, optimized for portrait phone reading
+
+**Visual notes:** The manhwa pages are the highest-resolution assets on the site. Each page should be served at:
+- Mobile: 1080px wide (WebP, ~200–400KB each)
+- Desktop: 1920px wide (WebP, ~400–800KB each)
+- Zoom: 3840px (loaded on demand, AVIF preferred)
+
+Lazy loading essential — 37 pages of high-res art. Intersection Observer, load 3 pages ahead.
+
+#### Anime Page ( /anime )
+
+**Player:** Custom video player with cinematic UI. Dark, minimal chrome. Controls appear on hover, fade on inactivity.
+
+**Features:**
+- Chapter markers in the scrubber bar, labeled by scene
+- Behind-the-scenes toggle: split-screen showing the manhwa panel alongside the corresponding anime frame. "From page to screen" comparison.
+- Sakuga highlight markers: golden diamonds on the scrubber bar at each sakuga moment, clickable to jump
+- Subtitle/closed-caption support (multiple languages)
+- Director's commentary audio track (optional)
+
+**Layout:** Full-width video player, below it: a scene breakdown grid (thumbnails + descriptions), production notes, voice cast.
+
+#### Podcast Page ( /podcast )
+
+**Player:** Embedded audio with waveform. Below: full transcript (collapsible sections by segment). Timestamps are clickable — jump the player to that moment.
+
+**Pull-quotes:** Key moments from the podcast displayed as styled quote cards between transcript sections. Each card has the relevant story excerpt alongside the host's discussion of it.
+
+**Layout:** Clean, reading-focused. Single column, generous margins. The visual design here is deliberately simpler than the other pages — this is a LISTENING experience. The page supports the audio, not the other way around.
+
+#### Novel Page ( /novel )
+
+**First chapter:** Presented as a beautifully typeset reading experience. Playfair Display headers, wide margins, drop caps. The page background is warm cream (`#FAF5E9`) — a deliberate contrast to the terminal aesthetic of the rest of the site. This is a BOOK. It feels like a book.
+
+**Features:**
+- Reading progress indicator (thin bar at top)
+- Estimated reading time
+- Font size toggle (3 sizes)
+- Dark mode toggle (switches to dark background with light text — returns to the terminal world)
+- "Continue reading" CTA at chapter end → links to purchase/download
+
+**Novel info panel:** Sidebar or below-chapter section with: chapter outline, character list, sample of the next chapter (first paragraph only), purchase links.
+
+#### About Page ( /about )
+
+**Content:**
+1. **The Experiment** — What "Idea to Materialization Exponential" is. How the story was created collaboratively with AI. The methodology.
+2. **The Process** — Timeline of creation. Which AI tools were used where. What the human did vs. what the AI did. Honest, specific, not promotional.
+3. **The Characters** — Character profiles with the manhwa character designs. Not the in-story profiles (that's a spoiler) — outward-facing descriptions.
+4. **Credits** — Every tool, every collaborator, every reference. This is an academic project; rigour matters.
+5. **The Lecture** — Information about the "Idea to Materialization Exponential" presentation. Where/when it was given. Link to slides if available.
+
+**Visual:** Clean, informative. Grid layout for the process timeline. Character art from the manhwa embedded throughout.
+
+### Technical Stack Recommendation
+
+| Layer | Choice | Rationale |
+|-------|--------|-----------|
+| Framework | **Astro** | Static-first, content-focused. Zero JS by default — only ship JS for interactive components (players, scroll animations). Perfect for a content-heavy site with selective interactivity. |
+| Styling | **Tailwind CSS** + custom CSS properties | Utility-first for layout, custom properties for the colour system (enables Act 4 transitions via JS toggling CSS variables). |
+| Scroll animations | **GSAP ScrollTrigger** or **Intersection Observer** (native) | GSAP for complex timeline-based scroll effects (Act 4 transformation). Native Intersection Observer for simple message reveals. |
+| Audio player | **Wavesurfer.js** | Open-source waveform visualization. Web Audio API under the hood. Customizable appearance. |
+| Video player | **Plyr** or **Vidstack** | Lightweight, accessible, customizable. HLS support. Chapter markers plugin. |
+| Image optimization | **Sharp** (build-time) + `<picture>` element | WebP + AVIF at multiple resolutions. Art-direction via `<picture>` for manhwa pages (different crops at different breakpoints). |
+| Hosting | **Vercel** or **Cloudflare Pages** | Edge-deployed static site. Global CDN for image-heavy content. |
+| CMS (optional) | **Content layer in Astro** (markdown/MDX) | No external CMS needed. Content is static and version-controlled. |
+
+### Performance Budget
+
+| Metric | Target |
+|--------|--------|
+| LCP | < 2.5s |
+| FID | < 100ms |
+| CLS | < 0.1 |
+| Total page weight (initial load) | < 500KB (excl. media) |
+| Manhwa page lazy-load | 3 pages ahead, ~1.2MB per batch |
+| Audio streaming | Progressive download, no full preload |
+
+### Accessibility
+
+- Full keyboard navigation on all interactive elements
+- Screen reader support: all images have descriptive alt text, chat messages are semantically marked as a conversation (`<article>` with `role="log"`)
+- Prefers-reduced-motion: disables all scroll animations, rain effects, typewriter text. Static rendering instead.
+- Prefers-color-scheme: dark mode is default (matches content); light mode available via toggle
+- Colour contrast: all text meets WCAG AA (4.5:1 ratio minimum)
+- Audio content has full transcripts
+- Video has closed captions
+
+### Mobile Responsiveness
+
+- **Breakpoints:** 375px (phone), 768px (tablet), 1024px (desktop), 1440px (wide)
+- **Story page (mobile):** Full-width chat bubbles, larger touch targets for scroll. Act 4 rain effect: simplified (fewer particles). Countdown scroll-lock: replaced with tap-to-advance.
+- **Manhwa (mobile):** Full-width panels — this IS the native format for webtoons. Vertical scroll, lazy-loaded. The best reading experience on the site.
+- **Music (mobile):** Stacked layout, waveform simplified to amplitude bars. Lyrics scroll below player.
+- **Navigation (mobile):** Bottom nav bar (5 icons: Story, Manhwa, Anime, Music, About). Sticky. Minimal.
+
+---
+
+*End of content scripts — Ares draft.*
