@@ -493,9 +493,55 @@ html,body{
   .msg-text{font-size:.9rem;padding:5px 12px}
   .slide{padding:40px 24px}
 }
+
+/* ===== THEME SWITCHER ===== */
+#theme-switcher-wrap {
+  position: fixed; top: 10px; left: 16px;
+  z-index: 99999;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+#theme-switcher {
+  appearance: none;
+  -webkit-appearance: none;
+  background: rgba(30,30,40,0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #aaa;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 6px;
+  padding: 5px 28px 5px 10px;
+  font-size: 0.7rem;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  letter-spacing: 0.03em;
+}
+#theme-switcher:hover {
+  border-color: rgba(255,255,255,0.25);
+  color: #ddd;
+}
+#theme-switcher option {
+  background: #1a1a2e;
+  color: #ccc;
+  padding: 4px 8px;
+}
 </style>
 </head>
 <body>
+
+<div id="theme-switcher-wrap">
+  <select id="theme-switcher" onchange="switchVariant(this.value)" title="Switch visual theme">
+    <option value="1">⬛ Terminal</option>
+    <option value="2">◻️ Clean Minimal</option>
+    <option value="3">🎬 Cinematic Dark</option>
+    <option value="4">🔄 Evolving</option>
+    <option value="5" selected>💬 Interactive Chat</option>
+  </select>
+</div>
+
 
 <!-- Progress -->
 <div id="progress"></div>
@@ -544,45 +590,90 @@ html,body{
     <p style="margin-top:2rem;font-weight:600;color:var(--text)">You're inside the proof.</p>
   </div>
   <div class="slide" id="s3">
-    <h3 style="margin-bottom:1.5rem">One WhatsApp group. Nine days.</h3>
-    <div class="output-list">
-      <span>→</span> Digital personality profiles<br>
-      <span>→</span> 9,400-word novella<br>
-      <span>→</span> 12-panel manhwa chapter<br>
-      <span>→</span> 10 anime-style character variants<br>
-      <span>→</span> Original songs (lyrics + production)<br>
-      <span>→</span> Legal letter (7 agents, 19 citations)<br>
-      <span>→</span> Live twin simulation (45 turns, autonomous)<br>
-      <span>→</span> Research papers (11-agent pyramid)<br>
-      <span>→</span> Product specification<br>
-      <span>→</span> This lecture.
+    <h3 style="margin-bottom:1.5rem">OpenClaw — The Architecture</h3>
+    <p style="margin-bottom:1.5rem;color:var(--text-dim)">Not a chatbot. A system for building an AI <em>person</em>. Five markdown files:</p>
+    <div class="mono">
+      <strong>SOUL.md</strong> <span class="desc">— Personality, values, anti-sycophancy rules. <em>Who</em> the AI is.</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="desc">"No agreement openers. Just say the thing."</span><br><br>
+      <strong>AGENTS.md</strong> <span class="desc">— Byzantine verification, orchestration, 10 Commandments. <em>How</em> it works.</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="desc">"Never the worker, always the conductor."</span><br><br>
+      <strong>MEMORY.md</strong> <span class="desc">— Persistent, distilled daily, searchable. <em>Why</em> decisions were made.</span><br><br>
+      <strong>TOOLS.md</strong> <span class="desc">— Modular skills: Suno, GitHub, browser, search. <em>What</em> it can do.</span><br><br>
+      <strong>USER.md</strong> <span class="desc">— Human context. Built over time. <em>Who</em> you are.</span>
     </div>
-    <p style="margin-top:2rem;font-weight:600;color:var(--text)">The Materialization Exponential.</p>
+    <p style="margin-top:1.5rem;font-weight:500;color:var(--text)">SOUL defines who → AGENTS defines how → SKILLS define what → MEMORY persists why</p>
   </div>
   <div class="slide" id="s4">
-    <h3 style="margin-bottom:2rem">The Architecture</h3>
+    <h3 style="margin-bottom:1.5rem">Byzantine Agent Teams</h3>
+    <p style="margin-bottom:1rem;color:var(--text-dim)">Single-agent outputs are unreliable. Byzantine fault tolerance fixes this.</p>
     <div class="mono">
-      <strong>SOUL</strong> <span class="desc">— A personality file. Plain markdown.</span><br>
-      &nbsp;&nbsp;&nbsp;&nbsp;<span class="desc">"I don't do pleasantries. I do work."</span><br><br>
-      <strong>MEMORY</strong> <span class="desc">— It remembers. Permanently.</span><br>
-      &nbsp;&nbsp;&nbsp;&nbsp;<span class="desc">One correction → infinite downstream.</span><br><br>
-      <strong>AGENTS</strong> <span class="desc">— Not one AI. A team.</span><br>
-      &nbsp;&nbsp;&nbsp;&nbsp;<span class="desc">11 researchers. 7 lawyers. 3 artists.</span><br><br>
-      <strong>HOME</strong> <span class="desc">— WhatsApp. Telegram. Slack.</span><br>
-      &nbsp;&nbsp;&nbsp;&nbsp;<span class="desc">Where you already are.</span><br><br>
-      <strong>OPEN SOURCE</strong> <span class="desc">— OpenClaw. MIT license. Yours.</span>
+      <strong>THE PROBLEM</strong><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="desc">One agent = one coin flip. Hallucination, drift, confident fabrication.</span><br><br>
+      <strong>5 DRAFTERS</strong><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="desc">Each writes independently. No communication. No groupthink.</span><br><br>
+      <strong>3 SYNTHESIZERS</strong><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="desc">Each reads all 5 drafts. Weaves best elements. Finds consensus.</span><br><br>
+      <strong>1 ARBITER</strong><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="desc">Reads all syntheses. Selects strongest. Refines final.</span><br><br>
+      <strong>RESULT</strong><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="desc">Richer than any single draft. ~35 agents for this project.</span>
     </div>
   </div>
   <div class="slide" id="s5">
-    <h2 style="font-size:clamp(1.6rem,3.5vw,2.4rem)">AI doesn't replace the storyteller.</h2>
-    <h2 style="margin-top:.5rem">It replaces the blank page.</h2>
-    <div class="quote" style="margin-top:2.5rem">"I feel like adding me to Hep allowed us to talk more and know each other more."</div>
-    <div class="quote-attr">— Faye</div>
+    <h3 style="margin-bottom:1.5rem">Hephaestus — Real Configuration</h3>
+    <div class="mono">
+      <strong>Model</strong> <span class="desc">— Claude Opus 4 (Anthropic)</span><br>
+      <strong>Identity</strong> <span class="desc">— "The God of Builders" · anti-sycophancy · forge identity</span><br>
+      <strong>Method</strong> <span class="desc">— Orchestrator: spawns Byzantine agent teams</span><br>
+      <strong>Memory</strong> <span class="desc">— Persistent, distilled daily, searchable</span><br>
+      <strong>Infra</strong> <span class="desc">— RTX 4090s + 5090, local + cloud</span><br>
+      <strong>Code law</strong> <span class="desc">— 10 Commandments in every sub-agent</span>
+    </div>
+    <p style="margin-top:2rem;font-weight:400;color:var(--text-dim)">The system that built this lecture. Daily use. Not a demo.</p>
   </div>
   <div class="slide" id="s6">
-    <h3 style="color:var(--text-sys);font-weight:400;margin-bottom:1rem">This lecture is output 48.</h3>
-    <h2>What's output 49?</h2>
-    <div class="contact">antreas@axiotic.ai · axiotic.ai</div>
+    <h3 style="margin-bottom:1.5rem">What Built What</h3>
+    <div class="output-list">
+      <span>→</span> <strong>Story</strong> — Claude Opus 4 · 5-3-1 pyramid · 9 agents<br>
+      <span>→</span> <strong>Lecture</strong> — Claude Opus 4 · 5-3-1 pyramid · 14 agents<br>
+      <span>→</span> <strong>5 slide decks</strong> — Claude Opus 4 · 5 parallel agents<br>
+      <span>→</span> <strong>Music (5 tracks)</strong> — Suno V5 API · suno skill · 10 MP3s<br>
+      <span>→</span> <strong>Website</strong> — Claude Opus 4 · GitHub Pages · automated<br>
+      <span>→</span> <strong>Novel (60K words)</strong> — Claude Opus 4 · in progress<br>
+      <span>→</span> <strong>This lecture</strong> — meta-recursive
+    </div>
+    <p style="margin-top:1.5rem;color:var(--text-dim);font-size:.9rem">This slide deck is one of the outputs. You're watching the proof demonstrate itself.</p>
+  </div>
+  <div class="slide" id="s7">
+    <h3 style="margin-bottom:1.5rem">Explore the Outputs</h3>
+    <div class="output-list">
+      <span>→</span> <strong>Website:</strong> <a href="https://antreas.io/genai-as-creative-companion/" style="color:var(--antreas);text-decoration:underline" target="_blank">antreas.io/genai-as-creative-companion</a><br>
+      <span>→</span> <strong>Music:</strong> <a href="https://antreas.io/genai-as-creative-companion/music/" style="color:var(--antreas);text-decoration:underline" target="_blank">5 tracks — "Phantom Lamb", "Storm-Light", "Building the Door"</a><br>
+      <span>→</span> <strong>Slides:</strong> 5 variants — use theme switcher to preview
+    </div>
+    <p style="margin-top:1.5rem;color:var(--text-sys);font-size:.85rem">Tracks: "The Chat" · "The Experiment" · "Phantom Lamb" · "Storm-Light" · "Building the Door"</p>
+  </div>
+  <div class="slide" id="s8">
+    <h3 style="margin-bottom:1.5rem">The Materialization Exponential</h3>
+    <div class="output-list">
+      <span>→</span> Story (4 acts): <strong>one evening</strong><br>
+      <span>→</span> 5 slide variants: <strong>hours</strong><br>
+      <span>→</span> Music suite (5 tracks): <strong>one API call per track</strong><br>
+      <span>→</span> Full website: <strong>one agent + deploy</strong><br>
+      <span>→</span> Novel (60K words): <strong>in progress</strong>
+    </div>
+    <div class="quote" style="margin-top:2rem">The gap between having an idea and holding its materialization is collapsing. Not linearly — exponentially. The bottleneck is no longer capability. It's imagination.</div>
+  </div>
+  <div class="slide" id="s9">
+    <h2 style="font-size:clamp(1.6rem,3.5vw,2.4rem)">AI doesn't replace the storyteller.</h2>
+    <h2 style="margin-top:.5rem">It replaces the blank page.</h2>
+    <p style="margin-top:2rem;color:var(--text-dim)">OpenClaw is open source. MIT license. The system that built everything you've seen.</p>
+    <p style="margin-top:1rem;font-family:var(--font-mono);font-size:.9rem;color:var(--text-dim)">github.com/openclaw</p>
+  </div>
+  <div class="slide" id="s10">
+    <h2>Building the door.</h2>
+    <p style="margin-top:1rem;color:var(--text-dim)">The forge is lit. The tools exist. What will you build?</p>
+    <div class="contact" style="margin-top:2rem">antreas@axiotic.ai · axiotic.ai · github.com/openclaw</div>
     <div class="final-line">Questions? The weird ones are the best ones.</div>
   </div>
 </div>
@@ -983,7 +1074,7 @@ const D=[
 let idx=-1; // -1 = title screen
 let mode='title'; // title | chat | slides
 let slideIdx=0;
-const totalSlides=6;
+const totalSlides=10;
 const totalSteps=D.length+totalSlides;
 let schmidhuberRevealed=false;
 let rainActive=false;
@@ -1427,6 +1518,28 @@ document.addEventListener('touchend',e=>{
 // ===== INIT =====
 updateProgress();
 handleHash();
+
+
+// ===== THEME SWITCHER =====
+function switchVariant(v) {
+  const names = {1:'terminal',2:'minimal',3:'cinematic',4:'evolving',5:'interactive'};
+  const totals = {1:40,2:43,3:40,4:41,5:10};
+  const curVariant = 5;
+  if (parseInt(v) === curVariant) return;
+  // Get current position as percentage
+  let pct = 0;
+  try {
+    const allSlides = document.querySelectorAll('.slide, #slide-wrap .slide');
+    const tot = allSlides.length || 1;
+    const hash = typeof slideIdx !== 'undefined' ? slideIdx + 1 : parseInt(location.hash.replace('#',''), 10);
+    const cur = (hash >= 1 && hash <= tot) ? hash - 1 : 0;
+    pct = cur / Math.max(1, tot - 1);
+  } catch(e) { pct = 0; }
+  const targetTotal = totals[parseInt(v)] || 1;
+  const targetSlide = Math.max(1, Math.round(pct * (targetTotal - 1)) + 1);
+  window.location.href = 'variant-' + v + '-' + names[parseInt(v)] + '.html#' + targetSlide;
+}
+
 </script>
 </body>
 </html>
