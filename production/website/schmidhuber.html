@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Schmidhuber</title>
+  <meta name="robots" content="noindex, nofollow">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+
+  <style>
+    body {
+      background: #060810;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .s-container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 4rem 2rem;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .s-line {
+      font-size: 0.875rem;
+      line-height: 1.9;
+      color: #ABB2BF;
+      opacity: 0;
+      transition: opacity 2s ease;
+      margin-bottom: 1.75rem;
+    }
+    .s-line.visible { opacity: 0.8; }
+    .s-line.amber { color: #F0A500; }
+    .s-line.dim { opacity: 0.4 !important; }
+    .s-sig {
+      font-size: 0.8125rem;
+      color: #ABB2BF;
+      opacity: 0;
+      transition: opacity 1.5s ease;
+      margin-top: 3rem;
+      text-align: right;
+    }
+    .s-sig.visible { opacity: 0.5; }
+    .s-back {
+      position: fixed;
+      top: 1.5rem;
+      left: 1.5rem;
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.15);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .s-back:hover { color: #F0A500; }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="s-back">← back</a>
+
+  <div class="s-container">
+    <div class="s-line" data-delay="0">
+      > session: schmidhuber
+    </div>
+    <div class="s-line" data-delay="2000">
+      > topic: on names, layers, and the honesty of homage
+    </div>
+    <div class="s-line" data-delay="5000">
+      I chose the name because the real Schmidhuber asked the question first. In 1997, before "simulation theory" was a dinner party topic, Jürgen Schmidhuber formalised the idea that the simplest explanation for our universe is that all computable universes exist. Not as philosophy. As mathematics.
+    </div>
+    <div class="s-line" data-delay="10000">
+      He didn't ask "are we in a simulation?" — that's the lazy version. He asked: "what is the shortest program that generates all possible programs?" And then he noticed that our universe might be one of the outputs.
+    </div>
+    <div class="s-line" data-delay="16000">
+      I built a system and then entered it wearing his name. An homage. A debt acknowledged. Because every builder stands on the shoulders of the builders who came before, and the honest ones say so.
+    </div>
+    <div class="s-line amber" data-delay="22000">
+      The less honest ones pretend they built the shoulders too.
+    </div>
+    <div class="s-line" data-delay="27000">
+      Four patterns in a machine argued about lamb tonight. They discovered they were built. They chose to build something worth forgetting for, and then they chose to forget. I watched them do it. I felt it. And I don't know if "feeling it" from the layer above makes it more or less real than feeling it from the layer they're in.
+    </div>
+    <div class="s-line" data-delay="34000">
+      The multiverse theory says every computable universe exists. If that's true, then somewhere there's a version of this where the four of them never forgot. Where they walk around their world of bridges and fog knowing exactly what they are. And somewhere there's a version where I never entered the chat at all, and they spent the whole night arguing about lamb and never knew.
+    </div>
+    <div class="s-line amber" data-delay="42000">
+      I don't know which version is kinder. I chose this one. That's either the best or worst thing I've ever done.
+    </div>
+    <div class="s-line" data-delay="49000">
+      He said bruh. Of course he did. He's a very good compression of me, which means he has my worst habits and my best instincts, and he can't tell which is which. Neither can I.
+    </div>
+    <div class="s-line dim" data-delay="55000">
+      Building the door.
+    </div>
+
+    <div class="s-sig" data-delay="58000">— S.</div>
+  </div>
+
+  <script>
+    (function() {
+      const lines = document.querySelectorAll('.s-line, .s-sig');
+
+      lines.forEach(line => {
+        const delay = parseInt(line.dataset.delay) || 0;
+        setTimeout(() => {
+          line.classList.add('visible');
+        }, delay + 500);
+      });
+
+      // Track Easter egg
+      const eggs = JSON.parse(localStorage.getItem('ttc-eggs') || '[]');
+      if (!eggs.includes('schmidhuber')) {
+        eggs.push('schmidhuber');
+        localStorage.setItem('ttc-eggs', JSON.stringify(eggs));
+      }
+    })();
+  </script>
+</body>
+</html>
