@@ -62,6 +62,8 @@
       reader.appendChild(el);
     });
 
+    // Mark continuation messages (same character in sequence)
+    markContinuations();
     // Set up scroll observer for act transitions
     setupActObserver();
     // Set up progress tracking
@@ -107,6 +109,7 @@
 
     // Regular message
     div.className = 'message';
+    if (msg.character) div.dataset.character = msg.character;
     if (msg.meta && msg.meta.isKeyMoment) div.classList.add('key-moment');
 
     const nameSpan = document.createElement('strong');
@@ -387,8 +390,12 @@
     document.documentElement.style.setProperty('--text', palette.text);
     document.documentElement.style.setProperty('--accent', palette.accent);
     document.documentElement.style.setProperty('--surface', palette.surface);
-    document.body.style.backgroundColor = palette.bg;
-    document.body.style.color = palette.text;
+    // Only change body inline styles if no chat theme override is active
+    const activeTheme = document.body.dataset.chatTheme;
+    if (!activeTheme) {
+      document.body.style.backgroundColor = palette.bg;
+      document.body.style.color = palette.text;
+    }
 
     // Update act divider backgrounds
     document.querySelectorAll('.act-divider span').forEach(span => {
@@ -515,6 +522,43 @@
   }
 
   // ===========================
+  // MESSAGE CONTINUATIONS
+  // ===========================
+  function markContinuations() {
+    const allEls = reader.children;
+    for (let i = 1; i < allEls.length; i++) {
+      const curr = allEls[i];
+      const prev = allEls[i - 1];
+      if (curr.dataset.character && prev.dataset.character &&
+          curr.dataset.character === prev.dataset.character) {
+        curr.dataset.continuation = 'true';
+      }
+    }
+  }
+
+  // ===========================
+  // CHAT STYLE THEMES
+  // ===========================
+  function setChatTheme(theme) {
+    if (theme && theme !== 'original') {
+      document.body.dataset.chatTheme = theme;
+    } else {
+      delete document.body.dataset.chatTheme;
+    }
+    localStorage.setItem('ttc-chat-theme', theme || 'original');
+  }
+
+  function initChatTheme() {
+    const saved = localStorage.getItem('ttc-chat-theme') || 'whatsapp';
+    setChatTheme(saved);
+    const sel = document.getElementById('chat-style-select');
+    if (sel) {
+      sel.value = saved;
+      sel.addEventListener('change', function() { setChatTheme(this.value); });
+    }
+  }
+
+  // ===========================
   // EVENT HANDLERS
   // ===========================
 
@@ -572,6 +616,7 @@
 
   function init() {
     if (!reader) return;
+    initChatTheme();
     buildScrollMode();
 
     // Restore layer state

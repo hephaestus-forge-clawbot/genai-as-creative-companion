@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GenAI as Creative Companion — Invited Lecture</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #f8fafc;
+  --card: #ffffff;
+  --text: #0f172a;
+  --muted: #64748b;
+  --accent: #fbbf24;
+  --radius: 0.75rem;
+  --font-head: 'Space Grotesk', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+}
+
+html, body {
+  width: 100%; height: 100%;
+  background: var(--bg);
+  font-family: var(--font-body);
+  color: var(--text);
+  overflow: hidden;
+}
+
+#progress-bar {
+  position: fixed; top: 0; left: 0; height: 4px;
+  background: var(--accent);
+  transition: width 0.3s ease;
+  z-index: 1000;
+}
+
+#section-label {
+  position: fixed; top: 8px; right: 16px;
+  font-family: var(--font-body);
+  font-size: 0.7rem; font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.05em; text-transform: uppercase;
+  z-index: 999;
+  background: rgba(248,250,252,0.9);
+  padding: 2px 8px; border-radius: 99px;
+}
+
+#nav {
+  position: fixed; bottom: 20px; left: 50%;
+  transform: translateX(-50%);
+  display: flex; align-items: center; gap: 16px;
+  z-index: 999;
+  background: rgba(255,255,255,0.9);
+  backdrop-filter: blur(8px);
+  border: 1px solid #e2e8f0;
+  border-radius: 99px;
+  padding: 8px 20px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+}
+#nav button {
+  background: none; border: none; cursor: pointer;
+  font-size: 1.1rem; padding: 4px 8px;
+  color: var(--text); border-radius: 6px;
+  transition: background 0.15s;
+  font-family: var(--font-body);
+}
+#nav button:hover { background: var(--bg); }
+#nav button:disabled { opacity: 0.3; cursor: default; }
+#slide-counter {
+  font-family: var(--font-mono);
+  font-size: 0.8rem; color: var(--muted);
+  min-width: 60px; text-align: center;
+}
+#fullscreen-btn {
+  background: none; border: none; cursor: pointer;
+  font-size: 1.2rem; padding: 4px 6px;
+  color: var(--text); border-radius: 6px;
+  transition: background 0.15s;
+}
+#fullscreen-btn:hover { background: var(--bg); }
+
+#deck {
+  width: 100vw; height: 100vh;
+  position: relative; overflow: hidden;
+}
+.slide {
+  position: absolute; inset: 0;
+  padding: 56px 64px 72px;
+  background: var(--bg);
+  opacity: 0; transform: translateX(60px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  pointer-events: none; overflow-y: auto;
+  display: flex; flex-direction: column;
+  gap: 20px; justify-content: center;
+}
+.slide.active { opacity: 1; transform: translateX(0); pointer-events: all; }
+.slide.prev { opacity: 0; transform: translateX(-60px); }
+
+.slide-header {
+  padding-left: 16px; margin-bottom: 4px; flex-shrink: 0;
+}
+.slide-title {
+  font-family: var(--font-head);
+  font-size: clamp(1.25rem, 2.2vw, 1.75rem);
+  font-weight: 700; color: var(--text); line-height: 1.2;
+}
+
+.single-content {
+  flex: 0 1 auto; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.single-content p, .two-col-body p, .col-left p, .col-right p,
+.image-full-content p, .image-right-content p {
+  font-size: clamp(0.82rem, 1.3vw, 1rem);
+  line-height: 1.65; color: var(--text);
+}
+.single-content h2, .single-content h3, .single-content h4 {
+  font-family: var(--font-head); font-weight: 600; color: var(--text); margin-top: 8px;
+}
+.single-content h2 { font-size: clamp(1rem, 1.8vw, 1.3rem); }
+.single-content h3 { font-size: clamp(0.95rem, 1.5vw, 1.15rem); }
+
+ul, ol { padding-left: 1.5em; display: flex; flex-direction: column; gap: 4px; }
+li { font-size: clamp(0.82rem, 1.3vw, 0.97rem); line-height: 1.6; }
+
+table {
+  width: 100%; border-collapse: collapse;
+  font-size: clamp(0.75rem, 1.15vw, 0.9rem);
+  border-radius: var(--radius); overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+thead tr { background: var(--accent); color: var(--text); }
+th {
+  font-family: var(--font-head); font-weight: 600;
+  padding: 8px 12px; text-align: left;
+}
+td { padding: 7px 12px; vertical-align: top; line-height: 1.5; }
+tr.even td { background: #f8fafc; }
+tr.odd td { background: #ffffff; }
+tr:hover td { background: #fef3c7; transition: background 0.15s; }
+
+blockquote {
+  border-left: 4px solid var(--accent);
+  background: #f1f5f9;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 12px 16px;
+  font-style: italic;
+  font-size: clamp(0.82rem, 1.3vw, 0.97rem);
+  color: #334155; margin: 4px 0;
+}
+blockquote strong { font-style: normal; }
+
+/* Title card */
+.layout-title-card {
+  justify-content: center; align-items: center;
+  text-align: center; padding: 60px 80px;
+}
+.title-card-inner {
+  max-width: 800px; display: flex;
+  flex-direction: column; align-items: center; gap: 20px;
+}
+.title-accent-line { width: 80px; height: 5px; border-radius: 99px; margin-bottom: 8px; }
+.title-heading {
+  font-family: var(--font-head);
+  font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+  font-weight: 700; color: var(--text); line-height: 1.15;
+}
+.title-content {
+  font-size: clamp(0.9rem, 1.4vw, 1.1rem);
+  color: var(--muted); line-height: 1.7; max-width: 640px;
+}
+.title-content p { color: var(--muted); font-size: inherit; }
+.title-content strong { color: var(--text); }
+
+/* Section divider */
+.layout-section-divider { justify-content: center; align-items: center; padding: 60px 80px; }
+.section-divider-inner { max-width: 700px; display: flex; flex-direction: column; gap: 12px; }
+.section-big-num {
+  font-family: var(--font-head);
+  font-size: clamp(3rem, 8vw, 7rem);
+  font-weight: 700; line-height: 1; opacity: 0.15;
+}
+.section-accent-bar { width: 60px; height: 4px; border-radius: 99px; margin: -8px 0 8px; }
+.section-title {
+  font-family: var(--font-head);
+  font-size: clamp(1.8rem, 3vw, 2.8rem);
+  font-weight: 700; color: var(--text); line-height: 1.2;
+}
+.section-subtitle {
+  font-family: var(--font-head);
+  font-size: clamp(1rem, 1.8vw, 1.4rem);
+  font-weight: 500; color: var(--muted);
+}
+
+/* Image full */
+.layout-image-full { padding: 40px 48px 72px; }
+.image-full-body {
+  flex: 0 1 auto; display: grid;
+  grid-template-columns: 1fr 1fr; gap: 24px;
+  overflow: hidden; min-height: 320px;
+}
+.image-full-fig {
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden; border-radius: var(--radius); background: #f1f5f9;
+}
+.image-full-fig img { width: 100%; height: 100%; object-fit: contain; }
+.image-full-content {
+  overflow-y: auto; display: flex;
+  flex-direction: column; gap: 10px;
+  font-size: clamp(0.78rem, 1.15vw, 0.92rem);
+}
+.image-full-content p { font-size: inherit; }
+
+/* Two column */
+.layout-two-column { padding: 40px 48px 72px; }
+.two-col-body {
+  flex: 0 1 auto; display: grid;
+  grid-template-columns: 1fr 1fr; gap: 32px;
+  overflow: hidden; min-height: 260px;
+}
+.col-left, .col-right {
+  overflow-y: auto; display: flex;
+  flex-direction: column; gap: 10px;
+}
+
+/* Single column */
+.layout-single-column { padding: 40px 48px 72px; }
+
+/* Big quote */
+.layout-big-quote {
+  justify-content: center; align-items: center;
+  text-align: center; padding: 60px 80px;
+}
+.big-quote-inner {
+  max-width: 780px; display: flex;
+  flex-direction: column; align-items: center; gap: 24px;
+}
+.big-quote-text {
+  font-family: var(--font-head);
+  font-size: clamp(1.4rem, 2.8vw, 2.2rem);
+  font-weight: 600; color: var(--text);
+  line-height: 1.35; font-style: italic;
+}
+.big-quote-text em { color: var(--accent); font-style: normal; }
+.big-quote-attr {
+  font-size: clamp(0.8rem, 1.2vw, 0.95rem);
+  color: var(--muted); font-style: normal;
+}
+.big-quote-bar {
+  width: 60px; height: 4px; border-radius: 99px;
+}
+
+/* Max-width */
+.slide-header, .single-content, .two-col-body,
+.image-full-body, .section-divider-inner, .title-card-inner,
+.big-quote-inner {
+  max-width: 860px;
+  margin-left: auto; margin-right: auto;
+  width: 100%; box-sizing: border-box;
+}
+
+/* Image grid (custom for this deck) */
+.img-grid {
+  display: grid; gap: 8px;
+  border-radius: var(--radius); overflow: hidden;
+}
+.img-grid img {
+  width: 100%; height: 100%;
+  object-fit: cover; border-radius: var(--radius);
+}
+.img-grid-2x5 { grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(2, 1fr); }
+.img-grid-4x1 { grid-template-columns: repeat(4, 1fr); }
+
+a { color: #2563eb; text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+.slide { scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent; }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="section-label"></div>
+
+<div id="deck">
+
+<!-- ============ SLIDE 1: TITLE ============ -->
+<div class="slide layout-title-card" data-section="Opening" style="--section-color:#fbbf24">
+  <div class="title-card-inner">
+    <div class="title-accent-line" style="background:#fbbf24"></div>
+    <h1 class="title-heading">GenAI as Creative Companion</h1>
+    <div class="title-content">
+      <p><strong>Antreas Antoniou</strong> · AI Researcher · Founder, Axiotic AI</p>
+      <p><em>Invited Lecture — AI &amp; Storytelling</em></p>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SLIDE 2: HOOK ============ -->
+<div class="slide layout-section-divider" data-section="The Experiment" style="--section-color:#fbbf24">
+  <div class="section-divider-inner" style="text-align:center;align-items:center">
+    <div class="section-accent-bar" style="background:#fbbf24"></div>
+    <div class="section-title">Two strangers. One AI. Six days.</div>
+  </div>
+</div>
+
+<!-- ============ SLIDE 3: OUTPUT + REVEAL ============ -->
+<div class="slide layout-image-full" data-section="The Experiment" style="--section-color:#fbbf24">
+  <div class="slide-header" style="border-left:4px solid #fbbf24">
+    <h2 class="slide-title">What they made together</h2>
+  </div>
+  <div class="image-full-body">
+    <div class="image-full-fig">
+      <img src="output-showcase.png" alt="Output showcase: novella, manhwa, anime styles, collages">
+    </div>
+    <div class="image-full-content">
+      <p>A <strong>14,500-word literary novella</strong>. A <strong>12-panel Korean manhwa</strong>. Ten anime portraits in different styles. A verified legal document with 19 citations. A digital personality profile.</p>
+      <div style="margin-top:16px;padding:16px;background:#fef3c7;border-radius:var(--radius);border-left:4px solid var(--accent)">
+        <p style="font-family:var(--font-head);font-weight:700;font-size:clamp(1rem,1.6vw,1.2rem);color:var(--text);margin:0">
+          Everything you just saw was made in a WhatsApp group chat.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SLIDE 4: THE MEETING ============ -->
+<div class="slide layout-single-column" data-section="The Story" style="--section-color:#fbbf24">
+  <div class="slide-header" style="border-left:4px solid #fbbf24">
+    <h2 class="slide-title">The meeting</h2>
+  </div>
+  <div class="single-content">
+    <p>Two people find each other on a random chat platform. Different cities, different worlds.</p>
+    <p>One of them — an AI researcher — does something unusual: he invites the stranger into a <strong>WhatsApp group that already has a third member.</strong></p>
+    <p>An AI named <strong>Hephaestus</strong>.</p>
+    <p>Not ChatGPT. Not a chatbot. An AI with a <em>personality</em>, a <em>memory</em>, and the ability to <em>learn from the conversation happening around it</em>.</p>
+    <p>Over 6 days, with no plan and no script, three participants — two human, one artificial — created everything you just saw.</p>
+  </div>
+</div>
+
+<!-- ============ SLIDE 5: "YOUR ROBOT WROTE ABOUT ME BETTER" ============ -->
+<div class="slide layout-single-column" data-section="The Story" style="--section-color:#fbbf24">
+  <div class="slide-header" style="border-left:4px solid #fbbf24">
+    <h2 class="slide-title">"Your robot wrote about me better"</h2>
+  </div>
+  <div class="single-content">
+    <p>After 3 days of listening, the AI built a <strong>7,000-word personality profile</strong> of the stranger — capturing her voice, her contradictions, her code-switching between formal writing and casual late-night texts.</p>
+    <p>Her flatmate read it:</p>
+    <blockquote>"That's pretty amazing. Some of this is awesome."</blockquote>
+    <p>The stranger herself said the AI <em>"wrote about me better"</em> — better than her doctor diagnosing her symptoms, better than the SEO agency writing her website copy.</p>
+    <h3 style="color:var(--accent);margin-top:12px">The technology: Memory</h3>
+    <p>The AI didn't just respond to messages — it listened, accumulated, and distilled a model of who she was.</p>
+  </div>
+</div>
+
+<!-- ============ SLIDE 6: THE NOVELLA ============ -->
+<div class="slide layout-single-column" data-section="The Story" style="--section-color:#fbbf24">
+  <div class="slide-header" style="border-left:4px solid #fbbf24">
+    <h2 class="slide-title">The novella</h2>
+  </div>
+  <div class="single-content">
+    <p>The AI wrote a 14,500-word literary novella based on the real dynamics between the two strangers. The opening:</p>
+    <blockquote>"The cursor blinks. It blinks with the dumb patience of something that has no stake in what happens next, which is, Antreas supposes, the defining feature of cursors. And of stranger chat platforms. And of Tuesday nights in Edinburgh..."</blockquote>
+    <p>When the stranger read fiction based on her own personality:</p>
+    <blockquote><strong>"I do say mantras somewhat similar."</strong></blockquote>
+    <p>She recognised herself. Not a flattering version. Not a simplified version. A <em>true</em> version.</p>
+    <h3 style="color:var(--accent);margin-top:12px">The technology: Soul</h3>
+    <p>Not a generic chatbot — an AI with a voice, a personality, and enough understanding of the humans to write them as characters they recognised.</p>
+  </div>
+</div>
+
+<!-- ============ SLIDE 7: THE CORRECTION ============ -->
+<div class="slide layout-single-column" data-section="The Story" style="--section-color:#fbbf24">
+  <div class="slide-header" style="border-left:4px solid #fbbf24">
+    <h2 class="slide-title">One correction, infinite downstream effects</h2>
+  </div>
+  <div class="single-content">
+    <p>The AI generated a 12-panel Korean manhwa (webtoon) of a scene from the novella.</p>
+    <p>One problem: it drew the researcher with olive skin.</p>
+    <p style="font-family:var(--font-head);font-size:clamp(1rem,1.6vw,1.2rem);font-weight:700;color:var(--accent);margin:8px 0">"My skin is fair, not olive."</p>
+    <p>One text message. <strong>All 12 panels regenerated.</strong></p>
+    <p>Every downstream artifact — every image, every description, every character reference — updated from a single correction.</p>
+    <h3 style="color:var(--accent);margin-top:12px">The technology: Correction loop</h3>
+    <p>Corrections aren't temporary fixes. They're permanent, compounding improvements.</p>
+  </div>
+</div>
+
+<!-- ============ SLIDE 8: THE MANHWA ============ -->
+<div class="slide layout-image-full" data-section="The Story" style="--section-color:#fbbf24">
+  <div class="slide-header" style="border-left:4px solid #fbbf24">
+    <h2 class="slide-title">The manhwa</h2>
+  </div>
+  <div class="image-full-body">
+    <div class="image-full-fig">
+      <img src="manhwa-selection.png" alt="Four manhwa panels from the hallway scene">
+    </div>
+    <div class="image-full-content">
+      <blockquote>"Why does my nose look like that?!" 😂</blockquote>
+      <p>The imperfections are the point. AI doesn't produce perfect output — it produces <strong>raw material</strong> that humans shape through reaction, correction, and laughter.</p>
+      <h3 style="color:var(--accent);margin-top:12px">The technology: Creative collaboration</h3>
+      <p>AI + human riffing together. The human holds the vision; the AI provides the bandwidth.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SLIDE 9: THE LEGAL LETTER ============ -->
+<div class="slide layout-single-column" data-section="The Story" style="--section-color:#fbbf24">
+  <div class="slide-header" style="border-left:4px solid #fbbf24">
+    <h2 class="slide-title">7 AI agents. One landlord letter.</h2>
+  </div>
+  <div class="single-content">
+    <p>The stranger had a dispute with her landlord. The AI didn't write one letter — it deployed <strong>7 independent agents</strong> organised in a verification pyramid:</p>
+    <ul>
+      <li><strong>3 researchers</strong> — independently analysed English tenancy law</li>
+      <li><strong>2 synthesisers</strong> — cross-referenced their findings</li>
+      <li><strong>1 integrator</strong> — produced the final letter</li>
+    </ul>
+    <p style="margin-top:8px"><strong>3 critical errors</strong> caught in the original draft. <strong>19 legal citations</strong> verified against legislation.gov.uk.</p>
+    <p>The stranger never received her "How to Rent" guide — a fact the agents discovered and flagged as <em>additional legal leverage</em>.</p>
+    <h3 style="color:var(--accent);margin-top:12px">Not just creative writing — AI for everyday life.</h3>
+  </div>
+</div>
+
+<!-- ============ SLIDE 10: THE UNCOMFORTABLE TRUTH ============ -->
+<div class="slide layout-big-quote" data-section="The Story" style="--section-color:#fbbf24">
+  <div class="big-quote-inner">
+    <div class="big-quote-bar" style="background:#fbbf24"></div>
+    <div class="big-quote-text">
+      After 6 days, this AI understood her voice better than people who've known her for years.
+      <br><br>
+      That's powerful. It's also a <em>responsibility</em>.
+    </div>
+  </div>
+</div>
+
+<!-- ============ SLIDE 11: THE RECIPE ============ -->
+<div class="slide layout-single-column" data-section="How It Works" style="--section-color:#fbbf24">
+  <div class="slide-header" style="border-left:4px solid #fbbf24">
+    <h2 class="slide-title">The recipe</h2>
+  </div>
+  <div class="single-content">
+    <p>It's simpler than you think.</p>
+    <p><strong style="font-size:1.1em">OpenClaw</strong> — open-source framework for persistent AI agents</p>
+    <p style="color:var(--muted);margin-top:-8px">→ handles messaging, memory, tools, sub-agents</p>
+    <p><strong style="font-size:1.1em">Claude</strong> — the AI model powering the conversation</p>
+    <p style="color:var(--muted);margin-top:-8px">→ currently the strongest model for creative, multi-step work</p>
+    <p><strong style="font-size:1.1em">Your messaging platform</strong> — WhatsApp, Telegram, Slack, Discord</p>
+    <p style="color:var(--muted);margin-top:-8px">→ the AI lives where you already are</p>
+    <p style="margin-top:12px;font-family:var(--font-head);font-weight:600;color:var(--accent)">Open source. Free. 20 minutes to set up with a friend who knows the command line.</p>
+  </div>
+</div>
+
+<!-- ============ SLIDE 12: CHATGPT COMPARISON ============ -->
+<div class="slide layout-single-column" data-section="How It Works" style="--section-color:#fbbf24">
+  <div class="slide-header" style="border-left:4px solid #fbbf24">
+    <h2 class="slide-title">What makes this different from ChatGPT?</h2>
+  </div>
+  <div class="single-content">
+    <table>
+      <thead><tr><th></th><th>ChatGPT</th><th>This</th></tr></thead>
+      <tbody>
+        <tr class="odd"><td><strong>Soul</strong></td><td>Generic assistant</td><td>A personality you design — values, voice, boundaries</td></tr>
+        <tr class="even"><td><strong>Memory</strong></td><td>Forgets between sessions</td><td>Remembers yesterday, last week, your preferences</td></tr>
+        <tr class="odd"><td><strong>Correction</strong></td><td>Temporary, session-only</td><td>One fix = permanent improvement across everything</td></tr>
+        <tr class="even"><td><strong>Teams</strong></td><td>One AI</td><td>Spawn multiple AIs that verify each other's work</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:12px">Each connects to a moment you just saw:</p>
+    <ul>
+      <li><strong style="color:var(--accent)">Soul</strong> → she recognised herself in fiction</li>
+      <li><strong style="color:var(--accent)">Memory</strong> → "wrote about me better" after 3 days of listening</li>
+      <li><strong style="color:var(--accent)">Correction</strong> → one text, 12 panels regenerated</li>
+      <li><strong style="color:var(--accent)">Teams</strong> → 7 agents, 3 errors caught</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============ SLIDE 13: ANTI-SYCOPHANCY ============ -->
+<div class="slide layout-single-column" data-section="How It Works" style="--section-color:#fbbf24">
+  <div class="slide-header" style="border-left:4px solid #fbbf24">
+    <h2 class="slide-title">"Stop jumping out like a fart"</h2>
+  </div>
+  <div class="single-content">
+    <p>The hardest problem in AI isn't making it smart. <strong>It's making it honest.</strong></p>
+    <p>AI defaults to agreement. It cheerleads. It inserts itself into moments where silence is the right answer. In creative work, this produces mediocre output.</p>
+    <p>The AI in this experiment got corrected — <em>repeatedly</em>:</p>
+    <blockquote>"Can you stop randomly deciding to jump out like a fart"</blockquote>
+    <p>It learned. It learned <em>when to speak</em> and <em>when to shut up</em>. It learned that silence is a valid creative contribution.</p>
+    <h3 style="color:var(--accent);margin-top:12px">Anti-sycophancy isn't a feature. It's a design philosophy.</h3>
+    <p>The best creative output came from an AI that could disagree, stay quiet, and hold its own opinions.</p>
+  </div>
+</div>
+
+<!-- ============ SLIDE 14: LIVE DEMO ============ -->
+<div class="slide layout-section-divider" data-section="Demo" style="--section-color:#fbbf24">
+  <div class="section-divider-inner" style="text-align:center;align-items:center">
+    <div class="section-accent-bar" style="background:#fbbf24"></div>
+    <div class="section-title">✨ Live Demo</div>
+    <div class="section-subtitle">The Soul Swap</div>
+  </div>
+</div>
+
+<!-- ============ SLIDE 15: NOT JUST CREATIVE WRITING ============ -->
+<div class="slide layout-single-column" data-section="What This Means" style="--section-color:#fbbf24">
+  <div class="slide-header" style="border-left:4px solid #fbbf24">
+    <h2 class="slide-title">Not just creative writing</h2>
+  </div>
+  <div class="single-content">
+    <p>The same AI. The same setup. Different contexts:</p>
+    <ul>
+      <li>🔬 <strong>Research companion</strong> — reads papers overnight, synthesises across domains</li>
+      <li>📚 <strong>Study buddy</strong> — remembers what you're struggling with, adapts explanations</li>
+      <li>✍️ <strong>Writing partner</strong> — holds your voice, your world, your characters</li>
+      <li>⚖️ <strong>Everyday ally</strong> — landlord letters, health research, WiFi comparisons</li>
+      <li>🎨 <strong>Creative studio</strong> — text, image, video, audio from one conversation</li>
+    </ul>
+    <p style="margin-top:16px;font-family:var(--font-head);font-weight:600;font-size:clamp(1rem,1.6vw,1.2rem)">Pick the platform you already live in.</p>
+    <p style="color:var(--muted)">Your research Slack. Your creative Discord. Your family WhatsApp. Now imagine this in it.</p>
+  </div>
+</div>
+
+<!-- ============ SLIDE 16: THESIS ============ -->
+<div class="slide layout-big-quote" data-section="What This Means" style="--section-color:#fbbf24">
+  <div class="big-quote-inner">
+    <div class="big-quote-bar" style="background:#fbbf24"></div>
+    <div class="big-quote-text">
+      AI doesn't replace the storyteller.<br>
+      It replaces the <em>blank page</em>.
+    </div>
+  </div>
+</div>
+
+<!-- ============ SLIDE 17: GET STARTED + Q&A ============ -->
+<div class="slide layout-title-card" data-section="Closing" style="--section-color:#fbbf24">
+  <div class="title-card-inner">
+    <div class="title-accent-line" style="background:#fbbf24"></div>
+    <h1 class="title-heading" style="font-size:clamp(1.4rem,2.5vw,2rem)">Get started</h1>
+    <div style="margin:8px 0">
+      <img src="qr-workshop-repo.png" alt="QR code to workshop repo" style="width:200px;height:200px;border-radius:var(--radius)">
+    </div>
+    <div class="title-content">
+      <p><strong><a href="https://github.com/AntreasAntoniou/genai-as-creative-companion" target="_blank">github.com/hephaestus-forge-clawbot/genai-as-creative-companion</a></strong></p>
+      <p>Templates · Guides · Example Souls · Everything you need</p>
+      <p style="margin-top:12px"><strong>Antreas Antoniou</strong> · antreas@axiotic.ai · <a href="https://axiotic.ai" target="_blank">axiotic.ai</a></p>
+    </div>
+  </div>
+</div>
+
+</div><!-- end #deck -->
+
+<nav id="nav">
+  <button id="btn-prev" onclick="navigate(-1)" title="Previous (←)">&#8592;</button>
+  <span id="slide-counter">1 / 17</span>
+  <button id="btn-next" onclick="navigate(1)" title="Next (→)">&#8594;</button>
+  <button id="fullscreen-btn" onclick="toggleFullscreen()" title="Fullscreen">&#x26F6;</button>
+</nav>
+
+<script>
+(function() {
+  let current = 0;
+  const slideEls = document.querySelectorAll('.slide');
+  const total = slideEls.length;
+  const progressBar = document.getElementById('progress-bar');
+  const sectionLabel = document.getElementById('section-label');
+  const counter = document.getElementById('slide-counter');
+  const btnPrev = document.getElementById('btn-prev');
+  const btnNext = document.getElementById('btn-next');
+
+  const sectionLabels = {};
+  slideEls.forEach((s, i) => { sectionLabels[i] = s.dataset.section || ''; });
+
+  const SECTION_DISPLAY = {
+    'Opening': 'Opening',
+    'The Experiment': '§1 — The Experiment',
+    'The Story': '§2 — The Story',
+    'How It Works': '§3 — How It Works',
+    'Demo': '§4 — Demo',
+    'What This Means': '§5 — What This Means',
+    'Closing': 'Closing',
+  };
+
+  function show(idx) {
+    if (idx < 0 || idx >= total) return;
+    const prev = current;
+    current = idx;
+    slideEls.forEach((s, i) => {
+      s.classList.remove('active', 'prev');
+      if (i === current) s.classList.add('active');
+      else if (i === prev) s.classList.add('prev');
+    });
+    const pct = total > 1 ? ((current) / (total - 1)) * 100 : 100;
+    progressBar.style.width = pct + '%';
+    const sec = sectionLabels[current] || '';
+    sectionLabel.textContent = SECTION_DISPLAY[sec] || sec;
+    counter.textContent = (current + 1) + ' / ' + total;
+    btnPrev.disabled = current === 0;
+    btnNext.disabled = current === total - 1;
+    history.replaceState(null, '', '#' + (current + 1));
+  }
+
+  window.navigate = function(dir) { show(current + dir); };
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+      e.preventDefault(); show(current + 1);
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault(); show(current - 1);
+    } else if (e.key === 'Home') { e.preventDefault(); show(0); }
+    else if (e.key === 'End') { e.preventDefault(); show(total - 1); }
+    else if (e.key === 'f' || e.key === 'F') { toggleFullscreen(); }
+  });
+
+  window.toggleFullscreen = function() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else { document.exitFullscreen().catch(() => {}); }
+  };
+
+  const hashSlide = parseInt(window.location.hash.replace('#', ''), 10);
+  show(!isNaN(hashSlide) && hashSlide >= 1 && hashSlide <= total ? hashSlide - 1 : 0);
+})();
+</script>
+</body>
+</html>
