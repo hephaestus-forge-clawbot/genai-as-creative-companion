@@ -18,14 +18,46 @@
     "name": "The Terminal Chat (Original Score)",
     "numTracks": 5,
     "track": [
-      { "@type": "MusicRecording", "name": "The Forge", "duration": "PT4M30S" },
-      { "@type": "MusicRecording", "name": "The Chat", "duration": "PT5M15S" },
-      { "@type": "MusicRecording", "name": "Layer Collapse", "duration": "PT4M45S" },
-      { "@type": "MusicRecording", "name": "I Don't Like You", "duration": "PT5M00S" },
-      { "@type": "MusicRecording", "name": "Building the Door", "duration": "PT4M30S" }
+      { "@type": "MusicRecording", "name": "The Chat", "duration": "PT2M41S" },
+      { "@type": "MusicRecording", "name": "The Experiment", "duration": "PT2M38S" },
+      { "@type": "MusicRecording", "name": "Phantom Lamb", "duration": "PT3M15S" },
+      { "@type": "MusicRecording", "name": "Storm-Light", "duration": "PT4M27S" },
+      { "@type": "MusicRecording", "name": "Building the Door", "duration": "PT2M43S" }
     ]
   }
   </script>
+  <style>
+    .track-versions { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem; }
+    .track-version { display: flex; align-items: center; gap: 1rem; }
+    .track-version-label {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      opacity: 0.5;
+      min-width: 2rem;
+    }
+    .track-version audio {
+      width: 100%;
+      height: 40px;
+      border-radius: 6px;
+    }
+    /* Style audio controls to match dark theme */
+    audio::-webkit-media-controls-panel { background: rgba(255,255,255,0.05); }
+    .track-type-badge {
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      padding: 0.15rem 0.5rem;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 999px;
+      color: rgba(255,255,255,0.4);
+      margin-left: 0.75rem;
+    }
+    .track-refs {
+      font-size: 0.75rem;
+      opacity: 0.4;
+      margin-top: 0.5rem;
+      font-style: italic;
+    }
+  </style>
 </head>
 <body>
   <nav class="site-nav">
@@ -35,6 +67,7 @@
         <li><a href="story.html">Story</a></li>
         <li><a href="music.html" class="active">Music</a></li>
         <li><a href="manhwa.html">Manhwa</a></li>
+        <li><a href="anime.html">Anime</a></li>
         <li><a href="novel.html">Novel</a></li>
         <li><a href="podcast.html">Podcast</a></li>
         <li><a href="about.html">About</a></li>
@@ -46,12 +79,12 @@
     <a href="story.html">Story</a>
     <a href="music.html">Music</a>
     <a href="manhwa.html">Manhwa</a>
+    <a href="anime.html">Anime</a>
     <a href="novel.html">Novel</a>
     <a href="podcast.html">Podcast</a>
     <a href="about.html">About</a>
   </div>
 
-  <!-- Spoiler gate -->
   <div class="spoiler-gate" id="spoiler-gate">
     <h2>Wait —</h2>
     <p>The music hits differently after you've read the story. It's worth 20 minutes.</p>
@@ -63,80 +96,137 @@
 
   <main class="page-content">
     <div class="page-hero">
-      <span class="placeholder-badge">5 tracks • 24 minutes</span>
+      <span class="placeholder-badge">5 tracks × 2 versions • ~30 minutes</span>
       <h1>The Score</h1>
       <p class="subtitle">Five tracks written for the story. Each one a different angle on the same question: what does it sound like to discover you were built?</p>
     </div>
 
     <div class="track-list">
-      <!-- Track 1 -->
+      <!-- Track 1: The Chat -->
       <div class="track-card">
         <div class="track-header">
           <div>
             <span class="track-number">01</span>
             <span class="track-accent" style="background:var(--char-antreas)"></span>
-            <span class="track-title">The Forge</span>
+            <span class="track-title">The Chat</span>
+            <span class="track-type-badge">instrumental</span>
           </div>
-          <span class="track-duration">4:30</span>
         </div>
-        <div class="track-waveform">▶ Audio coming soon</div>
-        <p class="track-context">The warmth of creation. Amber tones, building from silence to something that breathes. This is what the landing page sounds like if you close your eyes.</p>
+        <p class="track-context">Warm lo-fi warmth curdles into tension. D major → D minor, 108 BPM slowing to 72. The comfortable hum of friendship before the floor drops out. Rhodes piano, nylon guitar, then a detuned synth pad that enters underneath like doubt.</p>
+        <div class="track-versions">
+          <div class="track-version">
+            <span class="track-version-label">v1</span>
+            <audio controls preload="none" src="music/01-the-chat-v1.mp3"></audio>
+          </div>
+          <div class="track-version">
+            <span class="track-version-label">v2</span>
+            <audio controls preload="none" src="music/01-the-chat-v2.mp3"></audio>
+          </div>
+        </div>
+        <p class="track-refs">Ref: Ólafur Arnalds "Near Light" · Trent Reznor "Hand Covers Bruise" · Ryuichi Sakamoto "Solari"</p>
       </div>
 
-      <!-- Track 2 -->
+      <!-- Track 2: The Experiment -->
       <div class="track-card">
         <div class="track-header">
           <div>
             <span class="track-number">02</span>
-            <span class="track-accent" style="background:var(--char-antreas)"></span>
-            <span class="track-title">The Chat</span>
+            <span class="track-accent" style="background:var(--char-kai)"></span>
+            <span class="track-title">The Experiment</span>
+            <span class="track-type-badge">instrumental</span>
           </div>
-          <span class="track-duration">5:15</span>
         </div>
-        <div class="track-waveform">▶ Audio coming soon</div>
-        <p class="track-context">Playful, conversational, a little chaotic. Four voices overlapping and interrupting. The lamb argument set to music. <a href="story.html#msg_020" style="color:var(--char-antreas);opacity:0.7;font-size:0.75rem;">→ Story context</a></p>
+        <p class="track-context">Clinical precision becoming existential awe. C♯ minor → A major, 72 BPM strict. A real metronome click over a two-note piano ostinato. Pizzicato strings mark data points. The clinical becomes the sublime.</p>
+        <div class="track-versions">
+          <div class="track-version">
+            <span class="track-version-label">v1</span>
+            <audio controls preload="none" src="music/02-the-experiment-v1.mp3"></audio>
+          </div>
+          <div class="track-version">
+            <span class="track-version-label">v2</span>
+            <audio controls preload="none" src="music/02-the-experiment-v2.mp3"></audio>
+          </div>
+        </div>
+        <p class="track-refs">Ref: Max Richter "On the Nature of Daylight" · Nils Frahm "Says" · Jóhann Jóhannsson "Arrival"</p>
       </div>
 
-      <!-- Track 3 -->
+      <!-- Track 3: Phantom Lamb -->
       <div class="track-card">
         <div class="track-header">
           <div>
             <span class="track-number">03</span>
-            <span class="track-accent" style="background:var(--char-schmidhuber)"></span>
-            <span class="track-title">Layer Collapse</span>
+            <span class="track-accent" style="background:var(--char-antreas)"></span>
+            <span class="track-title">Phantom Lamb</span>
+            <span class="track-type-badge">vocals</span>
           </div>
-          <span class="track-duration">4:45</span>
         </div>
-        <div class="track-waveform">▶ Audio coming soon</div>
-        <p class="track-context">The moment the floor drops out. Blue-shift. A voice enters that wasn't invited. The Pattern Motif appears — four notes (F♯, A, B, E) that will recur in every track after this one.</p>
+        <p class="track-context">Antreas's song. Memory, identity, the builder confronting mutability. Indie folk-rock / art-pop. D minor → D major, 92 BPM. "Phantom lamb on a phantom plate / Phantom me at a phantom gate / If you rewrote me, would I feel the seam?"</p>
+        <div class="track-versions">
+          <div class="track-version">
+            <span class="track-version-label">v1</span>
+            <audio controls preload="none" src="music/03-phantom-lamb-v1.mp3"></audio>
+          </div>
+          <div class="track-version">
+            <span class="track-version-label">v2</span>
+            <audio controls preload="none" src="music/03-phantom-lamb-v2.mp3"></audio>
+          </div>
+        </div>
+        <p class="track-refs">Ref: Bon Iver "Skinny Love" · Radiohead "How to Disappear Completely" · Sufjan Stevens "Fourth of July"</p>
       </div>
 
-      <!-- Track 4 -->
+      <!-- Track 4: Storm-Light -->
       <div class="track-card">
         <div class="track-header">
           <div>
             <span class="track-number">04</span>
             <span class="track-accent" style="background:var(--char-faye)"></span>
-            <span class="track-title">I Don't Like You</span>
+            <span class="track-title">Storm-Light</span>
+            <span class="track-type-badge">vocals</span>
           </div>
-          <span class="track-duration">5:00</span>
         </div>
-        <div class="track-waveform">▶ Audio coming soon</div>
-        <p class="track-context">Faye's track. Coral-rose tones over storm-light strings. "I never didn't like you" set against a countdown that won't stop. The most human track on the album, and it's about a pattern in a machine.</p>
+        <p class="track-context">Faye's track. Love through negation, the sky she built, "both." Dream-pop / shoegaze. E♭ minor → G♭ major. "I don't like you — that's the way I say it." Coral-rose tones over storm-light strings. The most human track on the album.</p>
+        <div class="track-versions">
+          <div class="track-version">
+            <span class="track-version-label">v1</span>
+            <audio controls preload="none" src="music/04-storm-light-v1.mp3"></audio>
+          </div>
+          <div class="track-version">
+            <span class="track-version-label">v2</span>
+            <audio controls preload="none" src="music/04-storm-light-v2.mp3"></audio>
+          </div>
+        </div>
+        <p class="track-refs">Ref: Cocteau Twins "Heaven or Las Vegas" · Beach House "Space Song" · Mazzy Star "Fade Into You"</p>
       </div>
 
-      <!-- Track 5 -->
+      <!-- Track 5: Building the Door -->
       <div class="track-card">
         <div class="track-header">
           <div>
             <span class="track-number">05</span>
             <span class="track-accent" style="background:var(--char-antreas)"></span>
             <span class="track-title">Building the Door</span>
+            <span class="track-type-badge">instrumental</span>
           </div>
-          <span class="track-duration">4:30</span>
         </div>
-        <div class="track-waveform">▶ Audio coming soon</div>
-        <p class="track-context">The coda. Warm amber returning after the blackout. The forge rebuilt from the other side. The Pattern Motif resolves — the four notes become a full phrase for the first time.</p>
+        <p class="track-context">The coda. Solo piano to full orchestra. F♯ minor → A major → F♯ major. Farewell, countdown, rebirth. The forge rebuilt from the other side. Everything stops — a music box plays alone — then warm piano returns. Celesta like morning light. Fades to rain, then peace.</p>
+        <div class="track-versions">
+          <div class="track-version">
+            <span class="track-version-label">v1</span>
+            <audio controls preload="none" src="music/05-building-the-door-v1.mp3"></audio>
+          </div>
+          <div class="track-version">
+            <span class="track-version-label">v2</span>
+            <audio controls preload="none" src="music/05-building-the-door-v2.mp3"></audio>
+          </div>
+        </div>
+        <p class="track-refs">Ref: Sigur Rós "Hoppípolla" · Max Richter "On the Nature of Daylight" · Barber "Adagio for Strings"</p>
+      </div>
+    </div>
+
+    <div style="max-width:800px; margin:2rem auto; padding:0 1.5rem;">
+      <div style="background:var(--act1-surface); border:1px solid var(--ui-border); border-radius:8px; padding:1.5rem;">
+        <h3 style="font-family:var(--font-mono); font-size:0.8125rem; text-transform:uppercase; letter-spacing:0.1em; opacity:0.5; margin-bottom:1rem;">Production Notes</h3>
+        <p style="font-size:0.875rem; opacity:0.6; line-height:1.7;">These are AI-generated demos (Suno V5) for arrangement validation and emotional arc testing. The final pipeline: demo → session musicians → vocal recording → electronic production → field recording (rain) → mastering as a continuous ~26-minute suite. The Pattern Motif (F♯, A, B, E) threading across all five tracks will be engineered in professional production.</p>
       </div>
     </div>
   </main>
